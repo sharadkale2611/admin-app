@@ -1,0 +1,248 @@
+'use client';
+import { useAppSelector } from '@/lib/hooks';
+import { useRouter, usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { AppRoutes } from '@/constants/routes';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
+import {
+    AppBar,
+    Toolbar,
+    IconButton,
+    Typography,
+    Drawer,
+    List,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
+    Divider,
+    Box,
+    CssBaseline,
+    useMediaQuery,
+    Badge,
+    Menu,
+    MenuItem,
+    Avatar,
+} from "@mui/material";
+import {
+    Menu as MenuIcon,
+    Notifications as NotificationsIcon,
+    Mail as MailIcon,
+    Settings as SettingsIcon,
+    Dashboard as DashboardIcon,
+    People as PeopleIcon,
+    ShoppingCart as ShoppingCartIcon,
+    BarChart as BarChartIcon,
+    Business,
+    BookSharp,
+    BookmarkSharp,
+} from "@mui/icons-material";
+import { useTheme } from "@mui/material/styles";
+import { useLogout } from '@/lib/features/auth/useLogout';
+
+const drawerWidth = 240;
+
+interface layoutParams {
+    children: React.ReactNode
+}
+
+const ProtectedLayout = ({ children }: layoutParams) => {
+    // All hooks must be called unconditionally at the top
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+    const router = useRouter();
+    const pathname = usePathname();
+    const { isAuthenticated, initialCheckDone } = useAppSelector(state => state.auth);
+    const { logout } = useLogout();
+
+    // State hooks
+    const [open, setOpen] = useState(!isMobile);
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (isMounted && initialCheckDone && !isAuthenticated) {
+            if (!pathname.startsWith(AppRoutes.LOGIN)) {
+                const redirectUrl = `${AppRoutes.LOGIN}?redirect=${encodeURIComponent(pathname)}`;
+                router.push(redirectUrl);
+            }
+        }
+    }, [isMounted, initialCheckDone, isAuthenticated, pathname, router]);
+
+    // Handlers
+    const handleDrawerToggle = () => {
+        setOpen(!open);
+    };
+
+    const handleUserMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleUserMenuClose = () => {
+        setAnchorEl(null);
+        logout();
+
+    };
+
+    // Conditional rendering after all hooks
+    if (!isMounted) {
+        return null;
+    }
+
+    if (!initialCheckDone) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <LoadingSpinner text="Verifying session..." />
+            </div>
+        );
+    }
+
+    if (!isAuthenticated) {
+        console.log('isAuthenticated', isAuthenticated);
+        
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <LoadingSpinner text="Redirecting to login..." />
+            </div>
+        );
+    }
+
+    return (
+        <Box sx={{ display: "flex" }}>
+            <CssBaseline />
+            {/* Top Navigation Bar */}
+            <AppBar
+                position="fixed"
+                sx={{
+                    zIndex: (theme) => theme.zIndex.drawer + 1,
+                    backgroundColor: "background.paper",
+                    color: "text.primary",
+                    boxShadow: "none",
+                    borderBottom: "1px solid",
+                    borderColor: "divider",
+                }}
+            >
+                <Toolbar>
+                    {/* Logo and Sidebar Toggle */}
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <IconButton
+                            color="inherit"
+                            aria-label="open drawer"
+                            edge="start"
+                            onClick={handleDrawerToggle}
+                            sx={{ mr: 2 }}
+                        >
+                            <MenuIcon />
+                        </IconButton>
+                        <Typography variant="h6" noWrap component="div">
+                            Admin Panel
+                        </Typography>
+                    </Box>
+
+                    {/* Spacer to push icons to right */}
+                    <Box sx={{ flexGrow: 1 }} />
+
+                    {/* Right-side Icons */}
+                    <Box sx={{ display: "flex", gap: 1 }}>
+                        <IconButton color="inherit">
+                            <Badge badgeContent={4} color="error">
+                                <MailIcon />
+                            </Badge>
+                        </IconButton>
+                        <IconButton color="inherit">
+                            <Badge badgeContent={3} color="error">
+                                <NotificationsIcon />
+                            </Badge>
+                        </IconButton>
+                        <IconButton color="inherit">
+                            <SettingsIcon />
+                        </IconButton>
+
+                        {/* User Dropdown */}
+                        <IconButton onClick={handleUserMenuOpen} sx={{ p: 0, ml: 1 }}>
+                            <Avatar alt="User" src="/avatar3.png" />
+                        </IconButton>
+                        <Menu
+                            anchorEl={anchorEl}
+                            open={Boolean(anchorEl)}
+                            onClose={() => setAnchorEl(null)}
+                        >
+                            <MenuItem onClick={() => { setAnchorEl(null); router.push(AppRoutes.PROFILE) }}>Profile</MenuItem>
+                            <MenuItem onClick={() => setAnchorEl(null)}>Settings</MenuItem>
+                            <Divider />
+                            <MenuItem onClick={handleUserMenuClose}>Logout</MenuItem>
+                        </Menu>
+                    </Box>
+                </Toolbar>
+            </AppBar>
+
+            {/* Sidebar */}
+            <Drawer
+                variant={isMobile ? "temporary" : "permanent"}
+                open={open}
+                onClose={handleDrawerToggle}
+                sx={{
+                    width: open ? drawerWidth : theme.spacing(7),
+                    flexShrink: 0,
+                    whiteSpace: "nowrap",
+                    boxSizing: "border-box",
+                    "& .MuiDrawer-paper": {
+                        width: open ? drawerWidth : theme.spacing(7),
+                        overflowX: "hidden",
+                        transition: theme.transitions.create("width", {
+                            easing: theme.transitions.easing.sharp,
+                            duration: open
+                                ? theme.transitions.duration.enteringScreen
+                                : theme.transitions.duration.leavingScreen,
+                        }),
+                    },
+                }}
+            >
+                <Toolbar />
+                <List>
+                    {[
+                        { text: "Dashboard", icon: <DashboardIcon />, path: AppRoutes.DASHBOARD },
+                        { text: "Staff", icon: <PeopleIcon />, path: AppRoutes.STAFF },
+                        { text: "Students", icon: <PeopleIcon />, path: AppRoutes.STUDENTS },
+                        { text: "Firms", icon: <Business />, path: AppRoutes.FRIMS },
+                        { text: "Courses Category", icon: <BookmarkSharp />, path: AppRoutes.COURSE_CATEGORY },
+                        { text: "Courses", icon: <BookSharp />, path: AppRoutes.COURSES },
+                        { text: "Reports", icon: <BarChartIcon />, path: "/reports" },
+                    ].map((item) => (
+                        <ListItem
+                            key={item.text}
+                            component="a"
+                            href={item.path}
+                            sx={{
+                                "&.Mui-selected": {
+                                    backgroundColor: "rgba(0, 0, 0, 0.04)",
+                                },
+                            }}
+                        >
+                            <ListItemIcon>{item.icon}</ListItemIcon>
+                            {open && <ListItemText primary={item.text} />}
+                        </ListItem>
+                    ))}
+                </List>
+            </Drawer>
+
+            {/* Main Content */}
+            <Box
+                component="main"
+                sx={{
+                    flexGrow: 1,
+                    p: 3,
+                    width: `calc(100% - ${open ? drawerWidth : theme.spacing(7)}px)`,
+                }}
+            >
+                <Toolbar />
+                {children}
+            </Box>
+        </Box>
+    );
+};
+
+export default ProtectedLayout;
