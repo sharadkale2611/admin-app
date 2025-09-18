@@ -114,6 +114,23 @@ const ProtectedLayout = ({ children }: layoutParams) => {
         <Box sx={{ display: "flex" }}>
             <CssBaseline />
             {/* Top Navigation Bar */}
+
+            <style jsx global>{`
+    @media print {
+      .MuiDrawer-root {
+        display: none !important;
+      }
+      .MuiAppBar-root {
+        display: none !important;
+      }
+      main {
+        width: 100% !important;
+        padding: 0 !important;
+      }
+    }
+  `}</style>
+
+
             <AppBar
                 position="fixed"
                 sx={{
@@ -210,6 +227,7 @@ const ProtectedLayout = ({ children }: layoutParams) => {
                         { text: "Firms", icon: <Business />, path: AppRoutes.FRIMS },
                         { text: "Courses Category", icon: <BookmarkSharp />, path: AppRoutes.COURSE_CATEGORY },
                         { text: "Courses", icon: <BookSharp />, path: AppRoutes.COURSES },
+                        { text: "Courses Fees", icon: <BookSharp />, path: AppRoutes.FEES },
                         { text: "Reports", icon: <BarChartIcon />, path: "/reports" },
                     ].map((item) => (
                         <ListItem

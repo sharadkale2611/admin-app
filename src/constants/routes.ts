@@ -18,6 +18,7 @@ export const AppRoutes = {
     STUDENTS: '/students',
     FRIMS: '/firms',
     COURSES: '/courses',
+    FEES: '/fees',
     COURSE_CATEGORY: '/courseCategory',
     SETTINGS: '/settings',
     ADMIN: '/admin',

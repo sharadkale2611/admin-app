@@ -21,6 +21,7 @@ import { staffReducer } from './features/staff/staffSlice';
 import { courseCategoryReducer } from './features/courseCategory/courseCategorySlice';
 import { courseReducer} from './features/course/courseSlice'
 import { studentReducer } from './features/student/studentSlice'
+import { courseFeeReducer } from './features/fees/feesSlice';
 
 const rootReducer = combineReducers({
     auth: authReducer,
@@ -29,6 +30,7 @@ const rootReducer = combineReducers({
     staff: staffReducer,
     courseCategories: courseCategoryReducer,
     courses: courseReducer,
+    courseFees: courseFeeReducer,
     students: studentReducer
 });
 

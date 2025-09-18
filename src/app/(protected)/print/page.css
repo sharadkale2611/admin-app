@@ -1,0 +1,22 @@
+@media print {
+
+    /* Weekday headers */
+    .weekday-header {
+        background: none !important;
+        color: black !important;
+        border: 1px solid black !important;
+        /* optional for visibility */
+    }
+
+    /* Date number badge */
+    .date-badge {
+        color: #fff !important;
+        /* light gray */
+        background: #e0e0e0 !important;
+    }
+
+    /* Hide Print button */
+    .no-print {
+        display: none !important;
+    }
+}
