@@ -1,3 +1,5 @@
+// src/lib/features/courseCategory/useCourseCategoryViewModel.ts
+
 'use client'
 import { useState, useEffect, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';

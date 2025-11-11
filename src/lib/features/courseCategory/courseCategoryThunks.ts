@@ -1,3 +1,5 @@
+// src/lib/features/courseCategory/courseCategoryThunks.ts
+
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { AppDispatch, RootState } from "@/lib/store";
 import {

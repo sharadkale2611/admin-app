@@ -33,6 +33,13 @@ export interface CreateFirmDto {
     isActive: boolean;
 }
 
+export interface UpdateFirmDto {
+    firmId: number;      // required to identify the firm to update
+    firmName: string;
+    firmCode: string;
+    isActive: boolean;
+}
+
 
 export interface ApiResponse<T> {
     success: boolean;

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { createStudent } from './studentThunks';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
+import { AppDispatch } from '@/lib/store';
+import { ApiError } from './studentTypes';
 
 export interface StudentFormData {
     // User fields
@@ -23,7 +25,8 @@ export interface StudentFormData {
 
 export default function useCreateStudentViewModel() {
     const router = useRouter();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
+
     const [formData, setFormData] = useState<StudentFormData>({
         userName: '',
         password: '',
@@ -37,7 +40,7 @@ export default function useCreateStudentViewModel() {
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<ApiError | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -61,32 +64,21 @@ export default function useCreateStudentViewModel() {
         setError(null);
 
         try {
-            // Validate form data
+            // Basic validation
             if (!formData.userName || !formData.password || !formData.email ||
                 !formData.studentCode || !formData.firstName || !formData.lastName) {
                 throw new Error('Please fill in all required fields');
             }
 
-            // Validate email format
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
                 throw new Error('Please enter a valid email address');
             }
 
-            // Create the student using Redux action
-            const result = await dispatch<any>(createStudent({
-                userName: formData.userName,
-                password: formData.password,
-                email: formData.email,
-                mobileNumber: formData.mobileNumber,
-                studentCode: formData.studentCode,
-                firstName: formData.firstName,
-                lastName: formData.lastName,
-                dateOfBirth: formData.dateOfBirth,
-                gender: formData.gender
-            })).unwrap();
+            // Call createStudent thunk
+            const result = await dispatch(createStudent(formData)).unwrap();
 
             if (result.success) {
-                toast.success('Student created successfully');
+                toast.success(result.message || 'Student created successfully');
 
                 // Reset form
                 setFormData({
@@ -101,16 +93,31 @@ export default function useCreateStudentViewModel() {
                     gender: ''
                 });
 
-                // Redirect to students list
                 router.push('/students');
             } else {
                 throw new Error(result.error || 'Failed to create student');
             }
         } catch (err: unknown) {
-            const errorMessage = err instanceof Error ? err.message :
-                typeof err === 'string' ? err :
-                    'An unknown error occurred';
-            setError(errorMessage);
+            let errorMessage = 'An unknown error occurred';
+            let errorDetails: Record<string, string[]> | null = null;
+
+            if (typeof err === 'object' && err !== null) {
+                // Axios / API error
+                if ('response' in err && (err as any).response?.data) {
+                    const apiError = (err as any).response.data;
+                    errorMessage = apiError.error || apiError.message || errorMessage;
+                    errorDetails = apiError.errors || null;
+                } else if ('error' in (err as any)) {
+                    errorMessage = (err as any).error || errorMessage;
+                    errorDetails = (err as any).errors || null;
+                }
+            } else if (typeof err === 'string') {
+                errorMessage = err;
+            } else if (err instanceof Error) {
+                errorMessage = err.message;
+            }
+
+            setError({ error: errorMessage, errors: errorDetails });
             toast.error(errorMessage);
         } finally {
             setIsSubmitting(false);

@@ -20,18 +20,22 @@ import { firmReducer } from './features/firm/firmSlice';
 import { staffReducer } from './features/staff/staffSlice'; 
 import { courseCategoryReducer } from './features/courseCategory/courseCategorySlice';
 import { courseReducer} from './features/course/courseSlice'
-import { studentReducer } from './features/student/studentSlice'
+import { studentReducer } from './features/student/studentSlice';
+import { admissionReducer } from './features/admission/admissionSlice'
 import { courseFeeReducer } from './features/fees/feesSlice';
+import { discountCodeReducer } from './features/discountCode/discountCodeSlice';
 
 const rootReducer = combineReducers({
     auth: authReducer,
-    session: sessionReducer,
+    session: sessionReducer,    
     firms: firmReducer,
     staff: staffReducer,
     courseCategories: courseCategoryReducer,
     courses: courseReducer,
     courseFees: courseFeeReducer,
-    students: studentReducer
+    students: studentReducer,
+    admissions: admissionReducer,
+    discountCodes: discountCodeReducer
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

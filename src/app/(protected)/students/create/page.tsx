@@ -17,6 +17,79 @@ import {
 import { Save, Cancel } from '@mui/icons-material';
 import Link from 'next/link';
 import useCreateStudentViewModel from '@/lib/features/student/useCreateStudentViewModel';
+import { ApiError } from '@/lib/features/student/studentTypes';
+
+// Map field names to friendly labels
+const fieldLabels: Record<string, string> = {
+    userName: "Username",
+    password: "Password",
+    email: "Email",
+    mobileNumber: "Mobile Number",
+    studentCode: "Student Code",
+    firstName: "First Name",
+    lastName: "Last Name",
+    dateOfBirth: "Date of Birth",
+    gender: "Gender",
+
+    // API PascalCase
+    UserName: "Username",
+    Password: "Password",
+    Email: "Email",
+    MobileNumber: "Mobile Number",
+    StudentCode: "Student Code",
+    FirstName: "First Name",
+    LastName: "Last Name",
+    DateOfBirth: "Date of Birth",
+    Gender: "Gender",
+};
+
+// Transform system or regex error messages to user-friendly ones
+function transformErrorMessage(field: string, message: string): string {
+    if (field.toLowerCase() === "mobilenumber") {
+        if (message.includes("regular expression")) {
+            return "Mobile Number must be exactly 10 digits.";
+        }
+    }
+
+    if (field.toLowerCase() === "email") {
+        if (message.includes("not a valid email")) {
+            return "Please enter a valid email address.";
+        }
+    }
+
+    if (field.toLowerCase() === "password") {
+        if (message.includes("required") || message.includes("length")) {
+            return "Password must meet the required length and complexity.";
+        }
+    }
+
+    // Default fallback
+    return message;
+}
+
+// Render errors with heading + list
+function renderErrorContent(error: ApiError | null) {
+    if (!error) return null;
+
+    return (
+        <div className="text-red-600">
+            {error.error && <h4 className="font-semibold mb-2">{error.error}</h4>}
+
+            {error.errors && (
+                <ul className="list-disc list-inside space-y-1">
+                    {Object.entries(error.errors).map(([field, messages]) =>
+                        messages.map((msg, i) => (
+                            <li key={`${field}-${i}`}>
+                                <strong>{fieldLabels[field] || field}:</strong>{" "}
+                                {transformErrorMessage(field, msg)}
+                            </li>
+                        ))
+                    )}
+                </ul>
+            )}
+        </div>
+    );
+}
 
 export default function CreateStudent() {
     const {
@@ -36,7 +109,7 @@ export default function CreateStudent() {
 
             {error && (
                 <Alert severity="error" sx={{ mb: 2 }}>
-                    {error}
+                    {renderErrorContent(error)}
                 </Alert>
             )}
 
@@ -44,13 +117,13 @@ export default function CreateStudent() {
                 <form onSubmit={handleSubmit}>
                     <Grid container spacing={2}>
                         {/* User Account Section */}
-                        <Grid size={{ xs: 12 }}>
+                        <Grid  size={{xs:12}}>
                             <Typography variant="subtitle1" sx={{ mb: 1, color: 'text.secondary' }}>
                                 Account Information
                             </Typography>
                         </Grid>
 
-                        <Grid size={{ xs: 12, sm: 6 }}>
+                        <Grid size={{ xs: 12, sm:6 }}>
                             <TextField
                                 fullWidth
                                 label="Username"
@@ -63,7 +136,7 @@ export default function CreateStudent() {
                             />
                         </Grid>
 
-                        <Grid size={{ xs: 12, sm: 6 }}>
+                        <Grid size={{ xs: 12, sm:6 }}>
                             <TextField
                                 fullWidth
                                 label="Password"
@@ -77,7 +150,7 @@ export default function CreateStudent() {
                             />
                         </Grid>
 
-                        <Grid size={{ xs: 12, sm: 6 }}>
+                        <Grid size={{ xs: 12, sm:6 }}>
                             <TextField
                                 fullWidth
                                 label="Email"
@@ -91,7 +164,7 @@ export default function CreateStudent() {
                             />
                         </Grid>
 
-                        <Grid size={{ xs: 12, sm: 6 }}>
+                        <Grid size={{ xs: 12, sm:6 }}>
                             <TextField
                                 fullWidth
                                 label="Mobile Number"
@@ -110,7 +183,7 @@ export default function CreateStudent() {
                             </Typography>
                         </Grid>
 
-                        <Grid size={{ xs: 12, sm: 6 }}>
+                        <Grid size={{ xs: 12, sm:6 }}>
                             <TextField
                                 fullWidth
                                 label="Student Code"
@@ -123,7 +196,7 @@ export default function CreateStudent() {
                             />
                         </Grid>
 
-                        <Grid size={{ xs: 12, sm: 6 }}>
+                        <Grid size={{ xs: 12, sm:6 }}>
                             <TextField
                                 fullWidth
                                 label="First Name"
@@ -136,7 +209,7 @@ export default function CreateStudent() {
                             />
                         </Grid>
 
-                        <Grid size={{ xs: 12, sm: 6 }}>
+                        <Grid size={{ xs: 12, sm:6 }}>
                             <TextField
                                 fullWidth
                                 label="Last Name"
@@ -149,7 +222,7 @@ export default function CreateStudent() {
                             />
                         </Grid>
 
-                        <Grid size={{ xs: 12, sm: 6 }}>
+                        <Grid size={{ xs: 12, sm:6 }}>
                             <TextField
                                 fullWidth
                                 label="Date of Birth"
@@ -163,7 +236,7 @@ export default function CreateStudent() {
                             />
                         </Grid>
 
-                        <Grid size={{ xs: 12, sm: 6 }}>
+                        <Grid size={{ xs: 12, sm:6 }}>
                             <FormControl fullWidth size="small" disabled={isSubmitting}>
                                 <InputLabel>Gender</InputLabel>
                                 <Select

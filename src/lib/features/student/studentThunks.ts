@@ -7,21 +7,88 @@ import {
     PaginatedStudent,
     ApiResponse,
     FetchStudentParams
-} from './studentTypes';
+} from "./studentTypes";
 import API_ENDPOINTS from "@/lib/config/apiConfig";
 import api from "@/lib/services/apiService";
 
+/**
+ * Error type for consistent error handling
+ */
+export interface ApiError {
+    error: string | null;   // single error
+    errors: string[] | null; // list of errors
+}
+
+/**
+ * Common error parser for API responses
+ */
+function parseApiError(error: any): ApiError {
+    console.log('parseApiError from std_Thunk', error);
+    
+    if (error?.response?.data) {
+        const data = error.response.data;
+
+        if (data.errors && typeof data.errors === "object") {
+            // flatten { field: [messages] } into string[]
+            const flattened = Object.entries(data.errors).flatMap(
+                ([field, msgs]) => (msgs as string[]).map(msg => `${field}: ${msg}`)
+            );
+            return { error: null, errors: flattened };
+        }
+
+        if (data.error) {
+            return { error: data.error, errors: null };
+        }
+    }
+
+    if (error?.errors){
+        return { error: error.message, errors: error?.errors };
+    }
+
+    if (error?.fieldErrors) {
+        return { error: error.message, errors: error?.fieldErrors };
+    }
+  
+    return { error: "An unknown error occurred...from thunk", errors: null };
+}
+
+export const fetchStudentList = createAsyncThunk<
+    Student[], // Response type: list of students
+    void,      // No parameters
+    { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
+>(
+    "students/fetchStudents",
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get<Student[]>(
+                API_ENDPOINTS.STUDENT.GET_LIST,
+                { withCredentials: true }
+            );
+
+            if (!response.data) {
+                return rejectWithValue({
+                    error: "No data returned from server",
+                    errors: null,
+                });
+            }
+
+            return response.data;
+        } catch (error: any) {
+            return rejectWithValue(parseApiError(error));
+        }
+    }
+);
+
+/**
+ * Fetch Students (paginated)
+ */
 export const fetchStudents = createAsyncThunk<
     PaginatedStudent,
     FetchStudentParams,
-    { dispatch: AppDispatch; state: RootState; rejectValue: string }
+    { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
 >(
-    'students/fetchStudents',
-    async ({
-        page = 1,
-        searchTerm = '',
-        activeOnly = true
-    }, { rejectWithValue }) => {
+    "students/fetchStudents",
+    async ({ page = 1, searchTerm = "", activeOnly = true }, { rejectWithValue }) => {
         try {
             const query = new URLSearchParams({
                 page: page.toString(),
@@ -35,87 +102,85 @@ export const fetchStudents = createAsyncThunk<
                 { withCredentials: true }
             );
 
-            return response.data;
-
-        } catch (error) {
-            console.error('Fetch students error:', error);
-            if (error instanceof Error) {
-                return rejectWithValue(
-                    error.message.includes('401') ? 'SESSION_EXPIRED' : error.message
-                );
+            if (!response.data) {
+                return rejectWithValue({ error: "No data from server", errors: null });
             }
-            return rejectWithValue('An unknown error occurred');
+
+            return response.data;
+        } catch (error: any) {
+            return rejectWithValue(parseApiError(error));
         }
     }
 );
 
+/**
+ * Create Student
+ */
 export const createStudent = createAsyncThunk<
     {
         success: boolean;
         message: string;
         error: string | null;
         errors: Record<string, string[]> | null;
-        student: Student;
+        student: Student | null;
     },
     CreateStudentDto,
-    { dispatch: AppDispatch; state: RootState; rejectValue: string }
+    { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
 >(
-    'students/createStudent',
-    async (createStudentDto, { rejectWithValue }) => {
+    "students/createStudent",
+    async (createStudentDto, { rejectWithValue, getState }) => {
         try {
-            const response = await api.post<Student>(
+            const response = await api.post<ApiResponse<Student>>(
                 API_ENDPOINTS.STUDENT.POST_CREATE,
                 createStudentDto,
                 {
                     withCredentials: true,
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { "Content-Type": "application/json" }
                 }
             );
 
-            if (!response?.data) {
-                return rejectWithValue('No response data from server');
+            // Check for non-200 response
+            if (response.status !== 200) {
+                return rejectWithValue({
+                    error: response.data?.error || response.data?.message || "Creation failed",
+                    errors: null,
+                });
             }
 
+            // Return created student
             return {
                 success: true,
-                message: 'Student created successfully',
+                message: response.data?.message || "Student created successfully",
                 error: null,
                 errors: null,
-                student: response.data
+                student: response.data?.data ?? null,
             };
-
         } catch (error: any) {
-            if (error.response) {
-                return rejectWithValue(
-                    error.response.data?.error ||
-                    error.response.data?.message ||
-                    'Server responded with an error'
-                );
-            }
-
-            if (error.message) {
-                return rejectWithValue(
-                    error.message.includes('401') ? 'SESSION_EXPIRED' : error.message
-                );
-            }
-
-            return rejectWithValue('An unknown error occurred');
+            // Ensure parseApiError returns {error: string, errors: Record<string,string[]> | null}
+            const parsed = parseApiError(error);
+            return rejectWithValue({
+                error: parsed.error ?? "Creation failed",
+                errors: parsed.errors ?? null,
+            });
         }
     }
 );
 
+/**
+ * Update Student
+ */
 export const updateStudent = createAsyncThunk<
     {
         success: boolean;
         message: string;
         error: string | null;
-        errors: Record<string, string[]> | null;
+        errors: string[] | null;
         student: Student;
     },
     UpdateStudentDto,
-    { dispatch: AppDispatch; state: RootState; rejectValue: string }
+    { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
 >(
-    'students/updateStudent',
+    "students/updateStudent",
     async (updateStudentDto, { rejectWithValue, getState }) => {
         try {
             const response = await api.put<ApiResponse<Student | null>>(
@@ -123,140 +188,120 @@ export const updateStudent = createAsyncThunk<
                 updateStudentDto,
                 {
                     withCredentials: true,
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { "Content-Type": "application/json" },
                 }
             );
 
-            const strResponse = JSON.stringify(response);
-            const objResponse = JSON.parse(strResponse);
+            console.log('flag --- 6.1');
+            console.log('response std update', response);
+            
+            if (response.status !== 200) {
+                console.log('flag --- 6.2');
 
-            if (!objResponse || !objResponse.success) {
-                return rejectWithValue('No response data from server');
+                // Flatten error to always have string | null
+                return rejectWithValue({
+                    error: response?.data?.error || response?.data?.message || "Update failed",
+                    errors: null,
+                });
             }
 
-            if (!objResponse.success) {
-                return rejectWithValue(
-                    objResponse.error ||
-                    objResponse.message ||
-                    'Update operation failed'
-                );
-            }
-
+            // Try fetching updated student
             try {
+                console.log('flag --- 6.3');
+
                 const studentResponse = await api.get<ApiResponse<Student>>(
                     `${API_ENDPOINTS.STUDENT.GET_BY_ID}/${updateStudentDto.id}`,
                     { withCredentials: true }
                 );
+                console.log('flag --- 6.4', studentResponse);
 
-                if (studentResponse.data && studentResponse.data.data) {
+                if (studentResponse.data?.data) {
+                    console.log('flag --- 6.5');
+
                     return {
                         success: true,
-                        message: objResponse.message || 'Student updated successfully',
+                        message: response.message || "Student updated successfully",
                         error: null,
                         errors: null,
-                        student: studentResponse.data.data
+                        student: studentResponse.data.data,
                     };
                 }
             } catch (fetchError) {
-                console.warn('Could not fetch updated student data:', fetchError);
+                console.log('flag --- 6.6');
+
+                console.warn("Could not fetch updated student:", fetchError);
             }
 
+            // fallback: merge state
             const state = getState() as RootState;
-            const existingStudent = state.students.currentStudent ||
-                state.students.students.find(s => s.studentId === updateStudentDto.id);
+            const existingStudent =
+                state.students.currentStudent ||
+                state.students.students.find((s: Student) => s.studentId === updateStudentDto.id);
 
             if (!existingStudent) {
-                return rejectWithValue('Could not find student data to update');
+                return rejectWithValue({
+                    error: "Could not find student to update",
+                    errors: null,
+                });
             }
 
             return {
                 success: true,
-                message: objResponse.message || 'Student updated successfully',
+                message: response.message || "Student updated successfully",
                 error: null,
                 errors: null,
                 student: {
                     ...existingStudent,
                     ...updateStudentDto,
                     studentId: updateStudentDto.id,
-                    updatedAt: new Date().toISOString()
-                } as Student
+                    updatedAt: new Date().toISOString(),
+                } as Student,
             };
-
         } catch (error: any) {
-            console.error('Update student error:', error);
-
-            if (error.response?.data) {
-                const errorData = error.response.data;
-                if (typeof errorData === 'object') {
-                    return rejectWithValue(
-                        errorData.error ||
-                        errorData.message ||
-                        'Server responded with an error'
-                    );
-                }
-                return rejectWithValue('Server responded with an error');
-            }
-
-            if (error.message) {
-                return rejectWithValue(
-                    error.message.includes('401') ? 'SESSION_EXPIRED' : error.message
-                );
-            }
-
-            return rejectWithValue('An unknown error occurred');
+            // Ensure parseApiError always returns ApiError {error: string, errors: string[] | null}
+            const parsed = parseApiError(error);
+            return rejectWithValue({
+                error: parsed.error ?? "Update failed",
+                errors: parsed.errors ?? null,
+            });
         }
     }
 );
 
+
+/**
+ * Delete Student
+ */
 export const deleteStudent = createAsyncThunk<
-    {
-        success: boolean;
-        message: string;
-        id: string;
-    },
+    { success: boolean; message: string; id: string },
     string,
-    { dispatch: AppDispatch; state: RootState; rejectValue: string }
+    { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
 >(
-    'students/deleteStudent',
+    "students/deleteStudent",
     async (id, { rejectWithValue }) => {
         try {
-            await api.delete(
-                `${API_ENDPOINTS.STUDENT.DELETE}/${id}`,
-                { withCredentials: true }
-            );
+            await api.delete(`${API_ENDPOINTS.STUDENT.DELETE}/${id}`, { withCredentials: true });
 
             return {
                 success: true,
-                message: 'Student deleted successfully',
+                message: "Student deleted successfully",
                 id
             };
-
         } catch (error: any) {
-            if (error.response) {
-                return rejectWithValue(
-                    error.response.data?.error ||
-                    error.response.data?.message ||
-                    'Server responded with an error'
-                );
-            }
-
-            if (error.message) {
-                return rejectWithValue(
-                    error.message.includes('401') ? 'SESSION_EXPIRED' : error.message
-                );
-            }
-
-            return rejectWithValue('An unknown error occurred');
+            return rejectWithValue(parseApiError(error));
         }
     }
 );
 
+/**
+ * Fetch Student By Id
+ */
 export const fetchStudentById = createAsyncThunk<
     Student,
     string,
-    { dispatch: AppDispatch; state: RootState; rejectValue: string }
+    { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
 >(
-    'students/fetchStudentById',
+    "students/fetchStudentById",
     async (studentId, { rejectWithValue }) => {
         try {
             const response = await api.get<Student>(
@@ -265,19 +310,12 @@ export const fetchStudentById = createAsyncThunk<
             );
 
             if (!response.data) {
-                return rejectWithValue('Student not found');
+                return rejectWithValue({ error: "Student not found", errors: null });
             }
 
             return response.data;
-
-        } catch (error) {
-            console.error('Fetch student by ID error:', error);
-            if (error instanceof Error) {
-                return rejectWithValue(
-                    error.message.includes('401') ? 'SESSION_EXPIRED' : error.message
-                );
-            }
-            return rejectWithValue('An unknown error occurred');
+        } catch (error: any) {
+            return rejectWithValue(parseApiError(error));
         }
     }
 );

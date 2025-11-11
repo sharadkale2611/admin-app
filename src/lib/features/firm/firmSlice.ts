@@ -1,6 +1,7 @@
+// lib/features/firm/firmSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { createFirm, fetchFirms } from './firmThunks';
-import { Firm, FirmsState, PaginatedFirms } from "./firmType";
+import { Firm, FirmsState } from "./firmType";
 
 const initialState: FirmsState = {
     firms: [],
@@ -38,13 +39,13 @@ const firmSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            // Fetch Firms
             .addCase(fetchFirms.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
             .addCase(fetchFirms.fulfilled, (state, action) => {
                 state.loading = false;
-                // Now action.payload is the direct PaginatedFirms data
                 const { items, totalCount, pageSize, currentPage, totalPages } = action.payload;
                 state.firms = items;
                 state.totalCount = totalCount;
@@ -54,8 +55,12 @@ const firmSlice = createSlice({
             })
             .addCase(fetchFirms.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload as string || "Network error";
+                state.error = typeof action.payload === 'string'
+                    ? action.payload
+                    : action.payload?.error ?? "Network error";
             })
+
+            // Create Firm
             .addCase(createFirm.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -72,7 +77,9 @@ const firmSlice = createSlice({
             })
             .addCase(createFirm.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload as string || "Failed to create firm";
+                state.error = typeof action.payload === 'string'
+                    ? action.payload
+                    : action.payload?.error ?? "Failed to create firm";
             });
     }
 });

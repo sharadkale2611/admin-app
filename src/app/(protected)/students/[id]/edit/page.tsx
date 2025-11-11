@@ -21,6 +21,79 @@ import { Save, Cancel } from '@mui/icons-material';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import useEditStudentViewModel from '@/lib/features/student/useEditStudentViewModel';
+import { ApiError } from '@/lib/features/student/studentTypes';
+
+
+const fieldLabels: Record<string, string> = {
+    userName: "Username",
+    email: "Email",
+    mobileNumber: "Mobile Number",
+    firstName: "First Name",
+    lastName: "Last Name",
+    dateOfBirth: "Date of Birth",
+    gender: "Gender",
+    isActive: "Active Status",
+
+    // In case API sends PascalCase
+    UserName: "Username",
+    Email: "Email",
+    MobileNumber: "Mobile Number",
+    FirstName: "First Name",
+    LastName: "Last Name",
+    DateOfBirth: "Date of Birth",
+    Gender: "Gender",
+    IsActive: "Active Status",
+};
+
+
+function transformErrorMessage(field: string, message: string): string {
+    // Handle Mobile Number regex
+    if (field.toLowerCase() === "mobilenumber" || field.toLowerCase() === "mobileNumber") {
+        if (message.includes("regular expression")) {
+            return "Mobile Number must be exactly 10 digits.";
+        }
+    }
+
+    // Handle Email
+    if (field.toLowerCase() === "email") {
+        if (message.includes("not a valid email")) {
+            return "Please enter a valid email address.";
+        }
+    }
+
+    // Add more transformations here if needed
+
+    // Default fallback
+    return message;
+}
+
+function renderErrorContent(error: ApiError | null) {
+    if (!error) return null;
+
+    return (
+        <div className="text-red-600">
+            {/* Main error heading */}
+            {error.error && <h4 className="font-semibold mb-2">{error.error}</h4>}
+
+            {/* Validation errors */}
+            {error.errors && (
+                <ul className="list-disc list-inside space-y-1">
+                    {Object.entries(error.errors).map(([field, messages]) =>
+                        messages.map((msg, i) => (
+                            <li key={`${field}-${i}`}>
+                                <strong>{fieldLabels[field] || field}:</strong>{" "}
+                                {transformErrorMessage(field, msg)}
+                            </li>
+                        ))
+                    )}
+                </ul>
+            )}
+        </div>
+    );
+}
+
+
+
 
 export default function EditStudent() {
     const { id } = useParams();
@@ -52,7 +125,7 @@ export default function EditStudent() {
 
             {error && (
                 <Alert severity="error" sx={{ mb: 2 }}>
-                    {error}
+                    {renderErrorContent(error)}
                 </Alert>
             )}
 

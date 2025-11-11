@@ -1,21 +1,58 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { AppDispatch, RootState } from "@/lib/store";
-import { Firm, CreateFirmDto, PaginatedFirms, ApiResponse } from './firmType';
+import { Firm, CreateFirmDto, UpdateFirmDto, PaginatedFirms, ApiResponse } from './firmType';
 import API_ENDPOINTS from "@/lib/config/apiConfig";
 import api from "@/lib/services/apiService";
 
+/**
+ * Error type for consistent API error handling
+ */
+export interface ApiError {
+    error: string | null;       // single error message
+    errors: string[] | null;    // detailed field errors
+}
+
+/**
+ * Parse API errors into consistent shape
+ */
+function parseApiError(error: any): ApiError {
+    console.log('parseApiError from firm thunk', error);
+
+    if (error?.response?.data) {
+        const data = error.response.data;
+
+        if (data.errors && typeof data.errors === "object") {
+            const flattened = Object.entries(data.errors).flatMap(
+                ([field, msgs]) => (msgs as string[]).map(msg => `${field}: ${msg}`)
+            );
+            return { error: null, errors: flattened };
+        }
+
+        if (data.error) {
+            return { error: data.error, errors: null };
+        }
+    }
+
+    if (error?.errors) {
+        return { error: error.message, errors: error.errors };
+    }
+
+    return { error: "An unknown error occurred", errors: null };
+}
+
+/**
+ * Fetch Firms (paginated)
+ */
 interface FetchFirmsParams {
     page?: number;
     searchTerm?: string;
     activeOnly?: boolean;
 }
 
-
-
 export const fetchFirms = createAsyncThunk<
-    PaginatedFirms,  // Changed from ApiResponse<PaginatedFirms>
+    PaginatedFirms,
     FetchFirmsParams,
-    { dispatch: AppDispatch; state: RootState; rejectValue: string }
+    { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
 >(
     'firms/fetchFirms',
     async ({ page = 1, searchTerm = '', activeOnly = true }, { rejectWithValue }) => {
@@ -27,79 +64,179 @@ export const fetchFirms = createAsyncThunk<
                 _: Date.now().toString()
             }).toString();
 
-            const response = await api.get<PaginatedFirms>(  // Changed from ApiResponse<PaginatedFirms>
+            console.log(`${API_ENDPOINTS.FIRM.LIST}?${query}`);
+            
+            const response = await api.get<PaginatedFirms>(
                 `${API_ENDPOINTS.FIRM.LIST}?${query}`,
                 { withCredentials: true }
             );
 
-            // Directly return the response data since it matches PaginatedFirms
-            return response.data;
-
-        } catch (error) {
-            console.error('Fetch firms error:', error);
-            if (error instanceof Error) {
-                return rejectWithValue(
-                    error.message.includes('401') ? 'SESSION_EXPIRED' : error.message
-                );
+            if (!response.data) {
+                return rejectWithValue({ error: "No data from server", errors: null });
             }
-            return rejectWithValue('An unknown error occurred');
+
+            return response.data;
+        } catch (error: any) {
+            return rejectWithValue(parseApiError(error));
         }
     }
 );
 
-
+/**
+ * Create Firm
+ */
 export const createFirm = createAsyncThunk<
-    {
-        success: boolean;
-        message: string;
-        error: string | null;
-        errors: Record<string, string[]> | null;
-        firm: Firm;
-    },
+    { success: boolean; message: string; error: string | null; errors: string[] | null; firm: Firm | null },
     CreateFirmDto,
-    { dispatch: AppDispatch; state: RootState; rejectValue: string }
+    { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
 >(
     'firms/createFirm',
     async (createFirmDto, { rejectWithValue }) => {
         try {
-            const response = await api.post<Firm>(
+            const response = await api.post<ApiResponse<Firm>>(
                 API_ENDPOINTS.FIRM.CREATE,
                 { firmId: 0, ...createFirmDto },
-                {
-                    withCredentials: true,
-                    headers: { 'Content-Type': 'application/json' }
-                }
+                { withCredentials: true, headers: { 'Content-Type': 'application/json' } }
             );
 
-            if (!response?.data) {
-                return rejectWithValue('No response data from server');
+            if (response.status !== 200) {
+                return rejectWithValue({
+                    error: response.data?.error || response.data?.message || 'Creation failed',
+                    errors: null
+                });
             }
 
-            // Here we fake success & message since API doesn’t provide them
             return {
                 success: true,
-                message: 'Firm created successfully',
+                message: response.data?.message || 'Firm created successfully',
                 error: null,
                 errors: null,
-                firm: response.data
+                firm: response.data?.data ?? null
             };
-
         } catch (error: any) {
-            if (error.response) {
-                return rejectWithValue(
-                    error.response.data?.error ||
-                    error.response.data?.message ||
-                    'Server responded with an error'
-                );
+            const parsed = parseApiError(error);
+            return rejectWithValue({
+                error: parsed.error ?? "Creation failed",
+                errors: parsed.errors ?? null
+            });
+        }
+    }
+);
+
+/**
+ * Update Firm
+ */
+export const updateFirm = createAsyncThunk<
+    { success: boolean; message: string; error: string | null; errors: string[] | null; firm: Firm },
+    UpdateFirmDto,
+    { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
+>(
+    'firms/updateFirm',
+    async (updateFirmDto, { rejectWithValue, getState }) => {
+        try {
+            const response = await api.put<ApiResponse<Firm>>(
+                `${API_ENDPOINTS.FIRM.UPDATE}/${updateFirmDto.firmId}`,
+                updateFirmDto,
+                { withCredentials: true, headers: { 'Content-Type': 'application/json' } }
+            );
+
+            if (response.status !== 200) {
+                return rejectWithValue({
+                    error: response.data?.error || response.data?.message || 'Update failed',
+                    errors: null
+                });
             }
 
-            if (error.message) {
-                return rejectWithValue(
-                    error.message.includes('401') ? 'SESSION_EXPIRED' : error.message
+            // Try fetching updated firm
+            try {
+                const firmResponse = await api.get<ApiResponse<Firm>>(
+                    `${API_ENDPOINTS.FIRM.GET_BY_ID}/${updateFirmDto.firmId}`,
+                    { withCredentials: true }
                 );
+
+                if (firmResponse.data?.data) {
+                    return {
+                        success: true,
+                        message: response.data?.message || 'Firm updated successfully',
+                        error: null,
+                        errors: null,
+                        firm: firmResponse.data.data
+                    };
+                }
+            } catch (fetchError) {
+                console.warn("Could not fetch updated firm:", fetchError);
             }
 
-            return rejectWithValue('An unknown error occurred');
+            // fallback: merge state
+            const state = getState() as RootState;
+            const existingFirm =
+                // state.firms.currentFirm ||
+                state.firms.firms.find(f => f.firmId === updateFirmDto.firmId);
+
+            if (!existingFirm) {
+                return rejectWithValue({ error: 'Could not find firm to update', errors: null });
+            }
+
+            return {
+                success: true,
+                message: response.data?.message || 'Firm updated successfully',
+                error: null,
+                errors: null,
+                firm: { ...existingFirm, ...updateFirmDto, updatedAt: new Date().toISOString() }
+            };
+        } catch (error: any) {
+            const parsed = parseApiError(error);
+            return rejectWithValue({
+                error: parsed.error ?? 'Update failed',
+                errors: parsed.errors ?? null
+            });
+        }
+    }
+);
+
+/**
+ * Delete Firm
+ */
+export const deleteFirm = createAsyncThunk<
+    { success: boolean; message: string; id: string },
+    string,
+    { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
+>(
+    'firms/deleteFirm',
+    async (id, { rejectWithValue }) => {
+        try {
+            await api.delete(`${API_ENDPOINTS.FIRM.DELETE}/${id}`, { withCredentials: true });
+
+            return { success: true, message: 'Firm deleted successfully', id };
+        } catch (error: any) {
+            return rejectWithValue(parseApiError(error));
+        }
+    }
+);
+
+/**
+ * Fetch Firm By Id
+ */
+export const fetchFirmById = createAsyncThunk<
+    Firm,
+    string,
+    { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
+>(
+    'firms/fetchFirmById',
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await api.get<ApiResponse<Firm>>(
+                `${API_ENDPOINTS.FIRM.GET_BY_ID}/${id}`,
+                { withCredentials: true }
+            );
+
+            if (!response.data?.data) {
+                return rejectWithValue({ error: 'Firm not found', errors: null });
+            }
+
+            return response.data.data;
+        } catch (error: any) {
+            return rejectWithValue(parseApiError(error));
         }
     }
 );

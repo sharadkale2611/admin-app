@@ -4,6 +4,8 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { CourseFee, CourseFeeDto, fetchCourseFeeById, updateCourseFee } from './feesThunks';
 import { SelectChangeEvent } from '@mui/material';
 import { fetchCourses } from '../course/courseThunks';
+import Swal from 'sweetalert2';
+import { useRouter } from 'next/navigation';
 
 export const useCourseFeesEditViewModel = (id: string) => {
     const dispatch = useAppDispatch();
@@ -17,6 +19,8 @@ export const useCourseFeesEditViewModel = (id: string) => {
     const { courses, loading: coursesLoading } = useAppSelector(
         (state) => state.courses
     );
+
+    const router = useRouter();
 
     const [formData, setFormData] = useState<CourseFee>({
         courseFeeId: 0,
@@ -41,6 +45,9 @@ export const useCourseFeesEditViewModel = (id: string) => {
 
     // Fetch courses when hook mounts
     useEffect(() => {
+        console.log('from useCourseFeesEditViewModel');
+        console.log('from useCourseFeesEditViewModel');
+        
         dispatch(fetchCourses({ page: 1, searchTerm: '', status: null, courseLevel: null, categoryId: null }));
     }, [dispatch]);
 
@@ -71,6 +78,15 @@ export const useCourseFeesEditViewModel = (id: string) => {
 
                 const result = await dispatch(updateCourseFee(dto)).unwrap();
                 setSubmitSuccess(true);
+                
+            Swal.fire({
+                title: 'Success!',
+                text: 'Recrod updated successfully!',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            }); 
+                router.push('/fees');               
                 return result;
             } catch (err: any) {
                 setSubmitError(err.message || 'Failed to update course fee');

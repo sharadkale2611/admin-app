@@ -12,6 +12,38 @@ import {
 import API_ENDPOINTS from "@/lib/config/apiConfig";
 import api from "@/lib/services/apiService";
 
+export const fetchCoursesList = createAsyncThunk<
+    Course[],
+    { searchTerm?: string } | void,
+    { dispatch: AppDispatch; state: RootState; rejectValue: string }
+>(
+    'courses/fetchCoursesList',
+    async (params, { rejectWithValue }) => {
+        try {
+            const queryParams = new URLSearchParams({
+                ...(params?.searchTerm && { search: params.searchTerm }),
+                _: Date.now().toString()
+            }).toString();
+
+            const response = await api.get<Course[]>(
+                `${API_ENDPOINTS.COURSES.GET_LIST}?${queryParams}`, // ✅ backend should expose list endpoint
+                { withCredentials: true }
+            );
+
+            if (!response?.data) {
+                return rejectWithValue('No courses found');
+            }
+
+            return response.data;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.message?.includes('401') ? 'SESSION_EXPIRED' : error.message || 'An error occurred'
+            );
+        }
+    }
+);
+
+
 export const fetchCourses = createAsyncThunk<
     PaginatedCourses,
     FetchCoursesParams,
@@ -40,6 +72,10 @@ export const fetchCourses = createAsyncThunk<
                 `${API_ENDPOINTS.COURSES.GET_LIST_PAGINATED}?${queryParams}`,
                 { withCredentials: true }
             );
+
+            if (!response?.data) {
+                return rejectWithValue('No response data from server');
+            }            
 
             return response.data;
 
@@ -158,7 +194,7 @@ export const updateCourse = createAsyncThunk<
     'courses/updateCourse',
     async (updateCourseDto, { rejectWithValue }) => {
         try {
-            const response = await api.put(
+            await api.put(
                 `${API_ENDPOINTS.COURSES.PUT_UPDATE}/${updateCourseDto.id}`,
                 updateCourseDto,
                 {
@@ -167,18 +203,22 @@ export const updateCourse = createAsyncThunk<
                 }
             );
 
-            // Fetch the updated course to get complete data
+            // Fetch updated course
             const courseResponse = await api.get<Course>(
                 `${API_ENDPOINTS.COURSES.GET_BY_ID}/${updateCourseDto.id}`,
                 { withCredentials: true }
             );
+
+            if (!courseResponse?.data) {
+                return rejectWithValue('Updated course not found');
+            }
 
             return {
                 success: true,
                 message: 'Course updated successfully',
                 error: null,
                 errors: null,
-                course: courseResponse.data
+                course: courseResponse.data, // ✅ guaranteed Course
             };
 
         } catch (error: any) {
@@ -201,6 +241,7 @@ export const updateCourse = createAsyncThunk<
         }
     }
 );
+
 
 
 export const deleteCourse = createAsyncThunk<

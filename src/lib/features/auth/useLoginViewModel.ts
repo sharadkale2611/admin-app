@@ -27,8 +27,6 @@ export const useLoginViewModel = () => {
     const [loading, setLoading] = useState(false);
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-    console.log('im useLoginViewModel');
-
     const handleSubmit = async (values: LoginFormValues) => {
         setLoading(true);
         setError(null);
@@ -37,9 +35,11 @@ export const useLoginViewModel = () => {
         try {
             // Use unwrap() to properly handle the promise
             const result = await dispatch(login(values)).unwrap();
-
+            console.log('im in try');
+            
         } catch (err: unknown) {
             const error = err as ThunkRejectValue;
+            console.log('im in catch');
 
             if (error?.fieldErrors) {
                 const errorMessages = Object.values(error.fieldErrors)

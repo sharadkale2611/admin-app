@@ -224,10 +224,12 @@ const ProtectedLayout = ({ children }: layoutParams) => {
                         { text: "Dashboard", icon: <DashboardIcon />, path: AppRoutes.DASHBOARD },
                         { text: "Staff", icon: <PeopleIcon />, path: AppRoutes.STAFF },
                         { text: "Students", icon: <PeopleIcon />, path: AppRoutes.STUDENTS },
+                        { text: "Admissions", icon: <PeopleIcon />, path: AppRoutes.ADMISSIONS },
                         { text: "Firms", icon: <Business />, path: AppRoutes.FRIMS },
                         { text: "Courses Category", icon: <BookmarkSharp />, path: AppRoutes.COURSE_CATEGORY },
                         { text: "Courses", icon: <BookSharp />, path: AppRoutes.COURSES },
                         { text: "Courses Fees", icon: <BookSharp />, path: AppRoutes.FEES },
+                        { text: "Discounts", icon: <BookSharp />, path: AppRoutes.DISCOUNUTS },
                         { text: "Reports", icon: <BarChartIcon />, path: "/reports" },
                     ].map((item) => (
                         <ListItem

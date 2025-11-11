@@ -21,11 +21,13 @@ export default function LoginPage() {
     const { isAuthenticated, hasChecked } = useAppSelector(state => state.auth);
 
     useEffect(() => {
+        console.log('isAuthenticated', isAuthenticated);
+        
         // Only redirect if we already know user is authenticated
         if (isAuthenticated) {
             router.push(searchParams?.get('redirect') || '/dashboard');
         }
-    }, [isAuthenticated, router, searchParams]);
+    }, [isAuthenticated, router, searchParams, handleSubmit]);
 
 
     // Loader while checking

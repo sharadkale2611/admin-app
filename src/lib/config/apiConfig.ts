@@ -25,9 +25,13 @@ const API_ENDPOINTS = {
     },
     // Firm-related endpoints
     FIRM: {
-        LIST: (process.env.NEXT_PUBLIC_FIRMS_LIST_ENDPOINT || 'api/firms'),
-        CREATE: (process.env.NEXT_PUBLIC_FIRMS_CREATE_ENDPOINT || 'api/firms'),
+        LIST: process.env.NEXT_PUBLIC_FIRMS_PAGINATED_ENDPOINT || '/Firms/paginated', // paginated list
+        GET_BY_ID: process.env.NEXT_PUBLIC_FIRMS_ENDPOINT || '/Firms',                // fetch single firm
+        CREATE: process.env.NEXT_PUBLIC_FIRMS_ENDPOINT || '/Firms',                   // create firm
+        UPDATE: process.env.NEXT_PUBLIC_FIRMS_ENDPOINT || '/Firms',                   // update firm
+        DELETE: process.env.NEXT_PUBLIC_FIRMS_ENDPOINT || '/Firms',                   // delete firm
     },
+
     STAFF: {
         GET_LIST_PAGINATED: (process.env.NEXT_PUBLIC_STAFFS_PAGINATED_ENDPOINT || 'api/staffs'),
         GET_BY_ID: (process.env.NEXT_PUBLIC_STAFFS_ENDPOINT || 'api/staffs'),        
@@ -37,11 +41,19 @@ const API_ENDPOINTS = {
     },
     STUDENT: {
         GET_LIST_PAGINATED: (process.env.NEXT_PUBLIC_STUDENTS_PAGINATED_ENDPOINT || 'api/Students'),
+        GET_LIST: (process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || 'api/Students'),
         GET_BY_ID: (process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || 'api/Students'),
         POST_CREATE: (process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || 'api/Students'),
         PUT_UPDATE: (process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || 'api/Students'),
         DELETE: (process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || 'api/Students'),
     },
+    ADMISSION: {
+        GET_LIST_PAGINATED: process.env.NEXT_PUBLIC_ENROLLMENTS_PAGINATED_ENDPOINT || 'api/Enrollments',
+        GET_BY_ID: process.env.NEXT_PUBLIC_ENROLLMENTS_ENDPOINT || 'api/Enrollments',
+        POST_CREATE: process.env.NEXT_PUBLIC_ENROLLMENTS_ENDPOINT || 'api/Enrollments',
+        PUT_UPDATE: process.env.NEXT_PUBLIC_ENROLLMENTS_ENDPOINT || 'api/Enrollments',
+        DELETE: process.env.NEXT_PUBLIC_ENROLLMENTS_ENDPOINT || 'api/Enrollments',
+    },    
     COURSE_CATEGORIES: {
         GET_LIST: (process.env.NEXT_PUBLIC_COURSE_CATEGORIES_ENDPOINT || '/api/CourseCategories'),
         GET_TREE: (process.env.NEXT_PUBLIC_COURSE_CATEGORIES_ENDPOINT || '/api/CourseCategories/tree') ,
@@ -49,6 +61,13 @@ const API_ENDPOINTS = {
         POST_CREATE: (process.env.NEXT_PUBLIC_COURSE_CATEGORIES_ENDPOINT || '/api/CourseCategories'),
         PUT_UPDATE: (process.env.NEXT_PUBLIC_COURSE_CATEGORIES_ENDPOINT || '/api/CourseCategories'),
         DELETE: (process.env.NEXT_PUBLIC_COURSE_CATEGORIES_ENDPOINT || '/api/CourseCategories')
+    },
+    DISCOUNT_CODES: {
+        GET_LIST: (process.env.NEXT_PUBLIC_DISCOUNT_CODES_ENDPOINT || '/api/DiscountCodes'),
+        GET_BY_ID: (process.env.NEXT_PUBLIC_DISCOUNT_CODES_ENDPOINT || '/api/DiscountCodes'),
+        POST_CREATE: (process.env.NEXT_PUBLIC_DISCOUNT_CODES_ENDPOINT || '/api/DiscountCodes'),
+        PUT_UPDATE: (process.env.NEXT_PUBLIC_DISCOUNT_CODES_ENDPOINT || '/api/DiscountCodes'),
+        DELETE: (process.env.NEXT_PUBLIC_DISCOUNT_CODES_ENDPOINT || '/api/DiscountCodes')
     },
     COURSES: {
         GET_LIST_PAGINATED: (process.env.NEXT_PUBLIC_COURSES_PAGINATED_ENDPOINT || 'api/Courses/paginated'),

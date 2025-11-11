@@ -24,10 +24,10 @@ import {
 import { ArrowBack } from '@mui/icons-material';
 import Link from 'next/link';
 import { useCourseFeesEditViewModel } from '@/lib/features/fees/useCourseFeesEditViewModel';
+import Swal from 'sweetalert2';
 
 export default function CourseFeeEdit() {
     const { id } = useParams();
-    const router = useRouter();
 
     const {
         currentCourseFee,
@@ -54,11 +54,19 @@ export default function CourseFeeEdit() {
     }, [id, handleFetchCourseFeeById]);
 
     // Redirect if not found
-    useEffect(() => {
-        if (!isLoading && !currentCourseFee && !error) {
-            router.push('/fees');
-        }
-    }, [isLoading, currentCourseFee, error, router]);
+    // useEffect(() => {
+    //     console.log({ isLoading, currentCourseFee, error });        
+    //     if (!isLoading  && error === null) {
+    //         Swal.fire({
+    //             title: 'Success!',
+    //             text: error??'recrod updated successfully!',
+    //             icon: 'success',
+    //             timer: 2000,
+    //             showConfirmButton: false
+    //         });   
+    //         // router.push('/fees');
+    //     }
+    // }, [isLoading, currentCourseFee, error, router]);
 
     if (isLoading) {
         return (
@@ -87,7 +95,7 @@ export default function CourseFeeEdit() {
         return (
             <Container maxWidth="md" sx={{ mt: 3, mb: 4 }}>
                 <Alert severity="warning" sx={{ mb: 2 }}>
-                    Course fee not found
+                    Course fee not found........
                 </Alert>
                 <Link href="/fees" passHref>
                     <Button startIcon={<ArrowBack />} variant="outlined">

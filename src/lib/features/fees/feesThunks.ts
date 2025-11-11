@@ -1,23 +1,33 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { AppDispatch, RootState } from "@/lib/store";
 import API_ENDPOINTS from "@/lib/config/apiConfig";
-import api from "@/lib/services/apiService";
+import { api } from "@/lib/services/apiService";
+
+// Define the expected API response shape that matches your actual API
+interface ApiResponse<T> {
+    success: boolean;
+    message: string;
+    error: string | null;
+    errors: Record<string, string[]> | null;
+    data: T;
+}
 
 // Types
 export interface CourseFee {
     courseFeeId: number;
     courseId: number;
-    courseName: string | null; // Allow null
+    courseName: string | null;
     totalInstallments: number;
     feeAmount: number;
     gstPercentage: number;
     totalFee: number;
     createdAt: string;
-    updatedAt?: string | null; // Allow null
-    branchId?: number | null; // Allow null
-    branchName?: string | null; // Allow null
-    branchCode?: string | null; // Allow null
+    updatedAt?: string | null;
+    branchId?: number | null;
+    branchName?: string | null;
+    branchCode?: string | null;
 }
+
 export interface CourseFeeDto {
     courseFeeId?: number;
     courseId: number;
@@ -25,23 +35,6 @@ export interface CourseFeeDto {
     totalInstallments: number;
     feeAmount: number;
     gstPercentage: number;
-}
-
-// Different response types for different endpoints
-export interface CourseFeeListResponse {
-    success: boolean;
-    message: string;
-    data: CourseFee[]; // Array for list endpoint
-    error?: string | null;
-    errors?: Record<string, string[]> | null;
-}
-
-export interface CourseFeeSingleResponse {
-    success: boolean;
-    message: string;
-    data: CourseFee; // Single object for single item endpoints
-    error?: string | null;
-    errors?: Record<string, string[]> | null;
 }
 
 export interface FetchCourseFeesParams {
@@ -71,22 +64,19 @@ export const fetchCourseFees = createAsyncThunk<
 
             console.log('API URL:', url);
 
-            const response = await api.get<CourseFee[]>( // Change the generic type
+            const response = await api.get<ApiResponse<CourseFee[]>>(
                 url,
                 { withCredentials: true }
             );
 
-            console.log('Full API Response:', response);
-            console.log('Response data:', response.data);
-            console.log('Is array:', Array.isArray(response.data));
+            console.log('API Response:', response);
 
-            // If response.data is directly the array, just return it
-            if (Array.isArray(response.data)) {
+            if (response.success && Array.isArray(response.data)) {
                 console.log('Returning array data:', response.data);
                 return response.data;
             } else {
-                console.log('Unexpected response format:', response.data);
-                return rejectWithValue('Unexpected response format from server');
+                console.log('Unexpected response format:', response);
+                return rejectWithValue(response.message || 'Unexpected response format from server');
             }
 
         } catch (error) {
@@ -99,7 +89,8 @@ export const fetchCourseFees = createAsyncThunk<
             return rejectWithValue('An unknown error occurred');
         }
     }
-);  
+);
+
 
 
 export const fetchCourseFeeById = createAsyncThunk<
@@ -110,16 +101,22 @@ export const fetchCourseFeeById = createAsyncThunk<
     'courseFees/fetchCourseFeeById',
     async (courseFeeId, { rejectWithValue }) => {
         try {
-            const response = await api.get<CourseFeeSingleResponse>(
+            const response = await api.get<CourseFee>(
                 `${API_ENDPOINTS.COURSE_FEES.GET_BY_ID}/${courseFeeId}`,
                 { withCredentials: true }
             );
 
-            if (!response.data.success) {
-                return rejectWithValue(response.data.error || 'Course fee not found');
+            console.log('Course fee response:', response);
+
+            if (!response.success) {
+                return rejectWithValue(response.error || 'Course fee not found');
             }
 
-            return response.data.data;
+            if (!response.data) {
+                return rejectWithValue('Course fee data is missing');
+            }
+
+            return response.data;
 
         } catch (error) {
             console.error('Fetch course fee by ID error:', error);
@@ -133,32 +130,15 @@ export const fetchCourseFeeById = createAsyncThunk<
     }
 );
 
-// Define the expected API response shape
-interface ApiResponse<T> {
-    success: boolean;
-    message: string;
-    error: string | null;
-    errors: Record<string, string[]> | null;
-    data: T | null;
-}
-
-
-
 export const createCourseFee = createAsyncThunk<
-    {
-        success: boolean;
-        message: string;
-        error: string | null;
-        errors: Record<string, string[]> | null;
-        courseFee: CourseFee | null;
-    },
+    CourseFee,
     CourseFeeDto,
     { dispatch: AppDispatch; state: RootState; rejectValue: string }
 >(
     "courseFees/createCourseFee",
     async (courseFeeDto, { rejectWithValue }) => {
         try {
-            const response: ApiResponse<CourseFee> = await api.post(
+            const response = await api.post<CourseFee>(
                 API_ENDPOINTS.COURSE_FEES.POST_CREATE,
                 courseFeeDto,
                 {
@@ -167,14 +147,8 @@ export const createCourseFee = createAsyncThunk<
                 }
             );
 
-            if (response.success) {
-                return {
-                    success: true,
-                    message: response.message,
-                    error: null,
-                    errors: null,
-                    courseFee: response.data, // ✅ this is CourseFee
-                };
+            if (response.success && response.data) {
+                return response.data;
             } else {
                 const errorMessage =
                     response.message || response.error || "Failed to create course fee";
@@ -188,109 +162,62 @@ export const createCourseFee = createAsyncThunk<
     }
 );
 
-
-
 export const updateCourseFee = createAsyncThunk<
-    {
-        success: boolean;
-        message: string;
-        error: string | null;
-        errors: Record<string, string[]> | null;
-        courseFee: CourseFee | null;
-    },
+    CourseFee| null | boolean,
     CourseFeeDto,
     { dispatch: AppDispatch; state: RootState; rejectValue: string }
 >(
     "courseFees/updateCourseFee",
     async (courseFeeDto, { rejectWithValue }) => {
-        try {
-            if (!courseFeeDto.courseFeeId) {
-                return rejectWithValue("Course fee ID is required for update");
-            }
+        if (!courseFeeDto.courseFeeId) {
+            return rejectWithValue("Course fee ID is required for update");
+        }
 
-            const response: ApiResponse<CourseFee> = await api.put(
+        try {
+            const response = await api.put<CourseFee>(
                 `${API_ENDPOINTS.COURSE_FEES.PUT_UPDATE}/${courseFeeDto.courseFeeId}`,
                 courseFeeDto,
-                {
-                    withCredentials: true,
-                    headers: { "Content-Type": "application/json" },
-                }
+                { withCredentials: true, headers: { "Content-Type": "application/json" } }
             );
 
             if (response.success) {
-                return {
-                    success: true,
-                    message: response.message || "Course fee updated successfully",
-                    error: null,
-                    errors: null,
-                    courseFee: response.data, // ✅ Updated CourseFee from API
-                };
+                return true;
             } else {
-                const errorMessage =
-                    response.message ||
-                    response.error ||
-                    "Failed to update course fee";
-                return rejectWithValue(errorMessage);
+                return rejectWithValue(response.message || response.error || "Failed to update course fee");
             }
+
         } catch (error: any) {
-            console.error("Update course fee error:", error);
-
-            if (error.response?.data) {
-                const err: ApiResponse<null> = error.response.data;
-                return rejectWithValue(
-                    err.message || err.error || "Server responded with an error"
-                );
-            }
-
-            if (error.message) {
-                return rejectWithValue(
-                    error.message.includes("401") ? "SESSION_EXPIRED" : error.message
-                );
-            }
-
-            return rejectWithValue("An unknown error occurred");
+            const message = error.message?.includes("401") ? "SESSION_EXPIRED" : error.message || "An unknown error occurred";
+            return rejectWithValue(message);
         }
     }
 );
 
 
-
 export const deleteCourseFee = createAsyncThunk<
-    {
-        success: boolean;
-        message: string;
-        id: number;
-    },
+    number,
     number,
     { dispatch: AppDispatch; state: RootState; rejectValue: string }
 >(
     'courseFees/deleteCourseFee',
     async (id, { rejectWithValue }) => {
         try {
-            const response = await api.delete<CourseFeeSingleResponse>(
+            const response = await api.delete<ApiResponse<null>>(
                 `${API_ENDPOINTS.COURSE_FEES.DELETE}/${id}`,
                 { withCredentials: true }
             );
 
-            if (!response.data.success) {
-                return rejectWithValue(response.data.error || 'Failed to delete course fee');
+            if (!response.success) {
+                return rejectWithValue(response.error || 'Failed to delete course fee');
             }
 
-            return {
-                success: true,
-                message: 'Course fee deleted successfully',
-                id
-            };
+            return id;
 
         } catch (error: any) {
             console.error('Delete course fee error:', error);
 
-            if (error.response?.data) {
-                return rejectWithValue(
-                    error.response.data.error ||
-                    error.response.data.message ||
-                    'Server responded with an error'
-                );
+            if (error.status && error.message) {
+                return rejectWithValue(error.message);
             }
 
             if (error.message) {
@@ -302,4 +229,4 @@ export const deleteCourseFee = createAsyncThunk<
             return rejectWithValue('An unknown error occurred');
         }
     }
-);  
+);

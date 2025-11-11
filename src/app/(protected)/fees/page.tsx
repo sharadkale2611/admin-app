@@ -76,25 +76,29 @@ const CourseFeesList: React.FC = () => {
     };
 
     const confirmDelete = async () => {
-        if (courseFeeToDelete) {
-            try {
-                const result = await handleDeleteCourseFee(courseFeeToDelete.courseFeeId);
+        if (!courseFeeToDelete) return;
 
-                // Fix for TypeScript error: Check if result.payload is an object with success property
-                if (result.payload && typeof result.payload === 'object' && 'success' in result.payload && result.payload.success) {
-                    setSnackbar({ open: true, message: 'Course fee deleted successfully', severity: 'success' });
-                    refetch();
-                } else {
-                    const errorMessage = typeof result.payload === 'string' ? result.payload : 'Failed to delete course fee';
-                    setSnackbar({ open: true, message: errorMessage, severity: 'error' });
-                }
-            } catch (error) {
-                setSnackbar({ open: true, message: 'An error occurred while deleting the course fee', severity: 'error' });
+        try {
+            const result = await handleDeleteCourseFee(courseFeeToDelete.courseFeeId);
+
+            // Type payload correctly
+            const payload = result.payload as { success: boolean; message?: string } | undefined;
+
+            if (payload?.success) {
+                setSnackbar({ open: true, message: payload.message || 'Operation successful', severity: 'success' });
+            } else {
+                const errorMessage = payload?.message || 'Operation failed';
+                setSnackbar({ open: true, message: errorMessage, severity: 'error' });
             }
-            setDeleteConfirmOpen(false);
-            setCourseFeeToDelete(null);
+
+        } catch (error) {
+            setSnackbar({ open: true, message: 'An error occurred while deleting the course fee', severity: 'error' });
         }
+
+        setDeleteConfirmOpen(false);
+        setCourseFeeToDelete(null);
     };
+
 
     const cancelDelete = () => {
         setDeleteConfirmOpen(false);
@@ -250,7 +254,7 @@ const CourseFeesList: React.FC = () => {
                         size="small"
                         color="info"
                         component={Link}
-                        href={`/course-fees/${params.row?.courseFeeId}`}
+                        href={`/fees/${params.row?.courseFeeId}`}
                         disabled={!params.row?.courseFeeId}
                     >
                         <Visibility fontSize="small" />
@@ -259,7 +263,7 @@ const CourseFeesList: React.FC = () => {
                         size="small"
                         color="primary"
                         component={Link}
-                        href={`/course-fees/${params.row?.courseFeeId}/edit`}
+                        href={`/fees/${params.row?.courseFeeId}/edit`}
                         disabled={!params.row?.courseFeeId}
                     >
                         <Edit fontSize="small" />

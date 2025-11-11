@@ -1,12 +1,26 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import {
-    createStudent,
     fetchStudents,
+    fetchStudentById,
+    createStudent,
     updateStudent,
     deleteStudent,
-    fetchStudentById
-} from './studentThunks';
-import { Student, StudentState, PaginatedStudent } from "./studentTypes";
+} from "./studentThunks";
+import { Student, ApiError } from "./studentTypes";
+
+export interface StudentState {
+    students: Student[];
+    currentStudent: Student | null;
+    totalCount: number;
+    pageSize: number;
+    currentPage: number;
+    totalPages: number;
+    loading: boolean;
+    error: ApiError | null;   // ✅ changed from string | null
+    searchTerm: string;
+    activeOnly: boolean;
+    page: number;
+}
 
 const initialState: StudentState = {
     students: [],
@@ -14,78 +28,77 @@ const initialState: StudentState = {
     totalCount: 0,
     pageSize: 10,
     currentPage: 1,
-    totalPages: 1,
+    totalPages: 0,
     loading: false,
     error: null,
-    searchTerm: '',
+    searchTerm: "",
     activeOnly: true,
-    page: 1
+    page: 1,
 };
 
 const studentSlice = createSlice({
-    name: 'students',
+    name: "students",
     initialState,
     reducers: {
-        setSearchTerm: (state, action: PayloadAction<string>) => {
-            state.searchTerm = action.payload;
-            state.page = 1;
+        setPage(state, action) {
+            state.page = action.payload;
         },
-        toggleActiveOnly: (state) => {
+        setSearchTerm(state, action) {
+            state.searchTerm = action.payload;
+        },
+        setActiveOnly(state, action) {
+            state.activeOnly = action.payload;
+        },
+        toggleActiveOnly(state) {
             state.activeOnly = !state.activeOnly;
             state.page = 1;
         },
-        resetFilters: (state) => {
+        resetFilters(state) {
             state.searchTerm = '';
             state.activeOnly = true;
             state.page = 1;
-        },
-        setPage: (state, action: PayloadAction<number>) => {
-            state.page = action.payload;
-        },
-        clearCurrentStudent: (state) => {
-            state.currentStudent = null;
-        }
+        },        
     },
     extraReducers: (builder) => {
         builder
-            // Fetch Students
+            // 🔹 Fetch Students
             .addCase(fetchStudents.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(fetchStudents.fulfilled, (state, action: PayloadAction<PaginatedStudent>) => {
+            .addCase(fetchStudents.fulfilled, (state, action) => {
                 state.loading = false;
-                const { items, totalCount, pageSize, currentPage, totalPages } = action.payload;
-                state.students = items;
-                state.totalCount = totalCount;
-                state.pageSize = pageSize;
-                state.currentPage = currentPage;
-                state.totalPages = totalPages;
+                state.students = action.payload.items;
+                state.totalCount = action.payload.totalCount;
+                state.totalPages = Math.ceil(state.totalCount / state.pageSize);
             })
             .addCase(fetchStudents.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload as string || "Failed to fetch students";
+                state.error =
+                    (action.payload as ApiError) ?? { error: "Failed to fetch students", errors: null };
             })
-            // Fetch Student by ID
+
+            // 🔹 Fetch Student By ID
             .addCase(fetchStudentById.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(fetchStudentById.fulfilled, (state, action: PayloadAction<Student>) => {
+            .addCase(fetchStudentById.fulfilled, (state, action) => {
                 state.loading = false;
                 state.currentStudent = action.payload;
             })
             .addCase(fetchStudentById.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload as string || "Failed to fetch student details";
-                state.currentStudent = null;
+                state.error =
+                    (action.payload as ApiError) ?? { error: "Failed to fetch student", errors: null };
             })
-            // Create Student
+
+            // 🔹 Create Student
             .addCase(createStudent.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(createStudent.fulfilled, (state, action: PayloadAction<{ success: boolean; student: Student }>) => {
+            .addCase(createStudent.fulfilled, (state, action) => {
                 state.loading = false;
                 if (action.payload.success && action.payload.student) {
                     state.students.unshift(action.payload.student);
@@ -95,56 +108,65 @@ const studentSlice = createSlice({
             })
             .addCase(createStudent.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload as string || "Failed to create student";
+                state.error =
+                    (action.payload as ApiError) ?? { error: "Failed to create student", errors: null };
             })
-            // Update Student
+
+            // 🔹 Update Student
             .addCase(updateStudent.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(updateStudent.fulfilled, (state, action: PayloadAction<{ success: boolean; student: Student }>) => {
+            .addCase(updateStudent.fulfilled, (state, action) => {
                 state.loading = false;
-                if (action.payload.success) {
-                    const index = state.students.findIndex(s => s.studentId === action.payload.student.studentId);
-                    if (index !== -1) {
-                        state.students[index] = { ...state.students[index], ...action.payload.student };
-                    }
-                    if (state.currentStudent && state.currentStudent.studentId === action.payload.student.studentId) {
-                        state.currentStudent = { ...state.currentStudent, ...action.payload.student };
+                state.error = null; // ✅ important: clear previous errors
+                if (action.payload.success && action.payload.student) {
+                    const index = state.students.findIndex(
+                        (s) => s.studentId === action.payload.student?.studentId
+                    );
+                    if (index !== -1 && action.payload.student) {
+                        state.students[index] = action.payload.student;
                     }
                 }
             })
             .addCase(updateStudent.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload as string || "Failed to update student";
+                if (!action.payload) {
+                    // fallback if payload is undefined
+                    state.error = { error: 'Failed to update student', errors: null };
+                } else if (typeof action.payload === 'string') {
+                    state.error = { error: action.payload, errors: null };
+                } else {
+                    // ensure it's ApiError
+                    state.error = {
+                        error: action.payload.error ?? 'Failed to update student',
+                        errors: action.payload.errors ?? null,
+                    };
+                }
             })
-            // Delete Student
+            // 🔹 Delete Student
             .addCase(deleteStudent.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(deleteStudent.fulfilled, (state, action: PayloadAction<{ success: boolean; id: string }>) => {
+            .addCase(deleteStudent.fulfilled, (state, action) => {
                 state.loading = false;
                 if (action.payload.success) {
-                    state.students = state.students.filter(s => s.studentId !== action.payload.id);
+                    state.students = state.students.filter(
+                        (s) => s.studentId !== action.payload.id
+                    );
                     state.totalCount -= 1;
                     state.totalPages = Math.ceil(state.totalCount / state.pageSize);
                 }
             })
             .addCase(deleteStudent.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload as string || "Failed to delete student";
+                state.error =
+                    (action.payload as ApiError) ?? { error: "Failed to delete student", errors: null };
             });
-    }
+    },
 });
 
-export const {
-    setSearchTerm,
-    toggleActiveOnly,
-    resetFilters,
-    setPage,
-    clearCurrentStudent
-} = studentSlice.actions;
-
+export const { setPage, setSearchTerm, setActiveOnly, resetFilters, toggleActiveOnly } = studentSlice.actions;
 export const studentReducer = studentSlice.reducer;
 export default studentSlice.reducer;

@@ -103,6 +103,8 @@ export const logoutUser = createAsyncThunk<void, void, { dispatch: AppDispatch }
     async (_, { dispatch }) => {
         try {
             await api.post(getApiUrl(API_ENDPOINTS.AUTH.LOGOUT));
+            console.log('logout done!');
+            
         } finally {
             dispatch(logout());
             dispatch(setSessionExpiry(null));
@@ -121,7 +123,6 @@ export const checkAuth = createAsyncThunk<
     'auth/checkAuth',
     async (_, { rejectWithValue, dispatch, getState }) => {
         try {
-            // Check if we have a valid session first
             const { auth } = getState();
             if (auth.isAuthenticated && auth.user) {
                 return { user: auth.user };
@@ -132,39 +133,44 @@ export const checkAuth = createAsyncThunk<
                 user?: User;
                 expiresIn?: number;
             }>(getApiUrl(API_ENDPOINTS.AUTH.CHECK), {
-                withCredentials: true, // Ensure cookies are sent
+                withCredentials: true,
                 validateStatus: (status) => status < 500 // Don't throw for 401
             });
 
-            console.log('Auth check response:', response); // Debug logging
+            console.log('Auth check response:', response.status);
 
             if (response.status === 401) {
-                // Attempt token refresh if we have a refresh token
+                console.log('Unauthorized → attempting refresh');
+
                 try {
                     await dispatch(refreshToken()).unwrap();
-                    // Retry the auth check after refresh
-                    const retryResponse = await api.get(getApiUrl(API_ENDPOINTS.AUTH.CHECK), {
-                        withCredentials: true
-                    });
-                    if (retryResponse.data?.isAuthenticated) {
+
+                    // Retry once after refresh
+                    const retryResponse = await api.get<{
+                        isAuthenticated: boolean;
+                        user?: User;
+                        expiresIn?: number;
+                    }>(getApiUrl(API_ENDPOINTS.AUTH.CHECK), { withCredentials: true });
+
+                    if (retryResponse.data?.isAuthenticated && retryResponse.data.user) {
                         return { user: retryResponse.data.user };
                     }
                 } catch (refreshError) {
-                    console.log('Token refresh failed:', refreshError);
+                    console.log('Refresh token failed → logging out');
                     dispatch(logout());
-                    return null;
+                    return rejectWithValue('Session expired. Please login again.');
                 }
             }
 
             if (response.data?.isAuthenticated && response.data.user) {
-                const userData = {
+                const userData: User = {
                     userId: response.data.user.userId,
                     username: response.data.user.username,
-                    email: response.data.user.email,
-                    roles: response.data.user.roles,
-                    firmId: response.data.user.firmId,
-                    firmName: response.data.user.firmName,
-                    firmCode: response.data.user.firmCode,
+                    email: response.data.user.email ?? '',
+                    roles: response.data.user.roles ?? [],
+                    firmId: response.data.user.firmId ?? null,
+                    firmName: response.data.user.firmName ?? '',
+                    firmCode: response.data.user.firmCode ?? '',
                 };
 
                 if (response.data.expiresIn) {
@@ -184,6 +190,7 @@ export const checkAuth = createAsyncThunk<
     }
 );
 
+
 /**
  * REFRESH TOKEN
  */
@@ -199,7 +206,7 @@ export const refreshToken = createAsyncThunk<
 
             const response = await api.post<{ expiresIn?: number }>(getApiUrl(API_ENDPOINTS.AUTH.REFRESH));
 
-            if (response.data.expiresIn) {
+            if (response.data?.expiresIn) {
                 const expiryTime = Date.now() + response.data.expiresIn * 1000;
                 dispatch(setSessionExpiry(expiryTime));
             }

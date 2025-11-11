@@ -1,3 +1,5 @@
+// src/lib/features/courseCategory/courseCategorySlice.ts
+
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
     createCourseCategory,

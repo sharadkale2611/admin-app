@@ -1,3 +1,5 @@
+// src/lib/features/courseCategory/courseCategoryTypes.ts
+
 export interface CourseCategory {
     courseCategoryId: number;
     firmId?: number | null;

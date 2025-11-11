@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-
 import {
     fetchCourseFees,
     fetchCourseFeeById,
@@ -7,7 +6,6 @@ import {
     updateCourseFee,
     deleteCourseFee,
     CourseFee,
-    CourseFeeDto
 } from './feesThunks';
 
 interface CourseFeeState {
@@ -81,11 +79,13 @@ const feesSlice = createSlice({
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(createCourseFee.fulfilled, (state, action) => {
+            .addCase(createCourseFee.fulfilled, (state, action: PayloadAction<CourseFee>) => {
                 state.loading = false;
-                if (action.payload.success && action.payload.courseFee) {
-                    state.courseFees.unshift(action.payload.courseFee);
-                }
+                // Add the new course fee to the list
+                state.courseFees.unshift(action.payload);
+
+                // Also set it as the current course fee
+                state.currentCourseFee = action.payload;
             })
             .addCase(createCourseFee.rejected, (state, action) => {
                 state.loading = false;
@@ -96,18 +96,20 @@ const feesSlice = createSlice({
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(updateCourseFee.fulfilled, (state, action) => {
+            .addCase(updateCourseFee.fulfilled, (state, action: PayloadAction<CourseFee>) => {
                 state.loading = false;
-                if (action.payload.success) {
-                    // Update the course fee in the list
-                    const index = state.courseFees.findIndex(cf => cf.courseFeeId === action.payload.courseFee.courseFeeId);
-                    if (index !== -1) {
-                        state.courseFees[index] = action.payload.courseFee;
-                    }
-                    // Update currentCourseFee if it's the one being edited
-                    if (state.currentCourseFee && state.currentCourseFee.courseFeeId === action.payload.courseFee.courseFeeId) {
-                        state.currentCourseFee = action.payload.courseFee;
-                    }
+
+                // Update in list
+                const index = state.courseFees.findIndex(
+                    cf => cf.courseFeeId === action.payload.courseFeeId
+                );
+                if (index !== -1) {
+                    state.courseFees[index] = action.payload;
+                }
+
+                // Update currentCourseFee if it's the same one
+                if (state.currentCourseFee && state.currentCourseFee.courseFeeId === action.payload.courseFeeId) {
+                    state.currentCourseFee = action.payload;
                 }
             })
             .addCase(updateCourseFee.rejected, (state, action) => {
@@ -119,10 +121,14 @@ const feesSlice = createSlice({
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(deleteCourseFee.fulfilled, (state, action) => {
+            .addCase(deleteCourseFee.fulfilled, (state, action: PayloadAction<number>) => {
                 state.loading = false;
-                if (action.payload.success) {
-                    state.courseFees = state.courseFees.filter(cf => cf.courseFeeId !== action.payload.id);
+                // Remove the deleted course fee from the list
+                state.courseFees = state.courseFees.filter(cf => cf.courseFeeId !== action.payload);
+
+                // Clear current course fee if it was the deleted one
+                if (state.currentCourseFee && state.currentCourseFee.courseFeeId === action.payload) {
+                    state.currentCourseFee = null;
                 }
             })
             .addCase(deleteCourseFee.rejected, (state, action) => {

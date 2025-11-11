@@ -69,3 +69,9 @@ export interface FetchStudentParams {
     searchTerm?: string;
     activeOnly?: boolean;
 }
+
+export interface ApiError {
+    error: string | null;       // single error
+    errors?: Record<string, string[]> | null;
+
+}

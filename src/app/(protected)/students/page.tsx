@@ -34,8 +34,25 @@ import {
 } from '@mui/icons-material';
 import Link from 'next/link';
 import { useStudentViewModel } from '@/lib/features/student/useStudentViewModel';
-import { Student } from '@/lib/features/student/studentTypes';
+import { ApiError, Student } from '@/lib/features/student/studentTypes';
 import { useDeleteStudent } from '@/lib/features/student/useDeleteStudent';
+
+function renderErrorContent(error: ApiError | null) {
+    if (!error) return null;
+
+    // Render the main error message if exists
+    if (error.error) return <div>{error.error}</div>;
+
+    // Render array of errors if exists
+    if (Array.isArray(error.errors)) {
+        return error.errors.map((e, i) => (
+            <div key={i}>{typeof e === 'string' ? e : JSON.stringify(e)}</div>
+        ));
+    }
+
+    return null;
+}
+
 
 export default function StudentsPage() {
     const {
@@ -168,7 +185,7 @@ export default function StudentsPage() {
             {/* Error Alert */}
             {error && (
                 <Alert severity="error" sx={{ mb: 2 }}>
-                    {error}
+                    {renderErrorContent(error)}
                 </Alert>
             )}
 
