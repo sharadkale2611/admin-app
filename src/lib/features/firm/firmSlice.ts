@@ -1,23 +1,31 @@
 // lib/features/firm/firmSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { createFirm, fetchFirms } from './firmThunks';
-import { Firm, FirmsState } from "./firmType";
+import {
+    fetchFirms,
+    createFirm,
+    updateFirm,
+    deleteFirm,
+    fetchFirmById,
+} from "./firmThunks";
+
+import { Firm, FirmsState } from "./firmType"; 
 
 const initialState: FirmsState = {
     firms: [],
+    currentFirm: null,    
     totalCount: 0,
     pageSize: 10,
     currentPage: 1,
     totalPages: 1,
     loading: false,
     error: null,
-    searchTerm: '',
+    searchTerm: "",
     activeOnly: true,
-    page: 1
+    page: 1,
 };
 
 const firmSlice = createSlice({
-    name: 'firms',
+    name: "firms",
     initialState,
     reducers: {
         setSearchTerm: (state, action: PayloadAction<string>) => {
@@ -29,17 +37,24 @@ const firmSlice = createSlice({
             state.page = 1;
         },
         resetFilters: (state) => {
-            state.searchTerm = '';
+            state.searchTerm = "";
             state.activeOnly = true;
             state.page = 1;
         },
         setPage: (state, action: PayloadAction<number>) => {
             state.page = action.payload;
+        },
+        clearFirmError: (state) => {
+            state.error = null;
         }
     },
+
     extraReducers: (builder) => {
         builder
-            // Fetch Firms
+
+            // -------------------------------
+            // FETCH FIRMS (LIST)
+            // -------------------------------
             .addCase(fetchFirms.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -47,6 +62,7 @@ const firmSlice = createSlice({
             .addCase(fetchFirms.fulfilled, (state, action) => {
                 state.loading = false;
                 const { items, totalCount, pageSize, currentPage, totalPages } = action.payload;
+
                 state.firms = items;
                 state.totalCount = totalCount;
                 state.pageSize = pageSize;
@@ -55,33 +71,81 @@ const firmSlice = createSlice({
             })
             .addCase(fetchFirms.rejected, (state, action) => {
                 state.loading = false;
-                state.error = typeof action.payload === 'string'
-                    ? action.payload
-                    : action.payload?.error ?? "Network error";
+                state.error =
+                    typeof action.payload === "string"
+                        ? action.payload
+                        : action.payload?.error ?? "Network error";
             })
 
-            // Create Firm
+            // -------------------------------
+            // FETCH FIRM BY ID (DETAILS PAGE)
+            // -------------------------------
+            .addCase(fetchFirmById.pending, (state) => {
+    state.loading = true;
+    state.error = null;
+})
+
+            .addCase(fetchFirmById.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentFirm = action.payload; // ✅ store single firm
+            })
+            .addCase(fetchFirmById.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.error || "Failed to load firm";
+                state.currentFirm = null;
+            })
+
+            // -------------------------------
+            // CREATE FIRM
+            // -------------------------------
             .addCase(createFirm.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
             .addCase(createFirm.fulfilled, (state, action) => {
                 state.loading = false;
-                state.error = null;
 
                 if (action.payload.success && action.payload.firm) {
                     state.firms.unshift(action.payload.firm);
-                    state.totalCount += 1;
+                    state.totalCount++;
                     state.totalPages = Math.ceil(state.totalCount / state.pageSize);
                 }
             })
             .addCase(createFirm.rejected, (state, action) => {
                 state.loading = false;
-                state.error = typeof action.payload === 'string'
-                    ? action.payload
-                    : action.payload?.error ?? "Failed to create firm";
+                state.error =
+                    typeof action.payload === "string"
+                        ? action.payload
+                        : action.payload?.error ?? "Failed to create firm";
+            })
+
+            // -------------------------------
+            // UPDATE FIRM
+            // -------------------------------
+            .addCase(updateFirm.fulfilled, (state, action) => {
+                if (action.payload.firm) {
+                    const index = state.firms.findIndex(
+                        (f) => f.firmId === action.payload.firm.firmId
+                    );
+                    if (index !== -1) state.firms[index] = action.payload.firm;
+
+                    state.currentFirm = action.payload.firm;
+                }
+            })
+
+            // -------------------------------
+            // DELETE FIRM
+            // -------------------------------
+            .addCase(deleteFirm.fulfilled, (state, action) => {
+                state.firms = state.firms.filter(
+                    (firm) => firm.firmId.toString() !== action.payload.id
+                );
+                state.totalCount--;
+            })
+            .addCase(deleteFirm.rejected, (state, action) => {
+                state.error = action.payload?.error ?? "Failed to delete firm";
             });
-    }
+    },
 });
 
 export const {
@@ -89,6 +153,7 @@ export const {
     toggleActiveOnly,
     resetFilters,
     setPage,
+    clearFirmError,
 } = firmSlice.actions;
 
 export const firmReducer = firmSlice.reducer;

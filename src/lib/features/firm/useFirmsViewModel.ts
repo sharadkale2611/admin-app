@@ -1,61 +1,56 @@
-// lib/featres/firm/useFirmsViewModel.ts
-
+import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { resetFilters, setSearchTerm, toggleActiveOnly, setPage } from "@/lib/features/firm/firmSlice";
-import { fetchFirms } from "@/lib/features/firm/firmThunks";
-import { useEffect, useCallback } from "react";
-import type { RootState } from "@/lib/store";
-import { AnyAction, ThunkDispatch } from "@reduxjs/toolkit";
+import { fetchFirms } from "./firmThunks";
+import { setSearchTerm, toggleActiveOnly, resetFilters, setPage } from "./firmSlice";
 
 export const useFirmsViewModel = () => {
-    // const dispatch = useAppDispatch();
-    const dispatch: ThunkDispatch<RootState, unknown, AnyAction> = useAppDispatch();
-
+    const dispatch = useAppDispatch();
     const {
         firms,
         loading,
         error,
         page,
-        totalPages,
         searchTerm,
-        activeOnly
-    } = useAppSelector((state: RootState) => state.firms);
+        activeOnly,
+        totalPages
+    } = useAppSelector((state) => state.firms);
 
-    // Memoized fetch function to prevent unnecessary recreations
-    const fetchFirmsData = useCallback(() => {
-        dispatch(fetchFirms({ page, searchTerm, activeOnly }));
-    }, [dispatch, page, searchTerm, activeOnly]);
+    // ⭐ Reusable function to fetch data
+    const refetch = () => {
+        dispatch(
+            fetchFirms({
+                page,
+                searchTerm,
+                activeOnly
+            })
+        );
+    };
 
-    // Fetch firms when filters change with debounce for search
+    // Fetch on mount & when filters change
     useEffect(() => {
-        const timer = setTimeout(() => {
-            fetchFirmsData();
-        }, searchTerm ? 300 : 0); // Debounce only for search
+        refetch();
+    }, [page, searchTerm, activeOnly]);
 
-        return () => clearTimeout(timer);
-    }, [fetchFirmsData, searchTerm]);
+    const handleSearch = (value: string) => {
+        dispatch(setSearchTerm(value));
+        dispatch(setPage(1)); // reset to first page
+    };
 
-    // Action Handlers
-    const handleSearch = useCallback((term: string) => {
-        dispatch(setSearchTerm(term));
-    }, [dispatch]);
-
-    const handleToggleActive = useCallback(() => {
+    const handleToggleActive = () => {
         dispatch(toggleActiveOnly());
-    }, [dispatch]);
+        dispatch(setPage(1));
+    };
 
-    const handleResetFilters = useCallback(() => {
+    const handleResetFilters = () => {
         dispatch(resetFilters());
-    }, [dispatch]);
+        dispatch(setPage(1));
+    };
 
-    const handlePageChange = useCallback((newPage: number) => {
-        if (newPage >= 1 && newPage <= totalPages) {
-            dispatch(setPage(newPage));
-        }
-    }, [dispatch, totalPages]);
+    const handlePageChange = (newPage: number) => {
+        dispatch(setPage(newPage));
+    };
 
     return {
-        // State
         firms,
         isLoading: loading,
         error,
@@ -63,11 +58,10 @@ export const useFirmsViewModel = () => {
         totalPages,
         searchTerm,
         activeOnly,
-
-        // Actions
         handleSearch,
         handleToggleActive,
         handleResetFilters,
-        handlePageChange
+        handlePageChange,
+        refetch,   // ⭐ NOW AVAILABLE
     };
 };

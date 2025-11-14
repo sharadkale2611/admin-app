@@ -26,7 +26,8 @@ const API_ENDPOINTS = {
     // Firm-related endpoints
     FIRM: {
         LIST: process.env.NEXT_PUBLIC_FIRMS_PAGINATED_ENDPOINT || '/Firms/paginated', // paginated list
-        GET_BY_ID: process.env.NEXT_PUBLIC_FIRMS_ENDPOINT || '/Firms',                // fetch single firm
+        GET_BY_ID: `${base_url_api}${process.env.NEXT_PUBLIC_FIRMS_ENDPOINT}` || `${base_url_api}/Firms`,
+              // fetch single firm
         CREATE: process.env.NEXT_PUBLIC_FIRMS_ENDPOINT || '/Firms',                   // create firm
         UPDATE: process.env.NEXT_PUBLIC_FIRMS_ENDPOINT || '/Firms',                   // update firm
         DELETE: process.env.NEXT_PUBLIC_FIRMS_ENDPOINT || '/Firms',                   // delete firm

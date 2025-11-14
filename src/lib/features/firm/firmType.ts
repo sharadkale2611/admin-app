@@ -17,6 +17,7 @@ export interface PaginatedFirms {
 export interface FirmsState {
     firms: Firm[];
     totalCount: number;
+    currentFirm: Firm | null;     
     pageSize: number;
     currentPage: number;
     totalPages: number;
