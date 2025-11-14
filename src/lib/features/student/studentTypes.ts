@@ -72,6 +72,6 @@ export interface FetchStudentParams {
 
 export interface ApiError {
     error: string | null;       // single error
-    errors?: Record<string, string[]> | null;
+    errors: Record<string, string[]> | null;
 
 }
