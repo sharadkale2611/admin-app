@@ -55,24 +55,36 @@ export const fetchCourses = createAsyncThunk<
         searchTerm = '',
         status = null,
         courseLevel = null,
-        categoryId = null
+        categoryId = null,
+        firmId
     }, { rejectWithValue }) => {
         try {
-            const queryParams = new URLSearchParams({
-                pageNumber: page.toString(),
-                pageSize: '10',
-                ...(searchTerm && { search: searchTerm }),
-                ...(status !== null && { status: status.toString() }),
-                ...(courseLevel && { courseLevel }),
-                ...(categoryId && { categoryId: categoryId.toString() }),
-                _: Date.now().toString()
-            }).toString();
+
+            const queryObj: Record<string, string> = {
+            pageNumber: page.toString(),
+            pageSize: '10',
+            _: Date.now().toString(),
+        };
+
+        // Add filters
+        if (searchTerm) queryObj.search = searchTerm;
+        if (status !== null) queryObj.status = status.toString();
+        if (courseLevel) queryObj.courseLevel = courseLevel;
+        if (categoryId !== null) queryObj.categoryId = categoryId.toString();
+
+        // ⭐ Add firmId
+        if (firmId !== null && firmId !== undefined) {
+            queryObj.firmId = firmId.toString();
+        }
+
+            // Now convert to query string
+            const queryString = new URLSearchParams(queryObj).toString();
 
             const response = await api.get<PaginatedCourses>(
-                `${API_ENDPOINTS.COURSES.GET_LIST_PAGINATED}?${queryParams}`,
+                `${API_ENDPOINTS.COURSES.GET_LIST_PAGINATED}?${queryString}`,
                 { withCredentials: true }
             );
-
+                
             if (!response?.data) {
                 return rejectWithValue('No response data from server');
             }            

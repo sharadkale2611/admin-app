@@ -44,8 +44,12 @@ export const fetchCourseCategories = createAsyncThunk<
     { dispatch: AppDispatch; state: RootState; rejectValue: string }
 >(
     'courseCategories/fetchCourseCategories',
-    async (firmId, { rejectWithValue }) => {
+    async (_, { rejectWithValue, getState }) => {
         try {
+
+            const state = getState();
+            const firmId = state.auth.user?.firmId;
+            
             const queryParams = new URLSearchParams();
             if (firmId) {
                 queryParams.append('firmId', firmId.toString());

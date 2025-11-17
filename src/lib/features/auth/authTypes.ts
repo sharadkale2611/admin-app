@@ -4,7 +4,7 @@ export interface User {
     username: string;
     email: string;
     roles: string[];
-    firmId?: string | null | undefined;
+    firmId?: number | null;
     firmName?: string;
     firmCode?: string;
     // Add any other user properties you need

@@ -23,9 +23,8 @@ export const useCourseCategoryViewModel = () => {
 
     // Fetch categories
     const fetchCategories = useCallback(() => {
-        dispatch(fetchCourseCategories(null));
+        dispatch(fetchCourseCategories());
     }, [dispatch]);
-
     // Create category
     const createCourseCategory = useCallback(async (data: CourseCategoryDto) => {
         try {
