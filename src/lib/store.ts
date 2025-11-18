@@ -17,7 +17,7 @@ import { sessionMiddleware, sessionMonitorMiddleware } from '@/lib/features/sess
 import { configureStore, combineReducers, ThunkDispatch, AnyAction } from '@reduxjs/toolkit';
 import { initializeAuthInterceptor } from '@/lib/services/apiService';
 import { firmReducer } from './features/firm/firmSlice';
-import { staffReducer } from './features/staff/staffSlice'; 
+import  staffReducer  from './features/staff/staffSlice'; 
 import { courseCategoryReducer } from './features/courseCategory/courseCategorySlice';
 import { courseReducer} from './features/course/courseSlice'
 import { studentReducer } from './features/student/studentSlice';

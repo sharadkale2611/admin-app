@@ -9,6 +9,8 @@ import { resetFilters, setCategoryFilter, setCourseLevelFilter, setPage, setSear
 export const useCourseViewModel = () => {
     const dispatch: ThunkDispatch<RootState, unknown, AnyAction> = useAppDispatch();
 
+    const authUser = useAppSelector((state: RootState) => state.auth.user);
+
     const {
         courses,
         loading,
@@ -23,6 +25,8 @@ export const useCourseViewModel = () => {
 
     const safeCourses = courses || [];
 
+    const firmId = authUser?.firmId ? Number(authUser.firmId) : null;
+
     // Memoized fetch function
     const fetchCourseData = useCallback(() => {
         dispatch(fetchCourses({
@@ -30,18 +34,21 @@ export const useCourseViewModel = () => {
             searchTerm,
             status: statusFilter,
             courseLevel: courseLevelFilter,
-            categoryId: categoryFilter
+            categoryId: categoryFilter,
+            firmId,
         }));
-    }, [dispatch, page, searchTerm, statusFilter, courseLevelFilter, categoryFilter]);
+    }, [dispatch, page, searchTerm, statusFilter, courseLevelFilter, categoryFilter, firmId]);
 
     // Fetch courses when filters change with debounce for search
     useEffect(() => {
+        if (firmId === null) return; 
+
         const timer = setTimeout(() => {
             fetchCourseData();
         }, searchTerm ? 300 : 0);
 
         return () => clearTimeout(timer);
-    }, [fetchCourseData, searchTerm]);
+    }, [fetchCourseData, searchTerm, firmId]);
 
     // Action Handlers
     const handleSearch = useCallback((term: string) => {
@@ -83,6 +90,7 @@ export const useCourseViewModel = () => {
         statusFilter,
         courseLevelFilter,
         categoryFilter,
+        firmId,
 
         // Actions
         handleSearch,

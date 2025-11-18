@@ -49,7 +49,7 @@ const StaffList: React.FC = () => {
         page,
         totalPages,
         searchTerm,
-        activeOnly,
+        isActive,
         department,
         position,
         handleSearch,
@@ -78,7 +78,6 @@ const StaffList: React.FC = () => {
             refetch();
         }
     };
-
 
     const handleChangeRowsPerPage = (event: SelectChangeEvent) => {
         setRowsPerPage(Number(event.target.value));
