@@ -88,9 +88,10 @@ export default function LoginPage() {
                         label="Username"
                         name="username"
                         autoComplete="username"
-                        value={"shiva-admin"}
+                        value={"hcl-admin"}
                         autoFocus
                     />
+                    {/* admin: admin123 */}
                     <TextField
                         margin="normal"
                         required
