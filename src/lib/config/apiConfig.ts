@@ -84,7 +84,7 @@ const API_ENDPOINTS = {
         POST_CREATE: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees'),
         PUT_UPDATE: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees'),
         DELETE: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees'),
-        GET_BY_FIRM: "/CourseFees/by-firm"  
+        GET_BY_FIRM: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees') + "/CourseFeeByFirmId"  
     }
     // Add other endpoint categories here as needed
 };

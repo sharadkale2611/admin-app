@@ -103,33 +103,40 @@ export const fetchCourseFees = createAsyncThunk<
             console.log('Fetching course fees with params:', params);
 
             const queryParams = new URLSearchParams();
+            const firmId = params?.firmId;
+            // if (params?.firmId) {
+            //     queryParams.append("firmId", params.firmId.toString());
+            // }
 
-            if (params?.firmId) {
-                queryParams.append("firmId", params.firmId.toString());
-            }
+            // if (params?.courseId) {
+            //     // only if needed — optional
+            //     queryParams.append("courseId", params.courseId.toString());
+            // }
 
-            if (params?.courseId) {
-                // only if needed — optional
-                queryParams.append("courseId", params.courseId.toString());
-            }
-
-            const queryString = queryParams.toString();
+            // const queryString = queryParams.toString();
             
-            const url = queryString
-              ? `${API_ENDPOINTS.COURSE_FEES.GET_BY_FIRM}?${queryString}`
-              : API_ENDPOINTS.COURSE_FEES.GET_BY_FIRM;
+            const url = `${API_ENDPOINTS.COURSE_FEES.GET_BY_FIRM}/${firmId}`;
 
 
             const response = await api.get<ApiResponse<CourseFee[]>>(url, {
                 withCredentials: true,
             });
 
+            console.log("Check Response:", response);
+            console.log("Check Response Success:", response.success);
+            console.log("Check Response data:", response.data);
+
             if (response.success && Array.isArray(response.data)) {
+                console.log("from Success block");
+                
                 return response.data;
             }
+            console.log("from reject block");
 
             return rejectWithValue(response.message || "Unexpected response");
         } catch (error: any) {
+            console.log("from catch block");
+
             return rejectWithValue(error.message || "Error fetching fees");
         }
     }

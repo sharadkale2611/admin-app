@@ -359,7 +359,6 @@ const StaffList: React.FC = () => {
     // In your StaffList component
     if (isLoading) return <Box sx={{ p: 3 }}>Loading staff...</Box>;
     if (error) return <Box sx={{ p: 3, color: 'error.main' }}>Error: {error}</Box>;
-    if (!staff || staff.length === 0) return <Box sx={{ p: 3 }}>No staff members found.</Box>;
 
     return (
         <Box sx={{ p: isMobile ? 1 : 3 }}>
