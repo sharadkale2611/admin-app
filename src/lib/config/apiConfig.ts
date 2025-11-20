@@ -71,7 +71,7 @@ const API_ENDPOINTS = {
         DELETE: (process.env.NEXT_PUBLIC_DISCOUNT_CODES_ENDPOINT || '/api/DiscountCodes')
     },
     COURSES: {
-        GET_LIST_PAGINATED: (process.env.NEXT_PUBLIC_COURSES_PAGINATED_ENDPOINT || 'api/Courses/paginated'),
+        GET_LIST_PAGINATED: (process.env.NEXT_PUBLIC_COURSES_PAGINATED_ENDPOINT || '/api/Courses/paginated'),
         GET_LIST: (process.env.NEXT_PUBLIC_COURSES_ENDPOINT || '/api/Courses'),
         GET_BY_ID: (process.env.NEXT_PUBLIC_COURSES_ENDPOINT || '/api/Courses'),
         POST_CREATE: (process.env.NEXT_PUBLIC_COURSES_ENDPOINT || '/api/Courses'),
@@ -83,7 +83,8 @@ const API_ENDPOINTS = {
         GET_BY_ID: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees'),
         POST_CREATE: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees'),
         PUT_UPDATE: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees'),
-        DELETE: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees')
+        DELETE: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees'),
+        GET_BY_FIRM: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees') + "/CourseFeeByFirmId"  
     }
     // Add other endpoint categories here as needed
 };

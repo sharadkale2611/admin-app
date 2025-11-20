@@ -39,13 +39,63 @@ export interface CourseFeeDto {
 
 export interface FetchCourseFeesParams {
     courseId?: number;
+    firmId?: number;
 }
 
 // Thunks
+// export const fetchCourseFees = createAsyncThunk<
+//     CourseFee[],
+//     FetchCourseFeesParams | undefined,
+//     { dispatch: AppDispatch; state: RootState; rejectValue: string }
+// >(
+//     'courseFees/fetchCourseFees',
+//     async (params, { rejectWithValue }) => {
+//         try {
+//             console.log('Fetching course fees with params:', params);
+
+//             const queryParams = new URLSearchParams();
+//             if (params?.courseId) {
+//                 queryParams.append('courseId', params.courseId.toString());
+//             }
+
+//             const queryString = queryParams.toString();
+//             const url = queryString
+//                 ? `${API_ENDPOINTS.COURSE_FEES.GET_LIST}?${queryString}`
+//                 : API_ENDPOINTS.COURSE_FEES.GET_LIST;
+
+//             console.log('API URL:', url);
+
+//             const response = await api.get<ApiResponse<CourseFee[]>>(
+//                 url,
+//                 { withCredentials: true }
+//             );
+
+//             console.log('API Response:', response);
+
+//             if (response.success && Array.isArray(response.data)) {
+//                 console.log('Returning array data:', response.data);
+//                 return response.data;
+//             } else {
+//                 console.log('Unexpected response format:', response);
+//                 return rejectWithValue(response.message || 'Unexpected response format from server');
+//             }
+
+//         } catch (error) {
+//             console.error('Fetch course fees error:', error);
+//             if (error instanceof Error) {
+//                 return rejectWithValue(
+//                     error.message.includes('401') ? 'SESSION_EXPIRED' : error.message
+//                 );
+//             }
+//             return rejectWithValue('An unknown error occurred');
+//         }
+//     }
+// );
+
+
 export const fetchCourseFees = createAsyncThunk<
     CourseFee[],
-    FetchCourseFeesParams | undefined,
-    { dispatch: AppDispatch; state: RootState; rejectValue: string }
+    FetchCourseFeesParams | undefined
 >(
     'courseFees/fetchCourseFees',
     async (params, { rejectWithValue }) => {
@@ -53,43 +103,45 @@ export const fetchCourseFees = createAsyncThunk<
             console.log('Fetching course fees with params:', params);
 
             const queryParams = new URLSearchParams();
-            if (params?.courseId) {
-                queryParams.append('courseId', params.courseId.toString());
-            }
+            const firmId = params?.firmId;
+            // if (params?.firmId) {
+            //     queryParams.append("firmId", params.firmId.toString());
+            // }
 
-            const queryString = queryParams.toString();
-            const url = queryString
-                ? `${API_ENDPOINTS.COURSE_FEES.GET_LIST}?${queryString}`
-                : API_ENDPOINTS.COURSE_FEES.GET_LIST;
+            // if (params?.courseId) {
+            //     // only if needed — optional
+            //     queryParams.append("courseId", params.courseId.toString());
+            // }
 
-            console.log('API URL:', url);
+            // const queryString = queryParams.toString();
+            
+            const url = `${API_ENDPOINTS.COURSE_FEES.GET_BY_FIRM}/${firmId}`;
 
-            const response = await api.get<ApiResponse<CourseFee[]>>(
-                url,
-                { withCredentials: true }
-            );
 
-            console.log('API Response:', response);
+            const response = await api.get<ApiResponse<CourseFee[]>>(url, {
+                withCredentials: true,
+            });
+
+            console.log("Check Response:", response);
+            console.log("Check Response Success:", response.success);
+            console.log("Check Response data:", response.data);
 
             if (response.success && Array.isArray(response.data)) {
-                console.log('Returning array data:', response.data);
+                console.log("from Success block");
+                
                 return response.data;
-            } else {
-                console.log('Unexpected response format:', response);
-                return rejectWithValue(response.message || 'Unexpected response format from server');
             }
+            console.log("from reject block");
 
-        } catch (error) {
-            console.error('Fetch course fees error:', error);
-            if (error instanceof Error) {
-                return rejectWithValue(
-                    error.message.includes('401') ? 'SESSION_EXPIRED' : error.message
-                );
-            }
-            return rejectWithValue('An unknown error occurred');
+            return rejectWithValue(response.message || "Unexpected response");
+        } catch (error: any) {
+            console.log("from catch block");
+
+            return rejectWithValue(error.message || "Error fetching fees");
         }
     }
 );
+
 
 
 

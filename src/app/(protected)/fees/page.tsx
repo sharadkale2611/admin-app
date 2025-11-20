@@ -250,7 +250,7 @@ const CourseFeesList: React.FC = () => {
             width: 150,
             renderCell: (params) => (
                 <Stack direction="row" spacing={0.5}>
-                    <IconButton
+                    {/* <IconButton
                         size="small"
                         color="info"
                         component={Link}
@@ -258,7 +258,7 @@ const CourseFeesList: React.FC = () => {
                         disabled={!params.row?.courseFeeId}
                     >
                         <Visibility fontSize="small" />
-                    </IconButton>
+                    </IconButton> */}
                     <IconButton
                         size="small"
                         color="primary"
@@ -485,7 +485,7 @@ const CourseFeesList: React.FC = () => {
                                             <Typography>{courseFee.totalInstallments}</Typography>
                                         </Box>
                                         <Stack direction="row" spacing={1}>
-                                            <Button
+                                            {/* <Button
                                                 variant="outlined"
                                                 size="small"
                                                 startIcon={<Visibility />}
@@ -494,7 +494,7 @@ const CourseFeesList: React.FC = () => {
                                                 href={`/course-fees/${courseFee.courseFeeId}`}
                                             >
                                                 View
-                                            </Button>
+                                            </Button> */}
                                             <Button
                                                 variant="outlined"
                                                 size="small"

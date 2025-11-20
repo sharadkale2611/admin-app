@@ -6,6 +6,7 @@ import { User } from './authTypes';
 import API_ENDPOINTS, { getApiUrl } from '@/lib/config/apiConfig';
 import { setSessionExpiry, setRefreshing } from '../session/sessionSlice';
 import { AppDispatch, RootState } from '@/lib/store';
+import { setFirmId } from "../staff/staffSlice";
 
 interface LoginCredentials {
     username: string;
@@ -68,6 +69,8 @@ export const login = createAsyncThunk<
             };
 
             dispatch(loginSuccess(normalizedUser));
+            const firmIdNumber = normalizedUser.firmId ? Number(normalizedUser.firmId) : null;
+            dispatch(setFirmId(firmIdNumber)); 
             return { user: normalizedUser };
 
         } catch (err) {

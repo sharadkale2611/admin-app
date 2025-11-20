@@ -250,19 +250,11 @@ export default function CourseEdit() {
 
                                 {/* Firm ID (if applicable) */}
                                 {formData.firmId && (
-                                    <Grid size={{ xs: 12, sm: 6 }}>
-                                        <TextField
-                                            fullWidth
-                                            label="Firm ID"
-                                            type="number"
-                                            value={formData.firmId}
-                                            onChange={(e) => handleInputChange('firmId', parseInt(e.target.value) || 0)}
-                                            disabled={isSubmitting}
-                                            InputProps={{
-                                                inputProps: { min: 1 }
-                                            }}
-                                        />
-                                    </Grid>
+                                    <input
+                                        type="hidden"
+                                        value={formData.firmId}
+                                        onChange={(e) => handleInputChange('firmId', parseInt(e.target.value) || 0)}
+                                    />
                                 )}
                             </Grid>
 

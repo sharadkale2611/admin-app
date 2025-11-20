@@ -22,35 +22,39 @@ export interface ApiError {
 /**
  * Common error parser for API responses
  */
+
 function parseApiError(error: any): ApiError {
-    console.log('parseApiError from std_Thunk', error);
-    
-    if (error?.response?.data) {
-        const data = error.response.data;
+  console.log("parseApiError from std_Thunk", error);
 
-        if (data.errors && typeof data.errors === "object") {
-            // flatten { field: [messages] } into string[]
-            const flattened = Object.entries(data.errors).flatMap(
-                ([field, msgs]) => (msgs as string[]).map(msg => `${field}: ${msg}`)
-            );
-            return { error: null, errors: flattened };
-        }
+  if (error?.response?.data) {
+    const data = error.response.data;
 
-        if (data.error) {
-            return { error: data.error, errors: null };
-        }
+    if (data.errors && typeof data.errors === "object") {
+      // flatten { field: [messages] } into string[]
+      const flattened = Object.entries(data.errors).flatMap(([field, msgs]) =>
+        (msgs as string[]).map((msg) => `${field}: ${msg}`)
+      );
+      return { error: null, errors: flattened };
     }
 
-    if (error?.errors){
-        return { error: error.message, errors: error?.errors };
+    if (data.error) {
+      return { error: data.error, errors: null };
     }
+  }
 
-    if (error?.fieldErrors) {
-        return { error: error.message, errors: error?.fieldErrors };
-    }
-  
-    return { error: "An unknown error occurred...from thunk", errors: null };
+  if (error?.errors) {
+    return { error: error.message, errors: error?.errors };
+  }
+
+  if (error?.fieldErrors) {
+    return { error: error.message, errors: error?.fieldErrors };
+  }
+
+  return { error: "An unknown error occurred...from thunk", errors: null };
 }
+
+
+
 
 export const fetchStudentList = createAsyncThunk<
     Student[], // Response type: list of students
@@ -78,6 +82,8 @@ export const fetchStudentList = createAsyncThunk<
         }
     }
 );
+
+
 
 /**
  * Fetch Students (paginated)
@@ -113,6 +119,9 @@ export const fetchStudents = createAsyncThunk<
     }
 );
 
+
+
+
 /**
  * Create Student
  */
@@ -137,14 +146,23 @@ export const createStudent = createAsyncThunk<
                     withCredentials: true,
                     headers: { "Content-Type": "application/json" }
                 }
+                
             );
-
+            
             // Check for non-200 response
-            if (response.status !== 200) {
+            if (response.status !== 201 ) {
                 return rejectWithValue({
-                    error: response.data?.error || response.data?.message || "Creation failed",
+                    error:   response.message || response.error || "Creation failed",
                     errors: null,
-                });
+                    });
+            }
+
+            // Check API logical success
+            if (response.data?.success === false ) {
+                return rejectWithValue({
+                    error: response.message || response.error || "Creation failed",
+                    errors: null ,
+                    });
             }
 
             // Return created student
@@ -155,16 +173,24 @@ export const createStudent = createAsyncThunk<
                 errors: null,
                 student: response.data?.data ?? null,
             };
+
+
         } catch (error: any) {
             // Ensure parseApiError returns {error: string, errors: Record<string,string[]> | null}
             const parsed = parseApiError(error);
             return rejectWithValue({
-                error: parsed.error ?? "Creation failed",
-                errors: parsed.errors ?? null,
+
+                error: parsed.error || "Creation failed",
+                errors: parsed.errors || null,
+
             });
+
         }
     }
 );
+
+
+
 
 /**
  * Update Student
@@ -269,6 +295,7 @@ export const updateStudent = createAsyncThunk<
 );
 
 
+
 /**
  * Delete Student
  */
@@ -292,6 +319,7 @@ export const deleteStudent = createAsyncThunk<
         }
     }
 );
+
 
 /**
  * Fetch Student By Id
