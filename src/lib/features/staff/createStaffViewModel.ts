@@ -4,16 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createStaff } from './staffThunks';
 import { useDispatch } from 'react-redux';
-import { toast } from 'react-toastify'; // Import toast for notifications
+import { toast } from 'react-toastify';
 
 export interface StaffFormData {
-    // User fields
     userName: string;
     password: string;
     email: string;
     mobileNumber: string;
 
-    // Staff fields
     firstName: string;
     lastName: string;
     dateOfBirth: string;
@@ -27,6 +25,7 @@ export interface StaffFormData {
 export default function useCreateStaffViewModel() {
     const router = useRouter();
     const dispatch = useDispatch();
+
     const [formData, setFormData] = useState<StaffFormData>({
         userName: '',
         password: '',
@@ -47,18 +46,12 @@ export default function useCreateStaffViewModel() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSelectChange = (e: { target: { name: string; value: string } }) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -67,18 +60,15 @@ export default function useCreateStaffViewModel() {
         setError(null);
 
         try {
-            // Validate form data
             if (!formData.userName || !formData.password || !formData.email ||
                 !formData.firstName || !formData.lastName || !formData.position) {
                 throw new Error('Please fill in all required fields');
             }
 
-            // Validate email format
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
                 throw new Error('Please enter a valid email address');
             }
 
-            // Create the staff member using Redux action
             const result = await dispatch<any>(createStaff({
                 userName: formData.userName,
                 password: formData.password,
@@ -96,35 +86,41 @@ export default function useCreateStaffViewModel() {
 
             if (result.success) {
                 toast.success('Staff member created successfully');
-
-                // Reset form
-                setFormData({
-                    userName: '',
-                    password: '',
-                    email: '',
-                    mobileNumber: '',
-                    firstName: '',
-                    lastName: '',
-                    dateOfBirth: '',
-                    gender: '',
-                    position: '',
-                    department: '',
-                    hireDate: new Date().toISOString().split('T')[0],
-                    salary: ''
-                });
-
-                // Redirect to staff list
                 router.push('/staff');
             } else {
                 throw new Error(result.error || 'Failed to create staff member');
             }
-        } catch (err: unknown) {
-            const errorMessage = err instanceof Error ? err.message :
-                typeof err === 'string' ? err :
-                    'An unknown error occurred';
+
+        } catch (err: any) {
+            let errorMessage = "";
+
+            if (typeof err === "string") {
+                errorMessage = err;
+            }
+            else if (err instanceof Error) {
+                errorMessage = err.message;
+            }
+            else if (err?.error) {
+                errorMessage = err.error;
+            }
+            else if (err?.message) {
+                errorMessage = err.message;
+            }
+            else if (err?.errors && typeof err.errors === "object") {
+                const all = Object.values(err.errors).flat();
+                errorMessage = all.join(", ");
+            }
+            else if (Array.isArray(err?.errors)) {
+                errorMessage = err.errors.join(", ");
+            }
+            else {
+                errorMessage = "An unknown error occurred";
+            }
+
             setError(errorMessage);
             toast.error(errorMessage);
-        } finally {
+        }
+        finally {
             setIsSubmitting(false);
         }
     };
