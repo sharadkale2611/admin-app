@@ -220,21 +220,24 @@ export const deleteFirm = createAsyncThunk<
 export const fetchFirmById = createAsyncThunk<
     Firm,
     string,
-    { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
+    { rejectValue: ApiError }
 >(
-    'firms/fetchFirmById',
+    "firms/fetchFirmById",
     async (id, { rejectWithValue }) => {
         try {
-            const response = await api.get<ApiResponse<Firm>>(
-                `${API_ENDPOINTS.FIRM.GET_BY_ID}/${id}`,
-                { withCredentials: true }
+            const response = await api.get<Firm>(
+                `${API_ENDPOINTS.FIRM.GET_BY_ID}/${id}`
             );
 
-            if (!response.data?.data) {
-                return rejectWithValue({ error: 'Firm not found', errors: null });
+            // Your API returns the firm directly, so response.data IS the firm
+            const firm = response.data;
+
+            if (!firm || !firm.firmId) {
+                return rejectWithValue({ error: "Firm not found", errors: null });
             }
 
-            return response.data.data;
+            return firm;
+
         } catch (error: any) {
             return rejectWithValue(parseApiError(error));
         }

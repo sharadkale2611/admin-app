@@ -93,6 +93,45 @@ export const fetchCourseFees = createAsyncThunk<
 
 
 
+
+export const fetchCourseFeesByFirm = createAsyncThunk<
+    CourseFee[],
+    number, // firmId
+    { dispatch: AppDispatch; state: RootState; rejectValue: string }
+>(
+    "courseFees/fetchCourseFeesByFirm",
+    async (firmId, { rejectWithValue }) => {
+        try {
+            const url = `${API_ENDPOINTS.COURSE_FEES.GET_BY_FIRM}?firmId=${firmId}`;
+
+            console.log("Fetching fees by firm:", url);
+
+            const response = await api.get<ApiResponse<CourseFee[]>>(url, {
+                withCredentials: true,
+            });
+
+            // Must return ONLY the array (CourseFee[])
+            if (response.success && Array.isArray(response.data)) {
+                return response.data;
+            }
+
+            return rejectWithValue(
+                response.error ||
+                response.message ||
+                "Failed to fetch fees by firm"
+            );
+
+        } catch (error: any) {
+            return rejectWithValue(error.message || "Unknown error");
+        }
+    }
+);
+
+
+
+
+
+
 export const fetchCourseFeeById = createAsyncThunk<
     CourseFee,
     number,

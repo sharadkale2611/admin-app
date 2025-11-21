@@ -26,7 +26,8 @@ const API_ENDPOINTS = {
     // Firm-related endpoints
     FIRM: {
         LIST: process.env.NEXT_PUBLIC_FIRMS_PAGINATED_ENDPOINT || '/Firms/paginated', // paginated list
-        GET_BY_ID: process.env.NEXT_PUBLIC_FIRMS_ENDPOINT || '/Firms',                // fetch single firm
+        GET_BY_ID: `${base_url_api}${process.env.NEXT_PUBLIC_FIRMS_ENDPOINT}` || `${base_url_api}/Firms`,
+              // fetch single firm
         CREATE: process.env.NEXT_PUBLIC_FIRMS_ENDPOINT || '/Firms',                   // create firm
         UPDATE: process.env.NEXT_PUBLIC_FIRMS_ENDPOINT || '/Firms',                   // update firm
         DELETE: process.env.NEXT_PUBLIC_FIRMS_ENDPOINT || '/Firms',                   // delete firm
@@ -70,7 +71,7 @@ const API_ENDPOINTS = {
         DELETE: (process.env.NEXT_PUBLIC_DISCOUNT_CODES_ENDPOINT || '/api/DiscountCodes')
     },
     COURSES: {
-        GET_LIST_PAGINATED: (process.env.NEXT_PUBLIC_COURSES_PAGINATED_ENDPOINT || 'api/Courses/paginated'),
+        GET_LIST_PAGINATED: (process.env.NEXT_PUBLIC_COURSES_PAGINATED_ENDPOINT || '/api/Courses/paginated'),
         GET_LIST: (process.env.NEXT_PUBLIC_COURSES_ENDPOINT || '/api/Courses'),
         GET_BY_ID: (process.env.NEXT_PUBLIC_COURSES_ENDPOINT || '/api/Courses'),
         POST_CREATE: (process.env.NEXT_PUBLIC_COURSES_ENDPOINT || '/api/Courses'),
@@ -82,7 +83,9 @@ const API_ENDPOINTS = {
         GET_BY_ID: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees'),
         POST_CREATE: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees'),
         PUT_UPDATE: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees'),
-        DELETE: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees')
+        DELETE: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees'),
+        // GET_BY_FIRM: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees') + "/CourseFeeByFirmId"  
+        GET_BY_FIRM: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees') + "/by-firm" 
     }
     // Add other endpoint categories here as needed
 };

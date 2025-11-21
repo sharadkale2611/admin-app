@@ -6,6 +6,7 @@ import {
     updateCourseFee,
     deleteCourseFee,
     CourseFee,
+    fetchCourseFeesByFirm,
 } from './feesThunks';
 
 interface CourseFeeState {
@@ -60,6 +61,22 @@ const feesSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string || "Failed to fetch course fees";
             })
+
+
+            .addCase(fetchCourseFeesByFirm.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchCourseFeesByFirm.fulfilled, (state, action: PayloadAction<CourseFee[]>) => {
+                state.loading = false;
+                state.courseFees = action.payload;
+            })
+            .addCase(fetchCourseFeesByFirm.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string || "Failed to fetch fees by firm";
+            })
+
+
             // Fetch Course Fee by ID
             .addCase(fetchCourseFeeById.pending, (state) => {
                 state.loading = true;

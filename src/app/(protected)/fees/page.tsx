@@ -42,6 +42,7 @@ import {
 import { DataGrid, GridColDef, GridSortModel } from '@mui/x-data-grid';
 import Link from 'next/link';
 import { useCourseFeesViewModel } from '@/lib/features/fees/useCourseFeesViewModel';
+import { useCourseViewModel } from "@/lib/features/course/useCourseViewModel";
 import { CourseFee } from '@/lib/features/fees/feesThunks';
 
 const CourseFeesList: React.FC = () => {
@@ -57,8 +58,12 @@ const CourseFeesList: React.FC = () => {
         handleClearFilters,
         handleClearError, // This should now be available from the ViewModel
         handleDeleteCourseFee,
-        refetch
+        refetch,
+        refetchByFirm,
+        refetchByCourse
     } = useCourseFeesViewModel();
+
+    const { courses, isLoading: coursesLoading } = useCourseViewModel();
 
     // State for UI controls
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -284,291 +289,346 @@ const CourseFeesList: React.FC = () => {
     if (isLoading) return <Box sx={{ p: 3 }}>Loading course fees...</Box>;
 
     return (
-        <Box sx={{ p: isMobile ? 1 : 3 }}>
-            {/* Header */}
-            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-                <Stack direction="row" alignItems="center" spacing={2}>
-                    <IconButton
-                        aria-label="back"
-                        size={isMobile ? 'small' : 'medium'}
-                        component={Link}
-                        href="/dashboard"
-                    >
-                        <ArrowBack fontSize={isMobile ? 'small' : 'medium'} />
-                    </IconButton>
-                    <Typography variant={isMobile ? 'h5' : 'h4'} component="h1">
-                        Course Fees Management
-                    </Typography>
-                </Stack>
-                <Button
-                    variant="contained"
-                    startIcon={<Add />}
-                    size={isMobile ? 'small' : 'medium'}
-                    component={Link}
-                    href="/fees/create"
-                >
-                    Add Fee Structure
-                </Button>
-            </Stack>
-
-            {/* Filters */}
-            <Paper sx={{ mb: 3, p: 2 }}>
-                <Stack direction={isMobile ? 'column' : 'row'} spacing={2} alignItems="flex-end">
-                    <FormControl size="small" sx={{ minWidth: 200 }}>
-                        <InputLabel>Filter by Course</InputLabel>
-                        <Select
-                            value={filters.courseId?.toString() || ''}
-                            onChange={(e) => handleCourseIdFilter(
-                                e.target.value === '' ? undefined : parseInt(e.target.value)
-                            )}
-                            label="Filter by Course"
-                        >
-                            <MenuItem value="">All Courses</MenuItem>
-                            {/* You would populate this with actual courses from your API */}
-                            <MenuItem value="1">Web Development</MenuItem>
-                            <MenuItem value="2">Data Science</MenuItem>
-                            <MenuItem value="3">Digital Marketing</MenuItem>
-                        </Select>
-                    </FormControl>
-
-                    <Button
-                        variant="outlined"
-                        onClick={handleClearFilters}
-                        size="small"
-                    >
-                        Clear Filters
-                    </Button>
-                </Stack>
-            </Paper>
-
-            {/* Error Alert */}
-            {error && (
-                <Alert severity="error" sx={{ mb: 2 }} onClose={handleClearError}>
-                    {error}
-                </Alert>
-            )}
-
-            {/* Pagination controls */}
-            <Box sx={{
-                display: 'flex',
-                flexDirection: isMobile ? 'column' : 'row',
-                gap: isMobile ? 2 : 0,
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mb: 2
-            }}>
-                <FormControl size="small" sx={{ minWidth: 120 }}>
-                    <InputLabel>Rows</InputLabel>
-                    <Select
-                        value={rowsPerPage.toString()}
-                        label="Rows"
-                        onChange={handleChangeRowsPerPage}
-                    >
-                        {[5, 10, 25, 50].map((option) => (
-                            <MenuItem key={option} value={option}>
-                                {option}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-
-                <Typography variant="body2" sx={{ textAlign: isMobile ? 'center' : 'left' }}>
-                    Page {page} of {totalPages} | Total: {courseFees.length} fee structures
-                </Typography>
-
-                <Pagination
-                    count={totalPages}
-                    page={page}
-                    onChange={(_, newPage) => setPage(newPage)}
-                    color="primary"
-                    shape="rounded"
-                    size={isMobile ? 'small' : 'medium'}
-                />
-            </Box>
-
-            {/* Desktop DataGrid */}
-            {!isMobile ? (
-                <Box sx={{ height: 600, width: '100%', mb: 2 }}>
-                    {error ? (
-                        <Box sx={{
-                            height: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexDirection: 'column',
-                            gap: 2
-                        }}>
-                            <Typography color="error" variant="h6">
-                                Error loading data
-                            </Typography>
-                            <Button
-                                variant="contained"
-                                onClick={refetch}
-                            >
-                                Retry
-                            </Button>
-                        </Box>
-                    ) : (
-                        <DataGrid
-                            rows={currentCourseFees}
-                            columns={columns}
-                            hideFooter
-                            sortingMode="server"
-                            sortModel={sortModel}
-                            onSortModelChange={handleSortModelChange}
-                            disableColumnMenu
-                            getRowId={(row) => row?.courseFeeId ? row.courseFeeId.toString() : Math.random().toString()}
-                            loading={isLoading}
-                            slots={{
-                                noRowsOverlay: () => (
-                                    <Stack height="100%" alignItems="center" justifyContent="center">
-                                        <Typography>No course fees found</Typography>
-                                    </Stack>
-                                )
-                            }}
-                        />
-                    )}
-                </Box>
-            ) : (
-                /* Mobile Collapsible List */
-                <Box component={Paper} elevation={3} sx={{ mb: 2 }}>
-                    {currentCourseFees.map((courseFee) => (
-                        <Box key={courseFee.courseFeeId}>
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    p: 2,
-                                    borderBottom: '1px solid',
-                                    borderColor: 'divider',
-                                    cursor: 'pointer',
-                                    '&:hover': { backgroundColor: 'action.hover' }
-                                }}
-                                onClick={() => toggleRowExpand(courseFee.courseFeeId)}
-                            >
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                    <Avatar sx={{ width: 40, height: 40, bgcolor: 'primary.main' }}>
-                                        <AttachMoney />
-                                    </Avatar>
-                                    <Box>
-                                        <Typography fontWeight="bold">
-                                            {courseFee.courseName}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            ₹{courseFee.totalFee?.toLocaleString('en-IN')}
-                                        </Typography>
-                                    </Box>
-                                </Box>
-                                <IconButton size="small">
-                                    {expandedRows.includes(courseFee.courseFeeId.toString()) ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
-                                </IconButton>
-                            </Box>
-
-                            <Collapse in={expandedRows.includes(courseFee.courseFeeId.toString())}>
-                                <CardContent>
-                                    <Stack spacing={2}>
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary">Fee Amount</Typography>
-                                            <Typography>₹{courseFee.feeAmount?.toLocaleString('en-IN')}</Typography>
-                                        </Box>
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary">GST Percentage</Typography>
-                                            <Typography>{courseFee.gstPercentage}%</Typography>
-                                        </Box>
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary">Total Fee</Typography>
-                                            <Typography fontWeight="bold">₹{courseFee.totalFee?.toLocaleString('en-IN')}</Typography>
-                                        </Box>
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary">Installments</Typography>
-                                            <Typography>{courseFee.totalInstallments}</Typography>
-                                        </Box>
-                                        <Stack direction="row" spacing={1}>
-                                            <Button
-                                                variant="outlined"
-                                                size="small"
-                                                startIcon={<Visibility />}
-                                                fullWidth
-                                                component={Link}
-                                                href={`/course-fees/${courseFee.courseFeeId}`}
-                                            >
-                                                View
-                                            </Button>
-                                            <Button
-                                                variant="outlined"
-                                                size="small"
-                                                startIcon={<Edit />}
-                                                color="primary"
-                                                fullWidth
-                                                component={Link}
-                                                href={`/course-fees/${courseFee.courseFeeId}/edit`}
-                                            >
-                                                Edit
-                                            </Button>
-                                            <Button
-                                                variant="outlined"
-                                                size="small"
-                                                startIcon={<Delete />}
-                                                color="error"
-                                                fullWidth
-                                                onClick={() => onDeleteCourseFee(courseFee)}
-                                            >
-                                                Delete
-                                            </Button>
-                                        </Stack>
-                                    </Stack>
-                                </CardContent>
-                            </Collapse>
-                        </Box>
-                    ))}
-                </Box>
-            )}
-
-            {/* Bottom pagination */}
-            {totalPages > 1 && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-                    <Pagination
-                        count={totalPages}
-                        page={page}
-                        onChange={(_, newPage) => setPage(newPage)}
-                        color="primary"
-                        shape="rounded"
-                        size={isMobile ? 'small' : 'medium'}
-                    />
-                </Box>
-            )}
-
-            {/* Delete Confirmation Dialog */}
-            <Dialog open={deleteConfirmOpen} onClose={cancelDelete}>
-                <DialogTitle>Confirm Delete</DialogTitle>
-                <DialogContent>
-                    <Typography>
-                        Are you sure you want to delete the fee structure for {courseFeeToDelete?.courseName}?
-                    </Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={cancelDelete}>Cancel</Button>
-                    <Button onClick={confirmDelete} color="error" variant="contained">
-                        Delete
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Snackbar for notifications */}
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={6000}
-                onClose={() => setSnackbar({ ...snackbar, open: false })}
+      <Box sx={{ p: isMobile ? 1 : 3 }}>
+        {/* Header */}
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          sx={{ mb: 3 }}
+        >
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <IconButton
+              aria-label="back"
+              size={isMobile ? "small" : "medium"}
+              component={Link}
+              href="/dashboard"
             >
-                <Alert
-                    severity={snackbar.severity as any}
-                    onClose={() => setSnackbar({ ...snackbar, open: false })}
-                >
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
+              <ArrowBack fontSize={isMobile ? "small" : "medium"} />
+            </IconButton>
+            <Typography variant={isMobile ? "h5" : "h4"} component="h1">
+              Course Fees Management
+            </Typography>
+          </Stack>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            size={isMobile ? "small" : "medium"}
+            component={Link}
+            href="/fees/create"
+          >
+            Add Fee Structure
+          </Button>
+        </Stack>
+
+        {/* Filters */}
+        <Paper sx={{ mb: 3, p: 2 }}>
+          <Stack
+            direction={isMobile ? "column" : "row"}
+            spacing={2}
+            alignItems="flex-end"
+          >
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <InputLabel>Filter by Course</InputLabel>
+              <Select
+                value={filters.courseId ? filters.courseId.toString() : ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const id = value === "" ? undefined : Number(value);
+
+                  handleCourseIdFilter(id);
+
+                  if (id) refetchByCourse();
+                  else refetchByFirm();
+                }}
+                label="Filter by Course"
+              >
+                <MenuItem value="">All Courses</MenuItem>
+
+                {!coursesLoading &&
+                  courses?.map((c) => (
+                    <MenuItem key={c.courseId} value={c.courseId.toString()}>
+                      {c.courseName}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+
+            <Button
+              variant="outlined"
+              onClick={() => {
+                  handleClearFilters();
+                  refetchByFirm(); // load firm's fees after clearing
+              }}
+              size="small"
+          >
+              Clear Filters
+          </Button>
+          </Stack>
+        </Paper>
+
+        {/* Error Alert */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={handleClearError}>
+            {error}
+          </Alert>
+        )}
+
+        {/* Pagination controls */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",
+            gap: isMobile ? 2 : 0,
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>Rows</InputLabel>
+            <Select
+              value={rowsPerPage.toString()}
+              label="Rows"
+              onChange={handleChangeRowsPerPage}
+            >
+              {[5, 10, 25, 50].map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <Typography
+            variant="body2"
+            sx={{ textAlign: isMobile ? "center" : "left" }}
+          >
+            Page {page} of {totalPages} | Total: {courseFees.length} fee
+            structures
+          </Typography>
+
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={(_, newPage) => setPage(newPage)}
+            color="primary"
+            shape="rounded"
+            size={isMobile ? "small" : "medium"}
+          />
         </Box>
+
+        {/* Desktop DataGrid */}
+        {!isMobile ? (
+          <Box sx={{ height: 600, width: "100%", mb: 2 }}>
+            {error ? (
+              <Box
+                sx={{
+                  height: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexDirection: "column",
+                  gap: 2,
+                }}
+              >
+                <Typography color="error" variant="h6">
+                  Error loading data
+                </Typography>
+                <Button variant="contained" onClick={refetch}>
+                  Retry
+                </Button>
+              </Box>
+            ) : (
+              <DataGrid
+                rows={currentCourseFees}
+                columns={columns}
+                hideFooter
+                sortingMode="server"
+                sortModel={sortModel}
+                onSortModelChange={handleSortModelChange}
+                disableColumnMenu
+                getRowId={(row) =>
+                  row?.courseFeeId
+                    ? row.courseFeeId.toString()
+                    : Math.random().toString()
+                }
+                loading={isLoading}
+                slots={{
+                  noRowsOverlay: () => (
+                    <Stack
+                      height="100%"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Typography>No course fees found</Typography>
+                    </Stack>
+                  ),
+                }}
+              />
+            )}
+          </Box>
+        ) : (
+          /* Mobile Collapsible List */
+          <Box component={Paper} elevation={3} sx={{ mb: 2 }}>
+            {currentCourseFees.map((courseFee) => (
+              <Box key={courseFee.courseFeeId}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    p: 2,
+                    borderBottom: "1px solid",
+                    borderColor: "divider",
+                    cursor: "pointer",
+                    "&:hover": { backgroundColor: "action.hover" },
+                  }}
+                  onClick={() => toggleRowExpand(courseFee.courseFeeId)}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Avatar
+                      sx={{ width: 40, height: 40, bgcolor: "primary.main" }}
+                    >
+                      <AttachMoney />
+                    </Avatar>
+                    <Box>
+                      <Typography fontWeight="bold">
+                        {courseFee.courseName}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        ₹{courseFee.totalFee?.toLocaleString("en-IN")}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <IconButton size="small">
+                    {expandedRows.includes(courseFee.courseFeeId.toString()) ? (
+                      <KeyboardArrowUp />
+                    ) : (
+                      <KeyboardArrowDown />
+                    )}
+                  </IconButton>
+                </Box>
+
+                <Collapse
+                  in={expandedRows.includes(courseFee.courseFeeId.toString())}
+                >
+                  <CardContent>
+                    <Stack spacing={2}>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          Fee Amount
+                        </Typography>
+                        <Typography>
+                          ₹{courseFee.feeAmount?.toLocaleString("en-IN")}
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          GST Percentage
+                        </Typography>
+                        <Typography>{courseFee.gstPercentage}%</Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          Total Fee
+                        </Typography>
+                        <Typography fontWeight="bold">
+                          ₹{courseFee.totalFee?.toLocaleString("en-IN")}
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          Installments
+                        </Typography>
+                        <Typography>{courseFee.totalInstallments}</Typography>
+                      </Box>
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<Visibility />}
+                          fullWidth
+                          component={Link}
+                          href={`/course-fees/${courseFee.courseFeeId}`}
+                        >
+                          View
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<Edit />}
+                          color="primary"
+                          fullWidth
+                          component={Link}
+                          href={`/course-fees/${courseFee.courseFeeId}/edit`}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<Delete />}
+                          color="error"
+                          fullWidth
+                          onClick={() => onDeleteCourseFee(courseFee)}
+                        >
+                          Delete
+                        </Button>
+                      </Stack>
+                    </Stack>
+                  </CardContent>
+                </Collapse>
+              </Box>
+            ))}
+          </Box>
+        )}
+
+        {/* Bottom pagination */}
+        {totalPages > 1 && (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(_, newPage) => setPage(newPage)}
+              color="primary"
+              shape="rounded"
+              size={isMobile ? "small" : "medium"}
+            />
+          </Box>
+        )}
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteConfirmOpen} onClose={cancelDelete}>
+          <DialogTitle>Confirm Delete</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Are you sure you want to delete the fee structure for{" "}
+              {courseFeeToDelete?.courseName}?
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={cancelDelete}>Cancel</Button>
+            <Button onClick={confirmDelete} color="error" variant="contained">
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Snackbar for notifications */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+        >
+          <Alert
+            severity={snackbar.severity as any}
+            onClose={() => setSnackbar({ ...snackbar, open: false })}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </Box>
     );
 };
 

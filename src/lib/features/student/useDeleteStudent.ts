@@ -36,7 +36,7 @@ export const useDeleteStudent = () => {
                     });
                     return true;
                 } else {
-                    throw new Error(actionResult.payload || 'Failed to delete student');
+                    // throw new Error(actionResult.payload || 'Failed to delete student');
                 }
             } catch (error: any) {
                 await Swal.fire({

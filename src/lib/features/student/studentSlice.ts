@@ -140,7 +140,7 @@ const studentSlice = createSlice({
                     // ensure it's ApiError
                     state.error = {
                         error: action.payload.error ?? 'Failed to update student',
-                        errors: action.payload.errors ?? null,
+                        // errors: action.payload.errors ?? null,
                     };
                 }
             })

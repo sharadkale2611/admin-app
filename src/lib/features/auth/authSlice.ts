@@ -37,12 +37,24 @@ export const authSlice = createSlice({
         },
         loginSuccess: (state, action: PayloadAction<User>) => {
             state.isAuthenticated = true;
-            state.user = action.payload;
             state.loading = false;
             state.error = null;
-            state.hasChecked = true; // ✅ add this
+            state.hasChecked = true;
+            const user = action.payload;
 
+            state.user = {
+                userId: user.userId,
+                username: user.username,
+                email: user.email,
+                roles: user.roles,
+                firmId: user.firmId !== undefined && user.firmId !== null
+                    ? Number(user.firmId)
+                    : null,                  // FIX: ALWAYS number
+                firmName: user.firmName || "",
+                firmCode: user.firmCode || ""
+            };            
         },
+
         loginFailure: (state, action: PayloadAction<AuthState['error']>) => {
             state.loading = false;
             state.error = action.payload;

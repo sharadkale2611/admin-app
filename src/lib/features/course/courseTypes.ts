@@ -78,6 +78,7 @@ export interface FetchCoursesParams {
     status?: boolean | null;
     courseLevel?: CourseLevel | null;
     categoryId?: number | null;
+    firmId?: number | null;   // 
 }
 
 export interface CreateCourseDto {
