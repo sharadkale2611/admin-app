@@ -10,9 +10,10 @@ export const AppRoutes = {
     REGISTER: '/register',
     FORGOT_PASSWORD: '/forgot-password',
     RESET_PASSWORD: '/reset-password',
-
     // Protected routes
     DASHBOARD: '/dashboard',
+    CLSAAROOM: '/ClassRoom',
+
     PROFILE: '/profile',
     STAFF: '/staff',
     STUDENTS: '/students',

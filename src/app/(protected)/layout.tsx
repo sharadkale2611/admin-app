@@ -51,7 +51,7 @@ const ProtectedLayout = ({ children }: layoutParams) => {
     const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
     const router = useRouter();
     const pathname = usePathname();
-    const { isAuthenticated, initialCheckDone } = useAppSelector(state => state.auth);
+    const { isAuthenticated, initialCheckDone, user } = useAppSelector(state => state.auth);
     const { logout } = useLogout();
 
     // State hooks
@@ -84,8 +84,29 @@ const ProtectedLayout = ({ children }: layoutParams) => {
     const handleUserMenuClose = () => {
         setAnchorEl(null);
         logout();
-
     };
+
+    // Role-based menu setup
+    const adminMenu = [
+        { text: "Dashboard", icon: <DashboardIcon />, path: AppRoutes.DASHBOARD },
+        { text: "Firms", icon: <Business />, path: AppRoutes.FRIMS },
+    ];
+
+    const firmAdminMenu = [
+        { text: "Dashboard", icon: <DashboardIcon />, path: AppRoutes.DASHBOARD },
+        { text: "ClassRoom", icon: <DashboardIcon />, path: AppRoutes.CLSAAROOM },
+        { text: "Staff", icon: <PeopleIcon />, path: AppRoutes.STAFF },
+        { text: "Students", icon: <PeopleIcon />, path: AppRoutes.STUDENTS },
+        { text: "Admissions", icon: <PeopleIcon />, path: AppRoutes.ADMISSIONS },
+        { text: "Courses Category", icon: <BookmarkSharp />, path: AppRoutes.COURSE_CATEGORY },
+        { text: "Courses", icon: <BookSharp />, path: AppRoutes.COURSES },
+        { text: "Courses Fees", icon: <BookSharp />, path: AppRoutes.FEES },
+        { text: "Discounts", icon: <BookSharp />, path: AppRoutes.DISCOUNUTS },
+        { text: "Reports", icon: <BarChartIcon />, path: "/reports" },
+    ];
+
+    const menuItems = user?.roles?.includes("Administrator") ? adminMenu : firmAdminMenu;
+
 
     // Conditional rendering after all hooks
     if (!isMounted) {
@@ -102,7 +123,7 @@ const ProtectedLayout = ({ children }: layoutParams) => {
 
     if (!isAuthenticated) {
         console.log('isAuthenticated', isAuthenticated);
-        
+
         return (
             <div className="flex justify-center items-center h-screen">
                 <LoadingSpinner text="Redirecting to login..." />
@@ -220,18 +241,7 @@ const ProtectedLayout = ({ children }: layoutParams) => {
             >
                 <Toolbar />
                 <List>
-                    {[
-                        { text: "Dashboard", icon: <DashboardIcon />, path: AppRoutes.DASHBOARD },
-                        { text: "Staff", icon: <PeopleIcon />, path: AppRoutes.STAFF },
-                        { text: "Students", icon: <PeopleIcon />, path: AppRoutes.STUDENTS },
-                        { text: "Admissions", icon: <PeopleIcon />, path: AppRoutes.ADMISSIONS },
-                        { text: "Firms", icon: <Business />, path: AppRoutes.FRIMS },
-                        { text: "Courses Category", icon: <BookmarkSharp />, path: AppRoutes.COURSE_CATEGORY },
-                        { text: "Courses", icon: <BookSharp />, path: AppRoutes.COURSES },
-                        { text: "Courses Fees", icon: <BookSharp />, path: AppRoutes.FEES },
-                        { text: "Discounts", icon: <BookSharp />, path: AppRoutes.DISCOUNUTS },
-                        { text: "Reports", icon: <BarChartIcon />, path: "/reports" },
-                    ].map((item) => (
+                    {menuItems.map((item) => (
                         <ListItem
                             key={item.text}
                             component="a"

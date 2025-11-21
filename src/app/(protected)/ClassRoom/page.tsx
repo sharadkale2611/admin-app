@@ -1,5 +1,5 @@
-'use client'
-import React, { useEffect, useState } from 'react';
+'use client';
+import React, { useEffect, useState } from "react";
 import {
     Dialog,
     DialogTitle,
@@ -14,50 +14,52 @@ import {
     FormControlLabel,
     Switch,
     Stack
-} from '@mui/material';
+} from "@mui/material";
 
-// DTO for form submission
+// DTO
 interface ClassRoomDto {
+    classRoomId?: number | null;
     classRoomName: string;
     firmId: number | null;
     status: boolean;
+    createdAt?: string | null;
+    updatedAt?: string | null;
+    isDeleted?: boolean;
 }
 
-// Firm list for dropdown
 interface FirmDto {
     firmId: number;
     firmName: string;
 }
 
-// Props
-interface ClassRoomFormProps {
-    open: boolean;
-    onClose: () => void;
-    onSubmit: (data: ClassRoomDto) => void;
-    editingData?: ClassRoomDto | null;
-    firms: FirmDto[];
-    loading?: boolean;
-}
-
-const ClassRoomForm: React.FC<ClassRoomFormProps> = ({
+// FORM COMPONENT
+const ClassRoomForm = ({
     open,
     onClose,
     onSubmit,
     editingData,
     firms,
     loading = false
+}: {
+    open: boolean;
+    onClose: () => void;
+    onSubmit: (data: ClassRoomDto) => void;
+    editingData?: ClassRoomDto | null;
+    firms: FirmDto[];
+    loading?: boolean;
 }) => {
 
     const [formData, setFormData] = useState<ClassRoomDto>({
+        classRoomId: editingData?.classRoomId || null,
         classRoomName: editingData?.classRoomName || "",
         firmId: editingData?.firmId || null,
         status: editingData?.status ?? true,
     });
 
-    // Reset form when dialog opens
     useEffect(() => {
         if (open) {
             setFormData({
+                classRoomId: editingData?.classRoomId || null,
                 classRoomName: editingData?.classRoomName || "",
                 firmId: editingData?.firmId || null,
                 status: editingData?.status ?? true,
@@ -73,10 +75,7 @@ const ClassRoomForm: React.FC<ClassRoomFormProps> = ({
             if (field === "firmId") value = value === "" ? null : parseInt(value);
             if (field === "status") value = event.target.checked;
 
-            setFormData((prev) => ({
-                ...prev,
-                [field]: value
-            }));
+            setFormData((prev) => ({ ...prev, [field]: value }));
         };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -92,9 +91,17 @@ const ClassRoomForm: React.FC<ClassRoomFormProps> = ({
 
             <form onSubmit={handleSubmit}>
                 <DialogContent>
-                    <Stack spacing={3} sx={{ mt: 1 }}>
+                    <Stack spacing={3}>
 
-                        {/* Classroom Name */}
+                        {formData.classRoomId !== null && (
+                            <TextField
+                                label="ClassRoom ID"
+                                value={formData.classRoomId}
+                                fullWidth
+                                disabled
+                            />
+                        )}
+
                         <TextField
                             label="Classroom Name"
                             value={formData.classRoomName}
@@ -103,7 +110,6 @@ const ClassRoomForm: React.FC<ClassRoomFormProps> = ({
                             fullWidth
                         />
 
-                        {/* Firm Dropdown */}
                         <FormControl fullWidth>
                             <InputLabel>Firm</InputLabel>
                             <Select
@@ -120,7 +126,6 @@ const ClassRoomForm: React.FC<ClassRoomFormProps> = ({
                             </Select>
                         </FormControl>
 
-                        {/* Status Switch */}
                         <FormControlLabel
                             control={
                                 <Switch
@@ -130,7 +135,6 @@ const ClassRoomForm: React.FC<ClassRoomFormProps> = ({
                             }
                             label="Active"
                         />
-
                     </Stack>
                 </DialogContent>
 
@@ -138,7 +142,6 @@ const ClassRoomForm: React.FC<ClassRoomFormProps> = ({
                     <Button onClick={onClose} disabled={loading}>
                         Cancel
                     </Button>
-
                     <Button
                         type="submit"
                         variant="contained"
@@ -152,4 +155,31 @@ const ClassRoomForm: React.FC<ClassRoomFormProps> = ({
     );
 };
 
-export default ClassRoomForm;
+// PAGE COMPONENT
+export default function AddClassRoomPage() {
+
+    const [open, setOpen] = useState(true);
+
+    const firms: FirmDto[] = [
+        { firmId: 1, firmName: "Firm A" },
+        { firmId: 2, firmName: "Firm B" }
+    ];
+
+    const handleSubmit = (data: ClassRoomDto) => {
+        console.log("Form submitted:", data);
+        setOpen(false);
+    };
+
+    return (
+        <div>
+            <h2>Add Classroom</h2>
+
+            <ClassRoomForm
+                open={open}
+                onClose={() => setOpen(false)}
+                onSubmit={handleSubmit}
+                firms={firms}
+            />
+        </div>
+    );
+}

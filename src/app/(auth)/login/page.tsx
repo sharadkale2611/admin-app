@@ -88,7 +88,7 @@ export default function LoginPage() {
                         label="Username"
                         name="username"
                         autoComplete="username"
-                        value={"hcl-admin"}
+                        //value={"hcl-admin"}
                         autoFocus
                     />
                     {/* admin: admin123 */}
@@ -100,7 +100,7 @@ export default function LoginPage() {
                         label="Password"
                         type="password"
                         id="password"
-                        value={"admin@1234"}
+                        //value={"admin@1234"}
                         autoComplete="current-password"
                     />
                     <Button
