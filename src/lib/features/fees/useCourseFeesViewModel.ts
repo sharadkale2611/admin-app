@@ -7,20 +7,19 @@ import {
     createCourseFee,
     updateCourseFee,
     deleteCourseFee,
-    fetchCourseFeeById
+    fetchCourseFeeById,
+    fetchCourseFeesByFirm
 } from "./feesThunks";
 import {
     setCourseIdFilter,
     clearFilters,
     clearCurrentCourseFee,
-    clearError,
-    setFirmIdFilter
+    clearError
 } from "./feesSlice";
+import { useCourseViewModel } from "@/lib/features/course/useCourseViewModel";
 
 export const useCourseFeesViewModel = () => {
     const dispatch: ThunkDispatch<RootState, unknown, AnyAction> = useAppDispatch();
-
-    const authUser = useAppSelector((state) => state.auth.user);
 
     const {
         courseFees,
@@ -30,31 +29,35 @@ export const useCourseFeesViewModel = () => {
         filters
     } = useAppSelector((state: RootState) => state.courseFees);
 
+    const { firmId } = useCourseViewModel();
+
     const safeCourseFees = courseFees || [];
 
-    // ---------------------------------------------------
-    // Fetch All Course Fees (firm-wise + course filter)
-    // ---------------------------------------------------
+    // Memoized fetch function
     const fetchCourseFeesData = useCallback(() => {
         dispatch(fetchCourseFees({
-            firmId: authUser?.firmId ? Number(authUser.firmId) : undefined,
             courseId: filters.courseId
         }));
-    }, [dispatch, authUser?.firmId, filters.courseId]);
+    }, [dispatch, filters.courseId]);
 
-    // ---------------------------------------------------
-    // Auto-Set firmId filter when user logs in
-    // ---------------------------------------------------
-    useEffect(() => {
-        if (authUser?.firmId) {
-            dispatch(setFirmIdFilter(Number(authUser.firmId)));
+    const fetchCourseFeesDataByFirm = useCallback(() => {
+        if (!firmId) return;
+        return dispatch(fetchCourseFeesByFirm(firmId));
+    }, [dispatch, firmId]);
+
+    const loadFees = useCallback(() => {
+        if (filters.courseId) {
+            return fetchCourseFeesData();
         }
-        fetchCourseFeesData();
-    }, [authUser?.firmId, dispatch, fetchCourseFeesData]);
+        return fetchCourseFeesDataByFirm();
+    }, [filters.courseId, fetchCourseFeesData, fetchCourseFeesDataByFirm]);
 
-    // ---------------------------------------------------
+    useEffect(() => {
+        if (!firmId) return;
+        loadFees();
+    }, [loadFees, firmId]);
+
     // Action Handlers
-    // ---------------------------------------------------
     const handleCourseIdFilter = useCallback((courseId: number | undefined) => {
         dispatch(setCourseIdFilter(courseId));
     }, [dispatch]);
@@ -71,32 +74,31 @@ export const useCourseFeesViewModel = () => {
         dispatch(clearError());
     }, [dispatch]);
 
-    const handleFetchCourseFeeById = useCallback((id: number) => {
-        return dispatch(fetchCourseFeeById(id));
+    const handleFetchCourseFeeById = useCallback((courseFeeId: number) => {
+        return dispatch(fetchCourseFeeById(courseFeeId));
     }, [dispatch]);
 
-    const handleCreateCourseFee = useCallback((data: any) => {
-        return dispatch(createCourseFee(data));
+    const handleCreateCourseFee = useCallback((courseFeeData: any) => {
+        return dispatch(createCourseFee(courseFeeData));
     }, [dispatch]);
 
-    const handleUpdateCourseFee = useCallback((data: any) => {
-        return dispatch(updateCourseFee(data));
+    const handleUpdateCourseFee = useCallback((courseFeeData: any) => {
+        return dispatch(updateCourseFee(courseFeeData));
     }, [dispatch]);
 
     const handleDeleteCourseFee = useCallback((id: number) => {
         return dispatch(deleteCourseFee(id));
     }, [dispatch]);
 
-    // ---------------------------------------------------
-    // Return state + actions
-    // ---------------------------------------------------
     return {
+        // State
         courseFees: safeCourseFees,
         currentCourseFee,
         isLoading: loading,
         error,
         filters,
 
+        // Actions
         handleCourseIdFilter,
         handleClearFilters,
         handleClearCurrentCourseFee,
@@ -105,7 +107,9 @@ export const useCourseFeesViewModel = () => {
         handleCreateCourseFee,
         handleUpdateCourseFee,
         handleDeleteCourseFee,
+        refetch: loadFees,                 // smart
+        refetchByFirm: fetchCourseFeesDataByFirm,
+        refetchByCourse: fetchCourseFeesData,
 
-        refetch: fetchCourseFeesData
     };
 };
