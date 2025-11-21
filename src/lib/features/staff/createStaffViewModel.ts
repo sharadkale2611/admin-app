@@ -60,61 +60,72 @@ export default function useCreateStaffViewModel() {
         setError(null);
 
         try {
+            // Local validation
             if (!formData.userName || !formData.password || !formData.email ||
                 !formData.firstName || !formData.lastName || !formData.position) {
-                throw new Error('Please fill in all required fields');
+                throw new Error("Please fill in all required fields");
             }
 
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-                throw new Error('Please enter a valid email address');
+                throw new Error("Please enter a valid email address");
             }
 
-            const result = await dispatch<any>(createStaff({
-                userName: formData.userName,
-                password: formData.password,
-                email: formData.email,
-                mobileNumber: formData.mobileNumber,
-                firstName: formData.firstName,
-                lastName: formData.lastName,
-                dateOfBirth: formData.dateOfBirth,
-                gender: formData.gender,
-                position: formData.position,
-                department: formData.department,
-                hireDate: formData.hireDate,
-                salary: Number(formData.salary) || 0
-            })).unwrap();
+            const result = await dispatch<any>(
+                createStaff({
+                    userName: formData.userName,
+                    password: formData.password,
+                    email: formData.email,
+                    mobileNumber: formData.mobileNumber,
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    dateOfBirth: formData.dateOfBirth,
+                    gender: formData.gender,
+                    position: formData.position,
+                    department: formData.department,
+                    hireDate: formData.hireDate,
+                    salary: Number(formData.salary) || 0
+                })
+            ).unwrap();
 
+            // SUCCESS — backend success:true
             if (result.success) {
-                toast.success('Staff member created successfully');
-                router.push('/staff');
-            } else {
-                throw new Error(result.error || 'Failed to create staff member');
+                toast.success(result.message || "Staff created successfully");
+                router.push("/staff");
+                return;
             }
+
+            // If backend returned success:false but we reached here
+            throw new Error(result.message || "Failed to create staff");
 
         } catch (err: any) {
+            console.log("CREATE STAFF UI ERROR:", err);
+
             let errorMessage = "";
 
+            // Thunk rejectedValue("Email already exists")
             if (typeof err === "string") {
                 errorMessage = err;
             }
+            // JS Error object (validation)
             else if (err instanceof Error) {
                 errorMessage = err.message;
             }
-            else if (err?.error) {
-                errorMessage = err.error;
-            }
+            // Backend: { message: "Email already exists" }
             else if (err?.message) {
                 errorMessage = err.message;
             }
+            // Backend: { error: "Bad Request" }
+            else if (err?.error) {
+                errorMessage = err.error;
+            }
+            // ASP.NET ModelState errors
             else if (err?.errors && typeof err.errors === "object") {
-                const all = Object.values(err.errors).flat();
-                errorMessage = all.join(", ");
+                const allErrors = Object.values(err.errors).flat();
+                errorMessage = allErrors.join(", ");
             }
-            else if (Array.isArray(err?.errors)) {
-                errorMessage = err.errors.join(", ");
-            }
+            // Fallback
             else {
-                errorMessage = "An unknown error occurred";
+                errorMessage = "Server error";
             }
 
             setError(errorMessage);

@@ -60,53 +60,66 @@ export const fetchStaff = createAsyncThunk<
 /* ========================================================
     ✅ CREATE STAFF
 ======================================================== */
+/* ========================================================
+    ✅ CREATE STAFF (FULL FIX)
+======================================================== */
 export const createStaff = createAsyncThunk<
     {
         success: boolean;
         message: string;
         error: string | null;
         errors: Record<string, string[]> | null;
-        staff: Staff;
+        staff: Staff | null;
     },
     CreateStaffDto,
-    { dispatch: AppDispatch; state: RootState; rejectValue: string }
+    { rejectValue: string }
 >(
     "staff/createStaff",
     async (createStaffDto, { rejectWithValue }) => {
         try {
-            const response = await api.post<Staff>(
+            const response = await api.post(
                 API_ENDPOINTS.STAFF.POST_CREATE,
                 createStaffDto,
-                {
-                    withCredentials: true,
-                    headers: { "Content-Type": "application/json" }
-                }
+                { withCredentials: true }
             );
 
-            if (!response?.data) {
-                return rejectWithValue("No response data from server");
+            const res = response.data;
+
+            console.log("thunk response:", res);
+            console.log("thunk Msg:", response.message);
+
+            // Backend: success: false
+            if (response.success === false) {
+                return rejectWithValue(response.message || "Failed to create staff");
             }
 
             return {
                 success: true,
-                message: "Staff created successfully",
+                message: res.message || "Staff created successfully",
                 error: null,
                 errors: null,
-                staff: response.data
+                staff: res.data ?? null
             };
 
         } catch (error: any) {
-            if (error.response) {
-                return rejectWithValue(
-                    error.response.data?.error ||
-                    error.response.data?.message ||
-                    "Server responded with an error"
-                );
+            const errRes = error.response?.message;
+
+            console.log("🔥 BACKEND ERROR:", errRes);
+
+            if (errRes?.errors) {
+                const all = Object.values(errRes.errors).flat();
+                return rejectWithValue(all.join(", "));
             }
 
-            return rejectWithValue(
-                error.message?.includes("401") ? "SESSION_EXPIRED" : error.message
-            );
+            if (errRes?.message) {
+                return rejectWithValue(errRes.message);
+            }
+
+            if (errRes?.error) {
+                return rejectWithValue(errRes.error);
+            }
+
+            return rejectWithValue("Server error");
         }
     }
 );
