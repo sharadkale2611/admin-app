@@ -95,7 +95,7 @@ const ProtectedLayout = ({ children }: layoutParams) => {
 
     const firmAdminMenu = [
         { text: "Dashboard", icon: <DashboardIcon />, path: AppRoutes.DASHBOARD },
-        { text: "ClassRoom", icon: <Class />, path: AppRoutes.CLASSROOM },
+        { text: "ClassRooms", icon: <Class/>, path: AppRoutes.CLASSROOM },
         { text: "Batch", icon: <Layers />, path: AppRoutes.BATCH },
 
         { text: "Staff", icon: <PeopleIcon />, path: AppRoutes.STAFF },

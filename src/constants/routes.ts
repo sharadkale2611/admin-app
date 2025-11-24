@@ -15,7 +15,7 @@ export const AppRoutes = {
     // Protected routes
     DASHBOARD: '/dashboard',
 
-    CLASSROOM: '/classroom',
+    CLASSROOM: '/classRooms',
     BATCH: '/batch',
 
     PROFILE: '/profile',

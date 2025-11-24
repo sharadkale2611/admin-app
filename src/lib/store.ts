@@ -24,6 +24,7 @@ import { studentReducer } from './features/student/studentSlice';
 import { admissionReducer } from './features/admission/admissionSlice'
 import { courseFeeReducer } from './features/fees/feesSlice';
 import { discountCodeReducer } from './features/discountCode/discountCodeSlice';
+import { classRoomReducer } from "@/lib/features/classRoom/classRoomSlice";
 
 const rootReducer = combineReducers({
     auth: authReducer,
@@ -35,7 +36,9 @@ const rootReducer = combineReducers({
     courseFees: courseFeeReducer,
     students: studentReducer,
     admissions: admissionReducer,
-    discountCodes: discountCodeReducer
+    discountCodes: discountCodeReducer,
+    classRooms: classRoomReducer
+
 });
 
 export type RootState = ReturnType<typeof rootReducer>;
