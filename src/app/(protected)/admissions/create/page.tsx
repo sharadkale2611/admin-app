@@ -287,7 +287,7 @@ export default function CreateAdmission() {
                                                 Course Fee
                                             </Typography>
                                             <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                                                {formData.totalAmount ? `$${formData.totalAmount}` : 'Select a course'}
+                                                {formData.totalAmount ? `₹${formData.totalAmount}` : 'Select a course'}
                                             </Typography>
                                         </Box>
                                         <TextField
@@ -340,7 +340,7 @@ export default function CreateAdmission() {
                                             onChange={handleChange}
                                             size="small"
                                             disabled={isSubmitting}
-                                            InputProps={{ startAdornment: '$' }}
+                                            InputProps={{ startAdornment: '₹' }}
                                         />
                                     </Grid>
 
@@ -371,7 +371,7 @@ export default function CreateAdmission() {
                                                 Final Amount
                                             </Typography>
                                             <Typography variant="h6" sx={{ fontWeight: 600, color: 'primary.main' }}>
-                                                {formData.finalAmount ? `$${formData.finalAmount}` : 'Calculate...'}
+                                                {formData.finalAmount ? `₹${formData.finalAmount}` : 'Calculate...'}
                                             </Typography>
                                         </Box>
                                     </Grid>
