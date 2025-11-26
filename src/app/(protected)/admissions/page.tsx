@@ -232,7 +232,7 @@ const AdmissionList: React.FC = () => {
                             <MenuItem value="">All</MenuItem>
                             <MenuItem value={EnrollmentType.Regular}>Regular</MenuItem>
                             <MenuItem value={EnrollmentType.Trial}>Trial</MenuItem>
-                            <MenuItem value={EnrollmentType.Transfer}>Transfer</MenuItem>
+                            {/* <MenuItem value={EnrollmentType.Transfer}>Transfer</MenuItem> */}
                             <MenuItem value={EnrollmentType.Special}>Special</MenuItem>
                         </Select>
                     </FormControl>

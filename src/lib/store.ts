@@ -25,6 +25,8 @@ import { admissionReducer } from './features/admission/admissionSlice'
 import { courseFeeReducer } from './features/fees/feesSlice';
 import { discountCodeReducer } from './features/discountCode/discountCodeSlice';
 import { classRoomReducer } from "@/lib/features/classRoom/classRoomSlice";
+import { moduleReducer } from "@/lib/features/module/moduleSlice";
+import { courseModuleReducer } from "@/lib/features/courseModules/courseModuleSlice";
 
 const rootReducer = combineReducers({
     auth: authReducer,
@@ -37,7 +39,9 @@ const rootReducer = combineReducers({
     students: studentReducer,
     admissions: admissionReducer,
     discountCodes: discountCodeReducer,
-    classRooms: classRoomReducer
+    classRooms: classRoomReducer,
+    modules: moduleReducer,
+    courseModules: courseModuleReducer,
 
 });
 

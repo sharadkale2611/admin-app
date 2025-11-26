@@ -28,6 +28,8 @@ export const AppRoutes = {
     FEES: '/fees',
     DISCOUNTS: '/discountCodes',
     COURSE_CATEGORY: '/courseCategory',
+    MODULES: '/modules',
+    COURSE_MODULES: '/courseModules',
 
     SETTINGS: '/settings',
     ADMIN: '/admin',

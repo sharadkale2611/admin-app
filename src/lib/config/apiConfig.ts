@@ -94,6 +94,21 @@ const API_ENDPOINTS = {
         PUT_UPDATE: (process.env.NEXT_PUBLIC_CLASS_ROOMS_ENDPOINT || '/ClassRooms'),
         DELETE: (process.env.NEXT_PUBLIC_CLASS_ROOMS_ENDPOINT || '/ClassRooms')
     },
+    MODULES: {
+        GET_LIST: process.env.NEXT_PUBLIC_MODULES_ENDPOINT || "/Modules",
+        GET_BY_ID: process.env.NEXT_PUBLIC_MODULES_ENDPOINT || "/Modules",
+        POST_CREATE: process.env.NEXT_PUBLIC_MODULES_ENDPOINT || "/Modules",
+        PUT_UPDATE: process.env.NEXT_PUBLIC_MODULES_ENDPOINT || "/Modules",
+        DELETE: process.env.NEXT_PUBLIC_MODULES_ENDPOINT || "/Modules"
+    },
+    COURSE_MODULES: {
+        GET_LIST: process.env.NEXT_PUBLIC_COURSE_MODULES_ENDPOINT || "/CourseModules",
+        GET_BY_ID: process.env.NEXT_PUBLIC_COURSE_MODULES_ENDPOINT || "/CourseModules",
+        POST_CREATE: process.env.NEXT_PUBLIC_COURSE_MODULES_ENDPOINT || "/CourseModules",
+        PUT_UPDATE: process.env.NEXT_PUBLIC_COURSE_MODULES_ENDPOINT || "/CourseModules",
+        DELETE: process.env.NEXT_PUBLIC_COURSE_MODULES_ENDPOINT || "/CourseModules"
+    },
+
     // Add other endpoint categories here as needed
 };
 

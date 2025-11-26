@@ -12,6 +12,31 @@ import {
 import API_ENDPOINTS from "@/lib/config/apiConfig";
 import api from "@/lib/services/apiService";
 
+
+export const fetchCoursesListOptions = createAsyncThunk<
+    Course[],
+    void,
+    { rejectValue: string }
+>(
+    'courses/fetchCoursesList',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get(`${API_ENDPOINTS.COURSES.GET_LIST}`, { withCredentials: true });
+            if (!response.data || !response.data.data) {
+                return rejectWithValue('No courses found');
+            }
+            
+            console.log('response Dataaa', response);
+            
+            return response.data.data; // ✅ use .data here
+        } catch (error: any) {
+            return rejectWithValue(error.message || 'An error occurred');
+        }
+    }
+);
+
+
+
 export const fetchCoursesList = createAsyncThunk<
     Course[],
     { searchTerm?: string } | void,
