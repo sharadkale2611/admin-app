@@ -58,36 +58,38 @@ const ClassRoomDialog: React.FC<ClassRoomDialogProps> = ({
     editingClassRoom,
     loading = false
 }) => {
-    const { firms } = useAppSelector((state) => state.firms);
+    // const { firms } = useAppSelector((state) => state.firms);
+    const firmId = useAppSelector((state) => state.auth.user?.firmId);
+
     const [formData, setFormData] = useState<ClassRoomDto>({
         classRoomName: editingClassRoom?.classRoomName || "",
         status: editingClassRoom?.status ?? true,
-        firmId: editingClassRoom?.firmId ?? null
+        firmId: editingClassRoom?.firmId ?? firmId ?? null
     });
+
 
     React.useEffect(() => {
         if (open) {
             setFormData({
                 classRoomName: editingClassRoom?.classRoomName || "",
                 status: editingClassRoom?.status ?? true,
-                firmId: editingClassRoom?.firmId ?? null
+                firmId: editingClassRoom?.firmId ?? firmId ?? null
             });
         }
-    }, [open, editingClassRoom]);
+    }, [open, editingClassRoom, firmId]);
 
-    const handleChange = (field: keyof ClassRoomDto) => (e: React.ChangeEvent<HTMLInputElement>) => {
-        let value: any = e.target.value;
+    const handleChange = (field: keyof ClassRoomDto) => (e: any) => {
+        let value = field === "status" 
+            ? e.target.checked 
+            : e.target.value;
 
-        if (field === "status") {
-            value = (e.target as HTMLInputElement).checked;
-        }
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         onSubmit(formData);
     };
@@ -101,27 +103,8 @@ const ClassRoomDialog: React.FC<ClassRoomDialogProps> = ({
                 <DialogContent>
                     <Stack spacing={3} sx={{ mt: 1 }}>
 
-                        {/* FIRM DROPDOWN */}
-                        <FormControl fullWidth>
-                            <InputLabel required>Firm</InputLabel>
-                            <Select
-                                value={formData.firmId || ""}
-                                label="Firm"
-                                onChange={(e) =>
-                                    setFormData((prev) => ({
-                                        ...prev,
-                                        firmId: Number(e.target.value),
-                                    }))
-                                }
-                                required
-                            >
-                                {firms.map((firm) => (
-                                    <MenuItem key={firm.firmId} value={firm.firmId}>
-                                        {firm.firmName}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                        {/* Hidden field for firmId */}
+                        <input type="hidden" value={formData.firmId ?? ''} />
 
 
                         <TextField
