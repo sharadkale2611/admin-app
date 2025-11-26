@@ -117,7 +117,8 @@ const AdmissionList: React.FC = () => {
     }) : [];
 
     const currentAdmissions = sortedAdmissions.slice(startIndex, endIndex);
-
+    console.log("current Admissoins", currentAdmissions);
+    
     const columns: GridColDef<Admission>[] = [
         { field: 'admissionId', headerName: 'ID', width: 80 },
         { field: 'studentName', headerName: 'Student', flex: 1 },
@@ -154,7 +155,7 @@ const AdmissionList: React.FC = () => {
                         size="small"
                         color="info"
                         component={Link}
-                        href={`/admissions/${params.row.admissionId}`}
+                        href={`/admissions/${params.row.studentEnrollmentId}`}
                     >
                         <Visibility fontSize="small" />
                     </IconButton>
@@ -162,14 +163,14 @@ const AdmissionList: React.FC = () => {
                         size="small"
                         color="primary"
                         component={Link}
-                        href={`/admissions/${params.row.admissionId}/edit`}
+                        href={`/admissions/${params.row.studentEnrollmentId}/edit`}
                     >
                         <Edit fontSize="small" />
                     </IconButton>
                     <IconButton
                         size="small"
                         color="error"
-                        onClick={() => onDeleteAdmission(params.row.admissionId, params.row.studentName)}
+                        onClick={() => onDeleteAdmission(params.row.studentEnrollmentId, params.row.studentName)}
                     >
                         <Delete fontSize="small" />
                     </IconButton>
@@ -277,21 +278,22 @@ const AdmissionList: React.FC = () => {
                 /* Mobile Collapsible List */
                 <Box component={Paper}>
                     {currentAdmissions.map(adm => (
-                        <Box key={adm.admissionId}>
+                        <Box key={adm.studentEnrollmentId}>
                             <Box
                                 sx={{ display: 'flex', justifyContent: 'space-between', p: 2, borderBottom: '1px solid', cursor: 'pointer' }}
-                                onClick={() => toggleRowExpand(adm.admissionId)}
+                                onClick={() => toggleRowExpand(adm.studentEnrollmentId)}
                             >
                                 <Stack direction="row" spacing={2} alignItems="center">
                                     <Avatar>{adm.studentName?.charAt(0)}</Avatar>
                                     <Box>
+                                        <Typography variant="subtitle2">ID: {adm.studentEnrollmentId}</Typography>
                                         <Typography fontWeight="bold">{adm.studentName}</Typography>
                                         <Typography variant="body2">{adm.courseName}</Typography>
                                     </Box>
                                 </Stack>
-                                <IconButton>{expandedRows.includes(adm.admissionId.toString()) ? <KeyboardArrowUp /> : <KeyboardArrowDown />}</IconButton>
+                                <IconButton>{expandedRows.includes(adm.studentEnrollmentId.toString()) ? <KeyboardArrowUp /> : <KeyboardArrowDown />}</IconButton>
                             </Box>
-                            <Collapse in={expandedRows.includes(adm.admissionId.toString())}>
+                            <Collapse in={expandedRows.includes(adm.studentEnrollmentId.toString())}>
                                 <CardContent>
                                     <Stack spacing={1}>
                                         <Chip label={`Type: ${adm.enrollmentType}`} size="small" />
@@ -299,9 +301,9 @@ const AdmissionList: React.FC = () => {
                                         <Chip label={`Final Amount: ${adm.finalAmount}`} size="small" />
                                         <Chip label={`Active: ${adm.status ? 'Yes' : 'No'}`} size="small" />
                                         <Stack direction="row" spacing={1}>
-                                            <Button component={Link} href={`/admissions/${adm.admissionId}`} size="small" variant="outlined">View</Button>
-                                            <Button component={Link} href={`/admissions/${adm.admissionId}/edit`} size="small" variant="outlined">Edit</Button>
-                                            <Button onClick={() => onDeleteAdmission(adm.admissionId, adm.studentName)} size="small" variant="outlined" color="error">Delete</Button>
+                                            <Button component={Link} href={`/admissions/${adm.studentEnrollmentId}`} size="small" variant="outlined">View</Button>
+                                            <Button component={Link} href={`/admissions/${adm.studentEnrollmentId}/edit`} size="small" variant="outlined">Edit</Button>
+                                            <Button onClick={() => onDeleteAdmission(adm.studentEnrollmentId, adm.studentName)} size="small" variant="outlined" color="error">Delete</Button>
                                         </Stack>
                                     </Stack>
                                 </CardContent>

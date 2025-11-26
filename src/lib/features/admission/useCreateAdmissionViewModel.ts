@@ -155,7 +155,7 @@ export default function useCreateAdmissionViewModel() {
         e.preventDefault();
         setIsSubmitting(true);
         setError(null);
-
+        console.log('Submitting form with data:', formData);
         try {
             if (
                 !formData.studentId ||
@@ -204,8 +204,13 @@ export default function useCreateAdmissionViewModel() {
                 throw result.error || 'Failed to create admission';
             }
         } catch (err: any) {
-            setError({ error: err.message || err, errors: null });
-            toast.error(err.message || err);
+            const msg = typeof err === "string"
+            ? err
+            : err?.message ?? JSON.stringify(err);
+
+            setError({ error: msg, errors: null });
+            toast.error(msg);
+
         } finally {
             setIsSubmitting(false);
         }
