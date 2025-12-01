@@ -27,6 +27,8 @@ import { discountCodeReducer } from './features/discountCode/discountCodeSlice';
 import { classRoomReducer } from "@/lib/features/classRoom/classRoomSlice";
 import { moduleReducer } from "@/lib/features/module/moduleSlice";
 import { courseModuleReducer } from "@/lib/features/courseModules/courseModuleSlice";
+import { batchReducer } from "@/lib/features/batch/batchSlice";
+
 
 const rootReducer = combineReducers({
     auth: authReducer,
@@ -42,6 +44,7 @@ const rootReducer = combineReducers({
     classRooms: classRoomReducer,
     modules: moduleReducer,
     courseModules: courseModuleReducer,
+    batches:batchReducer
 
 });
 

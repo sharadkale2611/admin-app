@@ -35,6 +35,7 @@ const API_ENDPOINTS = {
 
     STAFF: {
         GET_LIST_PAGINATED: (process.env.NEXT_PUBLIC_STAFFS_PAGINATED_ENDPOINT || 'api/staffs'),
+        GET_LIST: (process.env.NEXT_PUBLIC_STAFFS_ENDPOINT || 'api/staffs'),
         GET_BY_ID: (process.env.NEXT_PUBLIC_STAFFS_ENDPOINT || 'api/staffs'),        
         POST_CREATE: (process.env.NEXT_PUBLIC_STAFFS_ENDPOINT || 'api/staffs'),
         PUT_UPDATE: (process.env.NEXT_PUBLIC_STAFFS_ENDPOINT || 'api/staffs'),
@@ -107,6 +108,17 @@ const API_ENDPOINTS = {
         POST_CREATE: process.env.NEXT_PUBLIC_COURSE_MODULES_ENDPOINT || "/CourseModules",
         PUT_UPDATE: process.env.NEXT_PUBLIC_COURSE_MODULES_ENDPOINT || "/CourseModules",
         DELETE: process.env.NEXT_PUBLIC_COURSE_MODULES_ENDPOINT || "/CourseModules"
+    },
+    BATCHES: {
+        GET_LIST_PAGINATED: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches/paginated",
+        GET_LIST: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
+        GET_BY_ID: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
+        POST_CREATE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
+        PUT_UPDATE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
+        DELETE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches"
+    },
+    BRANCHES: {
+        GET_LIST: process.env.NEXT_PUBLIC_BRANCHES_ENDPOINT || "/Branches",
     },
 
     // Add other endpoint categories here as needed

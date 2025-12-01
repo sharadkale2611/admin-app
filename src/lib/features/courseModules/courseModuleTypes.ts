@@ -7,7 +7,7 @@ export interface CourseModuleDto {
 
 export interface CourseModuleResponseDto {
     courseModuleId: number;
-    courseId: number;
+    courseId: number ;
     courseName: string | null;
     courseCategoryName: string | null;
     moduleId: number;
