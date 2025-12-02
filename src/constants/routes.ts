@@ -31,6 +31,7 @@ export const AppRoutes = {
     MODULES: '/modules',
     COURSE_MODULES: '/courseModules',
     BATCHES:'/batches',
+    STUDENT_BATCH_ASSIGNMENTS:'/studentBatchAssignments',
 
     SETTINGS: '/settings',
     ADMIN: '/admin',
