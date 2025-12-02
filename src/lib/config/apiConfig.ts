@@ -84,8 +84,16 @@ const API_ENDPOINTS = {
         POST_CREATE: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees'),
         PUT_UPDATE: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees'),
         DELETE: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees'),
-        GET_BY_FIRM: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees') + "/CourseFeeByFirmId"  
-    }
+        // GET_BY_FIRM: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees') + "/CourseFeeByFirmId"  
+        GET_BY_FIRM: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees') + "/by-firm" 
+    },
+    CLASS_ROOMS: {
+        GET_LIST: (process.env.NEXT_PUBLIC_CLASS_ROOMS_ENDPOINT || '/ClassRooms') ,
+        GET_BY_ID: (process.env.NEXT_PUBLIC_CLASS_ROOMS_ENDPOINT || '/ClassRooms'),
+        POST_CREATE: (process.env.NEXT_PUBLIC_CLASS_ROOMS_ENDPOINT || '/ClassRooms') ,
+        PUT_UPDATE: (process.env.NEXT_PUBLIC_CLASS_ROOMS_ENDPOINT || '/ClassRooms'),
+        DELETE: (process.env.NEXT_PUBLIC_CLASS_ROOMS_ENDPOINT || '/ClassRooms')
+    },
     // Add other endpoint categories here as needed
 };
 

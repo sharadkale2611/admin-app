@@ -62,8 +62,7 @@ export const useCourseEditViewModel = (courseId: string) => {
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (): Promise<boolean> => {
         setIsSubmitting(true);
         setSubmitError(null);
 
@@ -72,13 +71,19 @@ export const useCourseEditViewModel = (courseId: string) => {
 
             if (result.success) {
                 setSubmitSuccess(true);
-                // Reset success message after 3 seconds
+
                 setTimeout(() => setSubmitSuccess(false), 3000);
+
+                return true; // 👈 KEY FIX
             } else {
-                setSubmitError(result.error || 'Failed to update course');
+                setSubmitError(result.error || "Failed to update course");
+                return false;
             }
         } catch (err: any) {
-            setSubmitError(err.message || 'An error occurred while updating the course');
+            setSubmitError(
+                err.message || "An error occurred while updating the course"
+            );
+            return false;
         } finally {
             setIsSubmitting(false);
         }

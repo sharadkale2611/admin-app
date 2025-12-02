@@ -1,4 +1,5 @@
 // constants/routes.ts
+
 export const AppRoutes = {
     // Public routes
     HOME: '/',
@@ -13,15 +14,21 @@ export const AppRoutes = {
 
     // Protected routes
     DASHBOARD: '/dashboard',
+
+    CLASSROOM: '/classRooms',
+    BATCH: '/batch',
+
     PROFILE: '/profile',
     STAFF: '/staff',
     STUDENTS: '/students',
     ADMISSIONS: '/admissions',
-    FRIMS: '/firms',
+    FIRMS: '/firms',
+
     COURSES: '/courses',
     FEES: '/fees',
-    DISCOUNUTS: '/discountCodes',
+    DISCOUNTS: '/discountCodes',
     COURSE_CATEGORY: '/courseCategory',
+
     SETTINGS: '/settings',
     ADMIN: '/admin',
 
@@ -36,7 +43,7 @@ export const AppRoutes = {
         USER: '/api/user',
     },
 
-    // Utility function to generate paths with params
+    // Utility function to generate dynamic routes
     withParam: (route: string, param: string | number) => {
         return route.replace(/\[.*?\]/, param.toString());
     },
@@ -45,7 +52,7 @@ export const AppRoutes = {
 // Type for route keys
 export type AppRouteKeys = keyof typeof AppRoutes;
 
-// Type for protected routes
+// Protected routes (authenticated users only)
 export const ProtectedRoutes = [
     AppRoutes.DASHBOARD,
     AppRoutes.PROFILE,
@@ -53,7 +60,7 @@ export const ProtectedRoutes = [
     AppRoutes.ADMIN,
 ] as const;
 
-// Type for auth routes (guest only)
+// Auth-only routes (guest)
 export const AuthRoutes = [
     AppRoutes.LOGIN,
     AppRoutes.REGISTER,
@@ -61,17 +68,16 @@ export const AuthRoutes = [
     AppRoutes.RESET_PASSWORD,
 ] as const;
 
-// Helper type to extract route values
+// Helper types
 type ValueOf<T> = T[keyof T];
+
 export type AppRouteValues = ValueOf<typeof AppRoutes>;
 export type ProtectedRouteValues = typeof ProtectedRoutes[number];
 export type AuthRouteValues = typeof AuthRoutes[number];
 
-// Type guard functions
-export const isProtectedRoute = (path: string): path is ProtectedRouteValues => {
-    return ProtectedRoutes.includes(path as ProtectedRouteValues);
-};
+// Type guards
+export const isProtectedRoute = (path: string): path is ProtectedRouteValues =>
+    ProtectedRoutes.includes(path as ProtectedRouteValues);
 
-export const isAuthRoute = (path: string): path is AuthRouteValues => {
-    return AuthRoutes.includes(path as AuthRouteValues);
-};
+export const isAuthRoute = (path: string): path is AuthRouteValues =>
+    AuthRoutes.includes(path as AuthRouteValues);
