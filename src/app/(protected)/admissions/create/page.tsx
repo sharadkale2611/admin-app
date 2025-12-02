@@ -136,9 +136,9 @@ export default function CreateAdmission() {
             if (i === count - 1) amount += remainder; // last installment gets remainder
 
             // Deduct paid amount from first installment
-            if (i === 0 && paidAmount > 0) {
-                amount = Math.max(0, amount - paidAmount);
-            }
+            // if (i === 0 && paidAmount > 0) {
+            //     amount = Math.max(0, amount - paidAmount);
+            // }
 
             const installmentDate = new Date(today);
             installmentDate.setMonth(today.getMonth() + i);
@@ -218,7 +218,7 @@ export default function CreateAdmission() {
                                             label="Admission Date"
                                             name="enrollmentDate"
                                             type="date"
-                                            value={formData.enrollmentDate}
+                                            value={formData.enrollmentDate??''}
                                             onChange={handleChange}
                                             InputLabelProps={{ shrink: true }}
                                             required
@@ -233,11 +233,11 @@ export default function CreateAdmission() {
                                             <Select
                                                 label="Enrollment Type"
                                                 name="enrollmentType"
-                                                value={formData.enrollmentType}
+                                                value={formData.enrollmentType??''}
                                                 onChange={handleSelectChange}
                                             >
                                                 {Object.values(EnrollmentType).map((type) => (
-                                                    <MenuItem key={type} value={type}>{type}</MenuItem>
+                                                    <MenuItem key={type} value={type??''}>{type}</MenuItem>
                                                 ))}
                                             </Select>
                                         </FormControl>
@@ -293,7 +293,7 @@ export default function CreateAdmission() {
                                         <TextField
                                             fullWidth
                                             name="courseFeeId"
-                                            value={formData.courseFeeId || null}
+                                            value={formData.courseFeeId || ''}
                                             sx={{ display: 'none' }}
 
                                         />
@@ -322,7 +322,7 @@ export default function CreateAdmission() {
                                                 label="Discount Code"
                                             >
                                                 {discounts.map((d) => (
-                                                    <MenuItem key={d.code} value={d.code}>
+                                                    <MenuItem key={d.code} value={d.code??''}>
                                                         {d.code} ({d.discountType} - {d.discountValue})
                                                     </MenuItem>
                                                 ))}
@@ -443,7 +443,7 @@ export default function CreateAdmission() {
                                             <TextField
                                                 type="number"
                                                 size="small"
-                                                value={inst.amount}
+                                                value={inst.amount??''}
                                                 onChange={(e) => {
                                                     const newInstallments = [...formData.installments];
                                                     newInstallments[index].amount = parseFloat(e.target.value) || 0;

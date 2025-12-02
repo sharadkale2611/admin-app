@@ -1,233 +1,176 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Container,
-  Typography,
-  Card,
-  CardContent,
-  Chip,
-  Button,
   Box,
+  Typography,
   Paper,
-  Skeleton,
-  Alert,
+  Stack,
   Divider,
+  Button,
+  Chip,
+  CircularProgress,
 } from "@mui/material";
+import { ArrowBack, Edit } from "@mui/icons-material";
 import Link from "next/link";
-import { ArrowBack, School, Person, Edit } from "@mui/icons-material";
-import { useParams } from "next/navigation";
-import { useAdmissionDetailsViewModel } from "@/lib/features/admission/useAdmissionDetailsViewModel";
-import {
-  AdmissionStatus,
-  PaymentStatus,
-  EnrollmentType,
-} from "@/lib/features/admission/admissionTypes";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/lib/store";
+import { fetchAdmissionById } from "@/lib/features/admission/admissionThunks";
+import { clearCurrentAdmission } from "@/lib/features/admission/admissionSlice";
 
-export default function AdmissionDetailsPage() {
-  const params = useParams();
-  const id = params?.id as string;
+interface Props {
+  params: { id: string } | Promise<{ id: string }>;
+}
 
-  const { admission, isLoading, error } = useAdmissionDetailsViewModel(id);
+const ViewAdmissionPage: React.FC<Props> = ({ params }) => {
+  const [id, setId] = useState<number | null>(null);
+  const dispatch = useDispatch<AppDispatch>();
+  const { currentAdmission, loading } = useSelector(
+    (state: RootState) => state.admissions
+  );
 
-  // Loading
-  if (isLoading) {
+  // Log for debugging
+  useEffect(() => {
+    console.log("currentAdmission", currentAdmission);
+  }, [currentAdmission]);
+
+  // Handle async params safely
+  useEffect(() => {
+    const resolveParams = async () => {
+      const resolvedParams = await params;
+      setId(Number(resolvedParams.id));
+    };
+    resolveParams();
+  }, [params]);
+
+  // Fetch admission once ID is available
+  useEffect(() => {
+    if (id !== null && !isNaN(id)) {
+      dispatch(fetchAdmissionById(id));
+    }
+    return () => {
+      dispatch(clearCurrentAdmission());
+    };
+  }, [id, dispatch]);
+
+  const formatDate = (dateStr: string | null) =>
+    dateStr ? dateStr.split("T")[0] : "—";
+
+  if (loading || id === null) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Skeleton variant="rectangular" width="100%" height={300} />
-      </Container>
+      <Box sx={{ p: 4, display: "flex", justifyContent: "center" }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
-  // Error
-  if (error) {
+  if (!currentAdmission) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-        <Button
-          component={Link}
-          href="/admissions"
-          startIcon={<ArrowBack />}
-          variant="outlined"
-        >
-          Back to Admissions
-        </Button>
-      </Container>
+      <Box sx={{ p: 4 }}>
+        <Typography>No admission found.</Typography>
+      </Box>
     );
   }
 
-  // Not Found
-  if (!admission) {
-    return (
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Alert severity="warning" sx={{ mb: 3 }}>
-          Admission not found
-        </Alert>
-        <Button
-          component={Link}
-          href="/admissions"
-          startIcon={<ArrowBack />}
-          variant="outlined"
-        >
-          Back to Admissions
-        </Button>
-      </Container>
-    );
-  }
-
-  // Status color
-  const statusColor =
-    admission.status === AdmissionStatus.Active ? "success" : "error";
+  const adm = currentAdmission;
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      {/* HEADER */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          mb: 4,
-        }}
+    <Box sx={{ p: 3 }}>
+      {/* Header */}
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ mb: 3 }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Stack direction="row" alignItems="center" spacing={2}>
           <Button
+            startIcon={<ArrowBack />}
             component={Link}
             href="/admissions"
-            startIcon={<ArrowBack />}
             variant="outlined"
-            size="small"
           >
             Back
           </Button>
-          <Typography variant="h4">Admission Details</Typography>
-        </Box>
+          <Typography variant="h4" component="div">
+            Admission Details
+          </Typography>
+        </Stack>
 
-        <Chip label={admission.status} color={statusColor} variant="filled" />
-      </Box>
+        <Button
+          startIcon={<Edit />}
+          variant="contained"
+          component={Link}
+          href={`/admissions/${adm.studentEnrollmentId}/edit`}
+        >
+          Edit
+        </Button>
+      </Stack>
 
-      {/* CONTENT */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", md: "row" },
-          gap: 3,
-        }}
-      >
-        {/* LEFT PANEL */}
-        <Box sx={{ flexBasis: { xs: "100%", md: "30%" } }}>
-          <Paper sx={{ p: 3, textAlign: "center" }} elevation={2}>
-            <Person
-              sx={{
-                width: 80,
-                height: 80,
-                margin: "auto",
-                mb: 2,
-                color: "primary.main",
-              }}
+      {/* Details Section */}
+      <Paper sx={{ p: 3 }}>
+        <Typography variant="h6" component="div" sx={{ mb: 2 }}>
+          Basic Information
+        </Typography>
+
+        <Stack spacing={1}>
+          <Typography component="div">
+            <strong>ID:</strong> {adm.studentEnrollmentId}
+          </Typography>
+          <Typography component="div">
+            <strong>Student Name:</strong> {adm.studentName}
+          </Typography>
+          <Typography component="div">
+            <strong>Course:</strong> {adm.courseName}
+          </Typography>
+          <Typography component="div">
+            <strong>Enrollment Type:</strong> {adm.enrollmentType}
+          </Typography>
+
+          <Typography
+            component="div"
+            sx={{ display: "flex", alignItems: "center", gap: 1 }}
+          >
+            <strong>Payment Status:</strong>
+            <Chip
+              label={adm.paymentStatus}
+              size="small"
+              color={
+                adm.paymentStatus === "Paid"
+                  ? "success"
+                  : adm.paymentStatus === "Pending"
+                  ? "warning"
+                  : "error"
+              }
             />
+          </Typography>
 
-            <Typography variant="h5" gutterBottom>
-              {admission.studentName}
-            </Typography>
+          <Typography component="div">
+            <strong>Final Amount:</strong> ₹{adm.finalAmount}
+          </Typography>
+          <Typography component="div">
+            <strong>Paid Amount:</strong> ₹{adm.paidAmount}
+          </Typography>
 
-            <Typography variant="body1" color="secondary">
-              Student ID: {admission.studentId}
-            </Typography>
+          <Typography
+            component="div"
+            sx={{ display: "flex", alignItems: "center", gap: 1 }}
+          >
+            <strong>Status:</strong>
+            <Chip
+              label={adm.status ? "Active" : "Inactive"}
+              size="small"
+              color={adm.status ? "success" : "error"}
+            />
+          </Typography>
 
-            <Divider sx={{ my: 2 }} />
-
-            <Box sx={{ mt: 3 }}>
-              <Button
-                component={Link}
-                href={`/admissions/${admission.admissionId}/edit`}
-                variant="contained"
-                startIcon={<Edit />}
-                fullWidth
-              >
-                Edit Admission
-              </Button>
-            </Box>
-          </Paper>
-        </Box>
-
-        {/* RIGHT PANEL */}
-        <Box sx={{ flexBasis: { xs: "100%", md: "70%" } }}>
-          <Card elevation={2}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
-                Admission Information
-              </Typography>
-
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                {/* Course */}
-                <Box>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <School fontSize="small" color="primary" />
-                    <Typography variant="subtitle2">Course</Typography>
-                  </Box>
-                  <Typography variant="body1">
-                    {admission.courseName}
-                  </Typography>
-                </Box>
-
-                {/* Enrollment Type */}
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Enrollment Type
-                  </Typography>
-                  <Typography variant="body1">
-                    {admission.enrollmentType}
-                  </Typography>
-                </Box>
-
-                {/* Payment Status */}
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Payment Status
-                  </Typography>
-                  <Typography variant="body1">
-                    {admission.paymentStatus}
-                  </Typography>
-                </Box>
-
-                {/* Amounts */}
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Amounts
-                  </Typography>
-                  <Typography variant="body1">
-                    Total: {admission.totalAmount} | Paid:{" "}
-                    {admission.paidAmount} | Final: {admission.finalAmount}
-                  </Typography>
-                </Box>
-
-                {/* Enrollment Date */}
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Enrollment Date
-                  </Typography>
-                  <Typography variant="body1">
-                    {admission.enrollmentDate}
-                  </Typography>
-                </Box>
-
-                {/* Admission ID */}
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Admission ID
-                  </Typography>
-                  <Typography variant="body1">
-                    {admission.admissionId}
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        </Box>
-      </Box>
-    </Container>
+          <Typography component="div">
+            <strong>Enrollment Date:</strong> {formatDate(adm.enrollmentDate)}
+          </Typography>
+        </Stack>
+      </Paper>
+    </Box>
   );
-}
+};
+
+export default ViewAdmissionPage;

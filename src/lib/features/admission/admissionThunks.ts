@@ -107,8 +107,8 @@ export const createAdmission = createAsyncThunk<
                 headers: { "Content-Type": "application/json" }
             });
 
-            if (response.status !== 201) {
-                return rejectWithValue({ error: response.data?.error || "Failed to create admission", errors: null });
+            if (response.success === false || (response.status !== 200 && response.status !== 201)) {
+                return rejectWithValue({ error: response.message || "Failed to create admission", errors: null });
             }
 
             return {
@@ -183,6 +183,7 @@ export const deleteAdmission = createAsyncThunk<
 /**
  * Fetch Admission by Id
  */
+
 export const fetchAdmissionById = createAsyncThunk<
     Admission,
     number,
@@ -191,16 +192,20 @@ export const fetchAdmissionById = createAsyncThunk<
     "admissions/fetchAdmissionById",
     async (admissionId, { rejectWithValue }) => {
         try {
-            const response = await api.get<ApiResponse<Admission>>(
+            const response = await api.get<Admission>(
                 `${API_ENDPOINTS.ADMISSION.GET_BY_ID}/${admissionId}`,
                 { withCredentials: true }
             );
 
-            if (!response.data?.data) {
+            console.log("Admission View Response", response);
+            console.log("Admission View Response", response.data);
+
+            if (!response.data) {
                 return rejectWithValue({ error: "Admission not found", errors: null });
             }
 
-            return response.data.data;
+            // Return the admission object directly
+            return response.data;
         } catch (error: any) {
             return rejectWithValue(parseApiError(error));
         }

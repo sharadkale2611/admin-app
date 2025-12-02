@@ -22,5 +22,5 @@ export default function Dashboard() {
         return <div>Loading...</div>;
     }
 
-    return <div>Dashboard Content</div>;
+    return <h2>!!..Dashboard Content..!!</h2>;
 }

@@ -96,7 +96,7 @@ const ProtectedLayout = ({ children }: layoutParams) => {
     const firmAdminMenu = [
         { text: "Dashboard", icon: <DashboardIcon />, path: AppRoutes.DASHBOARD },
         { text: "ClassRooms", icon: <Class/>, path: AppRoutes.CLASSROOM },
-        { text: "Batch", icon: <Layers />, path: AppRoutes.BATCH },
+        // { text: "Batch", icon: <Layers />, path: AppRoutes.BATCH },
 
         { text: "Staff", icon: <PeopleIcon />, path: AppRoutes.STAFF },
         { text: "Students", icon: <PeopleIcon />, path: AppRoutes.STUDENTS },
@@ -106,6 +106,14 @@ const ProtectedLayout = ({ children }: layoutParams) => {
         { text: "Courses", icon: <BookSharp />, path: AppRoutes.COURSES },
         { text: "Courses Fees", icon: <BookSharp />, path: AppRoutes.FEES },
         { text: "Discounts", icon: <BookSharp />, path: AppRoutes.DISCOUNTS },
+
+        { text: "Modules", icon: <BookSharp />, path: AppRoutes.MODULES },
+        { text: "Course Modules", icon: <BookSharp />, path: AppRoutes.COURSE_MODULES },
+
+        { text: "Batches", icon: <BookSharp />, path: AppRoutes.BATCHES },
+        { text: "Batch Assignments", icon: <BookSharp />, path: AppRoutes.STUDENT_BATCH_ASSIGNMENTS },
+
+
 
         { text: "Reports", icon: <BarChartIcon />, path: "/reports" },
     ];

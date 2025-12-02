@@ -155,7 +155,7 @@ export default function useCreateAdmissionViewModel() {
         e.preventDefault();
         setIsSubmitting(true);
         setError(null);
-
+        console.log('Submitting form with data:', formData);
         try {
             // VALIDATION FIXED (no falsy-number issues)
             if (
@@ -201,13 +201,13 @@ export default function useCreateAdmissionViewModel() {
                 throw result.error || "Failed to create admission";
             }
         } catch (err: any) {
-            const message =
-                typeof err === "string"
-                    ? err
-                    : err?.message || "Something went wrong";
+            const msg = typeof err === "string"
+            ? err
+            : err?.message ?? JSON.stringify(err);
 
-            setError({ error: message, errors: null });
-            toast.error(message);
+            setError({ error: msg, errors: null });
+            toast.error(msg);
+
         } finally {
             setIsSubmitting(false);
         }

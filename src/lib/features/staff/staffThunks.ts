@@ -85,8 +85,8 @@ export const createStaff = createAsyncThunk<
 
             const res = response.data;
 
-            console.log("thunk response:", res);
-            console.log("thunk Msg:", response.message);
+            // console.log("thunk response:", res);
+            // console.log("thunk Msg:", response.message);
 
             // Backend: success: false
             if (response.success === false) {
@@ -95,7 +95,7 @@ export const createStaff = createAsyncThunk<
 
             return {
                 success: true,
-                message: res.message || "Staff created successfully",
+                message: response.message || "Staff created successfully",
                 error: null,
                 errors: null,
                 staff: res.data ?? null

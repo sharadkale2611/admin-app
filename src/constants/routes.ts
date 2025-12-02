@@ -16,7 +16,7 @@ export const AppRoutes = {
     DASHBOARD: '/dashboard',
 
     CLASSROOM: '/classRooms',
-    BATCH: '/batch',
+    // BATCH: '/batch',
 
     PROFILE: '/profile',
     STAFF: '/staff',
@@ -28,6 +28,10 @@ export const AppRoutes = {
     FEES: '/fees',
     DISCOUNTS: '/discountCodes',
     COURSE_CATEGORY: '/courseCategory',
+    MODULES: '/modules',
+    COURSE_MODULES: '/courseModules',
+    BATCHES:'/batches',
+    STUDENT_BATCH_ASSIGNMENTS:'/studentBatchAssignments',
 
     SETTINGS: '/settings',
     ADMIN: '/admin',
