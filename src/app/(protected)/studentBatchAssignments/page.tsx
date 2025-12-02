@@ -160,7 +160,6 @@ export default function StudentBatchAssignmentsPage() {
         </Link>
       </Box>
 
-
       {/* ----------------------------------- */}
       {/* Filters */}
       {/* ----------------------------------- */}
@@ -182,7 +181,11 @@ export default function StudentBatchAssignmentsPage() {
             }}
           />
 
-          <Button variant="outlined" onClick={handleSearchSubmit} startIcon={<Search />}>
+          <Button
+            variant="outlined"
+            onClick={handleSearchSubmit}
+            startIcon={<Search />}
+          >
             Search
           </Button>
 
@@ -211,7 +214,6 @@ export default function StudentBatchAssignmentsPage() {
         </Stack>
       </Paper>
 
-
       {/* ----------------------------------- */}
       {/* Error Display */}
       {/* ----------------------------------- */}
@@ -220,7 +222,6 @@ export default function StudentBatchAssignmentsPage() {
           {renderErrorContent(error)}
         </Alert>
       )}
-
 
       {/* ----------------------------------- */}
       {/* Table */}
@@ -295,7 +296,6 @@ export default function StudentBatchAssignmentsPage() {
 
                         <Link
                           href={`/studentBatchAssignments/${item.studentBatchAssignmentId}/edit`}
-                          passHref
                         >
                           <IconButton size="small" color="secondary">
                             <Edit />
@@ -306,10 +306,16 @@ export default function StudentBatchAssignmentsPage() {
                           size="small"
                           color="error"
                           onClick={() => handleDeleteClick(item)}
-                          disabled={isDeleting === item.studentBatchAssignmentId}
+                          disabled={
+                            isDeleting === item.studentBatchAssignmentId
+                          }
                         >
                           {isDeleting === item.studentBatchAssignmentId ? (
-                            <Skeleton variant="circular" width={24} height={24} />
+                            <Skeleton
+                              variant="circular"
+                              width={24}
+                              height={24}
+                            />
                           ) : (
                             <Delete />
                           )}
@@ -322,7 +328,6 @@ export default function StudentBatchAssignmentsPage() {
             </TableBody>
           </Table>
         </TableContainer>
-
 
         {/* ----------------------------------- */}
         {/* Pagination */}

@@ -1,221 +1,187 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
-
-import { useDispatch, useSelector } from "react-redux";
-import { RootState, AppDispatch } from "@/lib/store";
+import { useState, useCallback } from "react";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/store";
 
 import {
-    fetchSBAById,
-    updateSBA
+  fetchSBAById,
+  updateSBA,
 } from "./studentBatchAssignmentThunks";
-
-import { ApiError } from "./studentBatchAssignmentTypes";
+import {
+  ApiError,
+  StudentBatchAssignment,
+  UpdateStudentBatchAssignmentDto,
+} from "./studentBatchAssignmentTypes";
 import { toast } from "react-toastify";
 
-
-// -----------------------------------------------------------
-// FORM DATA INTERFACE
-// -----------------------------------------------------------
-export interface StudentBatchAssignmentFormData {
-    studentEnrollmentId: number;
-    batchId: number;
-    assignmentDate: string;
-    assignmentType: string;
-    remark?: string | null;
-    isActive: boolean;
-}
-
-
-// -----------------------------------------------------------
-// VIEWMODEL HOOK
-// -----------------------------------------------------------
 export default function useEditStudentBatchAssignmentViewModel() {
-    const router = useRouter();
-    const { id } = useParams();
-    const dispatch: AppDispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
-    const { currentAssignment, loading, error: fetchError } = useSelector(
-        (state: RootState) => state.studentBatchAssignments
-    );
+  const [formData, setFormData] = useState({
+    id: 0,                    // studentBatchAssignmentId
+    studentEnrollmentId: 0,
+    batchId: 0,
+    assignmentDate: "",       // "YYYY-MM-DD" for input[type=date]
+    assignmentType: "",
+    remark: "",
+    isActive: true,
+  });
 
-    const [formData, setFormData] = useState<StudentBatchAssignmentFormData>({
-        studentEnrollmentId: 0,
-        batchId: 0,
-        assignmentDate: "",
-        assignmentType: "",
-        remark: "",
-        isActive: true,
-    });
+  const [isLoadingAssignment, setIsLoadingAssignment] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<ApiError | null>(null);
 
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState<ApiError | null>(null);
+  // -----------------------------
+  // Helpers
+  // -----------------------------
+  const clearError = () => setError(null);
 
+  const formatDateForInput = (isoOrDateString: string | null | undefined): string => {
+    if (!isoOrDateString) return "";
+    const d = new Date(isoOrDateString);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toISOString().substring(0, 10); // YYYY-MM-DD
+  };
 
-    // ----------------------------------------------------
-    // Fetch SBA by ID on mount
-    // ----------------------------------------------------
-    useEffect(() => {
-        if (id) {
-            dispatch(fetchSBAById(Number(id)));
-        }
-    }, [dispatch, id]);
+  // -----------------------------
+  // LOAD ASSIGNMENT BY ID
+  // -----------------------------
+const loadAssignment = useCallback(async (id: number) => {
+    setIsLoadingAssignment(true);
+    setError(null);
 
+    try {
+      const assignment: StudentBatchAssignment = await dispatch(
+        fetchSBAById(id)
+      ).unwrap();
 
-    // ----------------------------------------------------
-    // Populate form when currentAssignment is fetched
-    // ----------------------------------------------------
-    useEffect(() => {
-        if (currentAssignment) {
-            setFormData({
-                studentEnrollmentId: currentAssignment.studentEnrollmentId,
-                batchId: currentAssignment.batchId,
-                assignmentDate: currentAssignment.assignmentDate.split("T")[0],
-                assignmentType: currentAssignment.assignmentType,
-                remark: currentAssignment.remark ?? "",
-                isActive: currentAssignment.isActive
-            });
-        }
-    }, [currentAssignment]);
+      setFormData({
+        id: assignment.studentBatchAssignmentId,
+        studentEnrollmentId: assignment.studentEnrollmentId,
+        batchId: assignment.batchId,
+        assignmentDate: formatDateForInput(assignment.assignmentDate as any),
+        assignmentType: assignment.assignmentType || "",
+        remark: assignment.remark || "",
+        isActive: assignment.isActive,
+      });
+    } catch (err: any) {
+      const message =
+        err?.error ||
+        err?.message ||
+        "Failed to load assignment";
 
-
-    // ----------------------------------------------------
-    // Input Handlers
-    // ----------------------------------------------------
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    };
-
-    const handleNumberChange = (name: keyof StudentBatchAssignmentFormData, value: number) => {
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    };
-
-    const handleSelectChange = (e: { target: { name: string; value: string } }) => {
-        const { name, value } = e.target;
-
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    };
-
-    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, checked } = e.target;
-
-        setFormData((prev) => ({
-            ...prev,
-            [name]: checked,
-        }));
-    };
+      setError({ error: message, errors: null });
+      toast.error(message);
+    } finally {
+      setIsLoadingAssignment(false);
+    }
+}, [dispatch]);
 
 
-    // ----------------------------------------------------
-    // Submit Handler
-    // ----------------------------------------------------
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
+  // -----------------------------
+  // INPUT HANDLERS
+  // -----------------------------
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSelectChange = (e: { target: { name: string; value: string } }) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleNumberChange = (name: keyof typeof formData, value: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleBooleanChange = (name: keyof typeof formData, value: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // -----------------------------
+  // SUBMIT (UPDATE)
+  // -----------------------------
+  const handleSubmit = async () => {
+    clearError();
+    setIsSubmitting(true);
+
+    try {
+      // Basic validation
+      if (
+        !formData.id ||
+        !formData.studentEnrollmentId ||
+        !formData.batchId ||
+        !formData.assignmentDate ||
+        !formData.assignmentType
+      ) {
+        throw new Error("Please fill all required fields");
+      }
+
+      const payload: UpdateStudentBatchAssignmentDto = {
+        id: formData.id,
+        studentEnrollmentId: formData.studentEnrollmentId,
+        batchId: formData.batchId,
+        assignmentDate: new Date(formData.assignmentDate).toISOString(),
+        assignmentType: formData.assignmentType,
+        remark: formData.remark,
+        isActive: formData.isActive,
+      };
+
+      const result = await dispatch(updateSBA(payload)).unwrap();
+
+      if (result.success) {
         setError(null);
+        return {
+          success: true,
+          message: result.message || "Assignment updated successfully",
+        };
+      }
 
-        try {
-            if (!id) {
-                throw new Error("Assignment ID is required");
-            }
+      throw new Error(result.message || "Failed to update assignment");
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.error ||
+        err?.message ||
+        "Something went wrong";
 
-            // Basic validation
-            if (
-                formData.studentEnrollmentId <= 0 ||
-                formData.batchId <= 0 ||
-                !formData.assignmentDate ||
-                !formData.assignmentType
-            ) {
-                throw new Error("Please fill in all required fields");
-            }
+      setError({ error: message, errors: null });
+      toast.error(message);
+      return null;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-            // Update SBA
-            const result = await dispatch(
-                updateSBA({
-                    id: Number(id),
-                    studentEnrollmentId: formData.studentEnrollmentId,
-                    batchId: formData.batchId,
-                    assignmentDate: formData.assignmentDate,
-                    assignmentType: formData.assignmentType,
-                    remark: formData.remark,
-                    isActive: formData.isActive,
-                })
-            ).unwrap();
+  return {
+    formData,
+    isLoadingAssignment,
+    isSubmitting,
+    error,
 
+    clearError,
+    loadAssignment,
 
-            // ---------------------------
-            // SUCCESS
-            // ---------------------------
-            toast.success(result.message || "Batch assignment updated successfully");
-            router.push("/student-batch-assignments");
+    handleChange,
+    handleSelectChange,
+    handleNumberChange,
+    handleBooleanChange,
 
-            if (!result.success) {
-                throw new Error(result.message || "Failed to update assignment");
-            }
-
-        } catch (err: any) {
-            console.log("UPDATE SBA ERROR:", err);
-
-            let errorMessage = "An unknown error occurred";
-            let errorDetails = null;
-
-            // Axios structured error
-            if (typeof err === "object" && err !== null) {
-                if ("response" in err && err.response?.data) {
-                    errorMessage =
-                        err.response.data.error ||
-                        err.response.data.message ||
-                        errorMessage;
-
-                    errorDetails = err.response.data.errors || null;
-                }
-                else if ("error" in err) {
-                    errorMessage = err.error || errorMessage;
-                    errorDetails = err.errors || null;
-                }
-            } 
-            else if (typeof err === "string") {
-                errorMessage = err;
-            }
-            else if (err instanceof Error) {
-                errorMessage = err.message;
-            }
-
-            toast.error(errorMessage);
-            setError({ error: errorMessage, errors: errorDetails });
-
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-
-    // ----------------------------------------------------
-    // Return
-    // ----------------------------------------------------
-    return {
-        formData,
-        isSubmitting,
-        error: error || fetchError,
-        errors: error || fetchError,
-        loading,
-
-        handleChange,
-        handleSelectChange,
-        handleCheckboxChange,
-        handleNumberChange,
-        handleSubmit,
-    };
+    handleSubmit,
+  };
 }

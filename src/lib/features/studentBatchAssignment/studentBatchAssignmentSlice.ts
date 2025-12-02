@@ -7,6 +7,7 @@ import {
     createSBA,
     updateSBA,
     deleteSBA,
+    createSBABulk
 } from "./studentBatchAssignmentThunks";
 
 import {
@@ -15,9 +16,9 @@ import {
 } from "./studentBatchAssignmentTypes";
 
 
-// -----------------------------------------
-// State Structure
-// -----------------------------------------
+// ===================================================================
+// STATE
+// ===================================================================
 
 export interface StudentBatchAssignmentState {
     assignments: StudentBatchAssignment[];
@@ -54,9 +55,9 @@ const initialState: StudentBatchAssignmentState = {
 };
 
 
-// -----------------------------------------
-// Slice
-// -----------------------------------------
+// ===================================================================
+// SLICE
+// ===================================================================
 
 const studentBatchAssignmentSlice = createSlice({
     name: "studentBatchAssignments",
@@ -84,16 +85,16 @@ const studentBatchAssignmentSlice = createSlice({
 
     extraReducers: (builder) => {
         builder
-            // -----------------------------------------
-            // 🔹 Fetch PAGINATED
-            // -----------------------------------------
+
+            // ===================================================================
+            // FETCH PAGINATED
+            // ===================================================================
             .addCase(fetchSBAPaginated.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
             .addCase(fetchSBAPaginated.fulfilled, (state, action) => {
                 state.loading = false;
-
                 state.assignments = action.payload.items;
                 state.totalCount = action.payload.totalCount;
                 state.totalPages = Math.ceil(state.totalCount / state.pageSize);
@@ -105,9 +106,9 @@ const studentBatchAssignmentSlice = createSlice({
                     { error: "Failed to fetch batch assignments", errors: null };
             })
 
-            // -----------------------------------------
-            // 🔹 Fetch All (Non paged)
-            // -----------------------------------------
+            // ===================================================================
+            // FETCH ALL
+            // ===================================================================
             .addCase(fetchSBAList.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -123,9 +124,9 @@ const studentBatchAssignmentSlice = createSlice({
                     { error: "Failed to load list", errors: null };
             })
 
-            // -----------------------------------------
-            // 🔹 Fetch By ID
-            // -----------------------------------------
+            // ===================================================================
+            // FETCH BY ID
+            // ===================================================================
             .addCase(fetchSBAById.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -141,9 +142,9 @@ const studentBatchAssignmentSlice = createSlice({
                     { error: "Failed to fetch assignment", errors: null };
             })
 
-            // -----------------------------------------
-            // 🔹 Create
-            // -----------------------------------------
+            // ===================================================================
+            // CREATE SINGLE
+            // ===================================================================
             .addCase(createSBA.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -153,7 +154,6 @@ const studentBatchAssignmentSlice = createSlice({
 
                 if (action.payload.success && action.payload.data) {
                     state.assignments.unshift(action.payload.data);
-
                     state.totalCount += 1;
                     state.totalPages = Math.ceil(state.totalCount / state.pageSize);
                 }
@@ -165,9 +165,30 @@ const studentBatchAssignmentSlice = createSlice({
                     { error: "Failed to create assignment", errors: null };
             })
 
-            // -----------------------------------------
-            // 🔹 Update
-            // -----------------------------------------
+            // ===================================================================
+            // CREATE BULK — DO NOT INSERT INTO LIST (avoids duplicates)
+            // ===================================================================
+            .addCase(createSBABulk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(createSBABulk.fulfilled, (state) => {
+                state.loading = false;
+                state.error = null;
+
+                // Do NOT mutate assignments list
+                // The listing page will refetch fresh paginated data
+            })
+            .addCase(createSBABulk.rejected, (state, action) => {
+                state.loading = false;
+                state.error =
+                    (action.payload as ApiError) ??
+                    { error: "Failed to create assignments", errors: null };
+            })
+
+            // ===================================================================
+            // UPDATE
+            // ===================================================================
             .addCase(updateSBA.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -179,6 +200,7 @@ const studentBatchAssignmentSlice = createSlice({
                 if (action.payload.success && action.payload.data) {
                     const updated = action.payload.data;
 
+                    // Update inside list
                     const index = state.assignments.findIndex(
                         (s) => s.studentBatchAssignmentId === updated.studentBatchAssignmentId
                     );
@@ -186,26 +208,21 @@ const studentBatchAssignmentSlice = createSlice({
                     if (index !== -1) {
                         state.assignments[index] = updated;
                     }
+
+                    // 🔥 IMPORTANT: update currentAssignment
+                    state.currentAssignment = updated;
                 }
             })
             .addCase(updateSBA.rejected, (state, action) => {
                 state.loading = false;
-
-                if (!action.payload) {
-                    state.error = { error: "Failed to update assignment", errors: null };
-                } else if (typeof action.payload === "string") {
-                    state.error = { error: action.payload, errors: null };
-                } else {
-                    state.error = {
-                        error: action.payload.error ?? "Failed to update assignment",
-                        errors: action.payload.errors ?? null,
-                    };
-                }
+                state.error =
+                    (action.payload as ApiError) ??
+                    { error: "Failed to update assignment", errors: null };
             })
 
-            // -----------------------------------------
-            // 🔹 Delete
-            // -----------------------------------------
+            // ===================================================================
+            // DELETE
+            // ===================================================================
             .addCase(deleteSBA.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -224,7 +241,6 @@ const studentBatchAssignmentSlice = createSlice({
             })
             .addCase(deleteSBA.rejected, (state, action) => {
                 state.loading = false;
-
                 state.error =
                     (action.payload as ApiError) ??
                     { error: "Failed to delete assignment", errors: null };
@@ -233,9 +249,9 @@ const studentBatchAssignmentSlice = createSlice({
 });
 
 
-// -----------------------------------------
-// Export Actions & Reducer
-// -----------------------------------------
+// ===================================================================
+// Export Actions + Reducer
+// ===================================================================
 
 export const {
     setPage,

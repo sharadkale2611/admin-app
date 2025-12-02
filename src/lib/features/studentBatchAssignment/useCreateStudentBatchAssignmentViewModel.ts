@@ -4,103 +4,135 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/lib/store";
 
-import { createSBA } from "./studentBatchAssignmentThunks";
+import { createSBABulk } from "./studentBatchAssignmentThunks";
 import { ApiError } from "./studentBatchAssignmentTypes";
 import { toast } from "react-toastify";
 
 export default function useCreateStudentBatchAssignmentViewModel() {
-  const dispatch = useDispatch<AppDispatch>();
+    const dispatch = useDispatch<AppDispatch>();
 
-  const [formData, setFormData] = useState({
-    studentEnrollmentId: 0,
-    batchId: 0,
-    assignmentDate: "",
-    assignmentType: "",
-    remark: "",
-    isActive: true,
-  });
+    const [formData, setFormData] = useState({
+        studentEnrollmentIds: [] as number[],
+        batchId: 0,
+        assignmentDate: "",
+        assignmentType: "",
+        remark: "",
+        isActive: true,
+    });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<ApiError | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<ApiError | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    // ------------------------------------------
+    // CLEAR ERROR BEFORE SUBMIT
+    // ------------------------------------------
+    const clearError = () => setError(null);
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+    // ------------------------------------------
+    // TOGGLE CHECKBOX
+    // ------------------------------------------
+    const toggleEnrollmentSelection = (id: number) => {
+        setFormData((prev) => ({
+            ...prev,
+            studentEnrollmentIds: prev.studentEnrollmentIds.includes(id)
+                ? prev.studentEnrollmentIds.filter((x) => x !== id)
+                : [...prev.studentEnrollmentIds, id],
+        }));
+    };
 
-  const handleSelectChange = (e: { target: { name: string; value: string } }) => {
-    const { name, value } = e.target;
+    // ------------------------------------------
+    // NORMAL INPUT HANDLERS
+    // ------------------------------------------
+    const handleChange = (e: any) => {
+        setFormData((prev) => ({
+            ...prev,
+            [e.target.name]: e.target.value,
+        }));
+    };
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+    const handleSelectChange = (e: any) => {
+        setFormData((prev) => ({
+            ...prev,
+            [e.target.name]: e.target.value,
+        }));
+    };
 
-  const handleNumberChange = (name: any, value: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+    const handleNumberChange = (name: string, value: number) => {
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
 
-    try {
-      if (
-        !formData.studentEnrollmentId ||
-        !formData.batchId ||
-        !formData.assignmentDate ||
-        !formData.assignmentType
-      ) {
-        throw new Error("Please fill all required fields");
-      }
-
-      const payload = {
-        ...formData,
-        assignmentDate: new Date(formData.assignmentDate).toISOString(),
+          // SELECT ALL
+      const selectAllEnrollments = (allIds: number[]) => {
+          setFormData((prev) => ({
+              ...prev,
+              studentEnrollmentIds: allIds,
+          }));
       };
 
-      const result = await dispatch(createSBA(payload)).unwrap();
+      // DESELECT ALL
+      const deselectAllEnrollments = () => {
+          setFormData((prev) => ({
+              ...prev,
+              studentEnrollmentIds: [],
+          }));
+      };
 
-      if (result.success) {
-        return {
-          success: true,
-          message: result.message || "Assignment created successfully",
+    // ------------------------------------------
+    // SUBMIT HANDLER (NO event passed here!)
+    // ------------------------------------------
+   const handleSubmit = async () => {
+    clearError();
+    setIsSubmitting(true);
+
+    try {
+        if (
+            formData.studentEnrollmentIds.length === 0 ||
+            !formData.batchId ||
+            !formData.assignmentDate ||
+            !formData.assignmentType
+        ) {
+            throw new Error("Please fill all required fields");
+        }
+
+        const payload = {
+            ...formData,
+            assignmentDate: new Date(formData.assignmentDate).toISOString(),
         };
-      } else {
-        throw new Error(result.message || "Failed to create assignment");
-      }
+
+        const result = await dispatch(createSBABulk(payload)).unwrap();
+
+        setError(null);
+        return { success: true, message: result.message };
+        
     } catch (err: any) {
-      const message =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        err.message ||
-        "Something went wrong";
+        const message =
+            err?.error ||
+            err?.message ||
+            "Something went wrong";
 
-      toast.error(message);
-      setError({ error: message, errors: null });
-
-      return null;
+        setError({ error: message, errors: null });
+        toast.error(message);
+        return null;
     } finally {
-      setIsSubmitting(false);
+        setIsSubmitting(false);
     }
-  };
+};
 
-  return {
-    formData,
-    isSubmitting,
-    error,
-    handleChange,
-    handleSelectChange,
-    handleNumberChange,
-    handleSubmit,
-  };
+    return {
+        formData,
+        isSubmitting,
+        error,
+        clearError,
+        handleChange,
+        handleSelectChange,
+        handleNumberChange,
+        toggleEnrollmentSelection,
+        selectAllEnrollments,
+        deselectAllEnrollments,
+        handleSubmit,
+    };
 }

@@ -39,6 +39,15 @@ export interface CreateStudentBatchAssignmentDto {
     isActive: boolean;
 }
 
+export interface CreateBulkStudentBatchAssignmentDto {
+    studentEnrollmentIds: number[];
+    batchId: number;
+    assignmentDate: string;
+    assignmentType: string;
+    remark?: string | null;
+    isActive: boolean;
+}
+
 // UPDATE DTO
 export interface UpdateStudentBatchAssignmentDto {
     id: number;

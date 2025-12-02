@@ -168,6 +168,9 @@ const API_ENDPOINTS = {
     POST_CREATE:
       process.env.NEXT_PUBLIC_STUDENT_BATCH_ASSIGNMENTS_ENDPOINT ||
       "/StudentBatchAssignments",
+
+    POST_CREATE_BULK: "/StudentBatchAssignments/bulk",  
+    
     PUT_UPDATE:
       process.env.NEXT_PUBLIC_STUDENT_BATCH_ASSIGNMENTS_ENDPOINT ||
       "/StudentBatchAssignments",

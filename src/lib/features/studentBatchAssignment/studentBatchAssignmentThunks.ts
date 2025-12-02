@@ -6,6 +6,7 @@ import api from "@/lib/services/apiService";
 import {
     StudentBatchAssignment,
     CreateStudentBatchAssignmentDto,
+    CreateBulkStudentBatchAssignmentDto,
     UpdateStudentBatchAssignmentDto,
     PaginatedStudentBatchAssignment,
     ApiResponse,
@@ -145,42 +146,95 @@ export const createSBA = createAsyncThunk<
 );
 
 
+
 // ======================================================
-// 4. Update Assignment
+// 3B. Create Bulk Assignments
 // ======================================================
-export const updateSBA = createAsyncThunk<
-    { success: boolean; message: string; data: StudentBatchAssignment | null },
-    UpdateStudentBatchAssignmentDto,
-    { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
+
+export const createSBABulk = createAsyncThunk<
+    { success: boolean; message: string; data: StudentBatchAssignment[] | null },
+    CreateBulkStudentBatchAssignmentDto,
+    { rejectValue: ApiError }
 >(
-    "sba/update",
-    async (dto, { rejectWithValue }) => {
+    "sba/createBulk",
+    async (payload, { rejectWithValue }) => {
         try {
-            const res = await api.put<ApiResponse<StudentBatchAssignment>>(
-                `${API_ENDPOINTS.STUDENT_BATCH_ASSIGNMENTS.PUT_UPDATE}/${dto.id}`,
-                dto,
+            const res = await api.post(
+                "/StudentBatchAssignments/bulk",
+                payload,
                 {
                     withCredentials: true,
                     headers: { "Content-Type": "application/json" }
                 }
             );
 
-            if (!res.data?.success) {
+            // FIX: use `res.success` instead of `res.data.success`
+            if (res.success !== true) {
                 return rejectWithValue({
-                    error: res.data?.message ?? "Update failed",
+                    error: res.message ?? "Bulk creation failed",
                     errors: null
                 });
             }
 
             return {
                 success: true,
-                message: res.data.message ?? "Updated successfully",
-                data: res.data.data ?? null
+                message: res.message ?? "Assignments created successfully",
+                data: res.data ?? null,        // ← This is your array
             };
         } catch (err: any) {
-            return rejectWithValue(parseApiError(err));
+            return rejectWithValue({
+                error: err.message || "Something went wrong",
+                errors: null
+            });
         }
     }
+);
+
+
+
+// ======================================================
+// 4. Update Assignment
+// ======================================================
+export const updateSBA = createAsyncThunk<
+  { success: boolean; message: string; data: StudentBatchAssignment | null },
+  UpdateStudentBatchAssignmentDto,
+  { rejectValue: ApiError }
+>(
+  "sba/update",
+  async (dto, { rejectWithValue }) => {
+    try {
+      // ❗ IMPORTANT: remove ApiResponse<T> typing here
+      const res = await api.put(
+        `/StudentBatchAssignments/${dto.id}`,
+        dto,
+        {
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" }
+        }
+      );
+
+      // ⚠ FIX condition
+      if (res.success !== true) {
+        return rejectWithValue({
+          error: res.message ?? "Update failed",
+          errors: null,
+        });
+      }
+
+      // ⚠ return ONLY StudentBatchAssignment object
+      return {
+        success: true,
+        message: res.message ?? "Updated successfully",
+        data: res.data ?? null,  // <--- CORRECT
+      };
+
+    } catch (err: any) {
+      return rejectWithValue({
+        error: err.message || "Something went wrong",
+        errors: null,
+      });
+    }
+  }
 );
 
 
