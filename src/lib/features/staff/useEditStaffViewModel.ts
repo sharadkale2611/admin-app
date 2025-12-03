@@ -7,6 +7,7 @@ import { updateStaff, fetchStaffById } from './staffThunks';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/lib/store';
 import { toast } from 'react-toastify';
+import Swal from "sweetalert2";      // ✅ ADD THIS
 
 export interface StaffFormData {
     userName: string;
@@ -120,7 +121,7 @@ export default function useEditStaffViewModel() {
                 throw new Error('Please enter a valid email address');
             }
 
-            // Update the staff member using Redux action
+            // Update staff via Redux
             const result = await dispatch(updateStaff({
                 id: id as string,
                 userName: formData.userName,
@@ -143,12 +144,28 @@ export default function useEditStaffViewModel() {
             } else {
                 throw new Error(result.error || 'Failed to update staff member');
             }
-        } catch (err: unknown) {
-            const errorMessage = err instanceof Error ? err.message :
-                typeof err === 'string' ? err :
-                    'An unknown error occurred';
+
+        } catch (err: any) {
+            let errorMessage = "";
+
+            if (typeof err === "string") {
+                errorMessage = err;                   // backend message
+            } else if (err instanceof Error) {
+                errorMessage = err.message;           // JS error
+            } else {
+                errorMessage = "An unknown error occurred";
+            }
+
             setError(errorMessage);
-            toast.error(errorMessage);
+
+            // 🔥 SWEET ALERT FOR BACKEND ERRORS
+            Swal.fire({
+                icon: "error",
+                title: "Update Failed",
+                text: errorMessage,
+                confirmButtonColor: "#d33"
+            });
+
         } finally {
             setIsSubmitting(false);
         }

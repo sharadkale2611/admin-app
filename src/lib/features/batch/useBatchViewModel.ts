@@ -26,8 +26,9 @@ export const useBatchViewModel = () => {
     activeOnly,
   } = useAppSelector((state: RootState) => state.batches);
 
-  // 🔹 Fetch paginated batches whenever filters/page change
-  useEffect(() => {
+  const safeBatches = batches || [];
+
+  const fetchBatchData = useCallback(() => {
     dispatch(
       fetchBatches({
         page,
@@ -37,7 +38,14 @@ export const useBatchViewModel = () => {
     );
   }, [dispatch, page, searchTerm, activeOnly]);
 
-  // 🔹 Search input handler (with debounce)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchBatchData();
+    }, searchTerm ? 300 : 0);
+
+    return () => clearTimeout(timer);
+  }, [fetchBatchData, searchTerm]);
+
   const handleSearch = useCallback(
     (term: string) => {
       dispatch(setBatchSearchTerm(term));
@@ -78,14 +86,6 @@ export const useBatchViewModel = () => {
     handleToggleActive,
     handleResetFilters,
     handlePageChange,
-
-    refetch: () =>
-      dispatch(
-        fetchBatches({
-          page,
-          searchTerm,
-          activeOnly,
-        })
-      ),
+    refetch: fetchBatchData,
   };
 };
