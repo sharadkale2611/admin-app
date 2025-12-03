@@ -27,6 +27,7 @@ export const useBatchViewModel = () => {
 
   const safeBatches = batches || [];
 
+  // API call
   const fetchBatchData = useCallback(() => {
     dispatch(
       fetchBatches({
@@ -37,14 +38,23 @@ export const useBatchViewModel = () => {
     );
   }, [dispatch, page, searchTerm, activeOnly]);
 
+  // 1️⃣ FETCH IMMEDIATELY ON FIRST LOAD (IMPORTANT FIX)
   useEffect(() => {
+    fetchBatchData();
+  }, []); // run only once
+
+  // 2️⃣ Debounce when searchTerm changes
+  useEffect(() => {
+    if (!searchTerm) return; // skip debounce for empty search
+
     const timer = setTimeout(() => {
       fetchBatchData();
-    }, searchTerm ? 300 : 0);
+    }, 300);
 
     return () => clearTimeout(timer);
-  }, [fetchBatchData, searchTerm]);
+  }, [searchTerm, fetchBatchData]);
 
+  // Search handler
   const handleSearch = useCallback(
     (term: string) => {
       dispatch(setBatchSearchTerm(term));
@@ -82,6 +92,8 @@ export const useBatchViewModel = () => {
     handleToggleActive,
     handleResetFilters,
     handlePageChange,
+
+    // Allow manual reload
     refetch: fetchBatchData,
   };
 };

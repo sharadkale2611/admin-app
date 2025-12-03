@@ -131,7 +131,7 @@ const BatchStudyWorkList: React.FC = () => {
           </Link>
 
           {/* Edit */}
-          <Link href={`/batch-study-works/${params.row.batchStudyWorkId}/edit`}>
+          <Link href={`/BatchStudyWorks/${params.row.batchStudyWorkId}/edit`}>
             <IconButton size="small" color="primary">
               <Edit fontSize="small" />
             </IconButton>
@@ -174,7 +174,7 @@ const BatchStudyWorkList: React.FC = () => {
           variant="contained"
           startIcon={<Add />}
           component={Link}
-          href="/batch-study-works/create"
+          href="/BatchStudyWorks/create"
         >
           Add Work
         </Button>
