@@ -69,7 +69,7 @@ const handleSubmit = async (e: any) => {
 
   const dto = {
     BatchCode: form.batchCode,
-    BranchId: Number(form.branchId),
+    BranchId: form.branchId ? Number(form.branchId) : null,
     CourseModuleId: Number(form.courseModuleId),
     TrainerId: Number(form.trainerId),
     ClassRoomId: Number(form.classRoomId),
@@ -79,7 +79,7 @@ const handleSubmit = async (e: any) => {
     EndDate: form.endDate || null,
     ActualEndDate: form.actualEndDate || null,
 
-    StartTime: form.startTime,
+    StartTime: form.startTime ? form.startTime + ":00" : null, 
     BatchDurationInHr: Number(form.batchDurationInHr),
     IsActive: form.isActive,
   };
@@ -124,12 +124,12 @@ const handleSubmit = async (e: any) => {
           {/* Branch */}
           <TextField
             select
-            label="Branch"
+            label="Branch (optional)"
             name="branchId"
             value={form.branchId}
             onChange={handleChange}
-            required
           >
+            <MenuItem value="">None</MenuItem>
             {branches.map((b: any) => (
               <MenuItem key={b.branchId} value={b.branchId}>
                 {b.branchName}
@@ -253,7 +253,7 @@ const handleSubmit = async (e: any) => {
             }
             label={form.isActive ? "Active" : "Inactive"}
           />
-       
+
           {/* Submit */}
           <Button type="submit" variant="contained">
             Create Batch

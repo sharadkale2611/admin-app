@@ -49,7 +49,7 @@ export interface BatchState {
   currentBatch: Batch | null;
   totalCount: number;
   pageSize: number;
-  currentPage: number;
+  // currentPage: number;
   totalPages: number;
   loading: boolean;
   error: ApiError | null;

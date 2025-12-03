@@ -14,15 +14,19 @@ import type { ApiError } from "./batchThunks";
 const initialState: BatchState = {
   batches: [],
   currentBatch: null,
+
+  // PAGINATION STATE
   totalCount: 0,
   pageSize: 10,
-  currentPage: 1,
+  page: 1,               // <-- USE THIS AS CURRENT PAGE
   totalPages: 0,
+
   loading: false,
   error: null,
+
+  // FILTERS
   searchTerm: "",
   activeOnly: true,
-  page: 1,
 };
 
 const batchSlice = createSlice({
@@ -52,7 +56,7 @@ const batchSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // -------------------------------------------------
-      // 🔹 FETCH BATCHES PAGINATED
+      // 🔹 FETCH BATCHES (PAGINATED)
       // -------------------------------------------------
       .addCase(fetchBatches.pending, (state) => {
         state.loading = true;
@@ -61,25 +65,24 @@ const batchSlice = createSlice({
       .addCase(fetchBatches.fulfilled, (state, action) => {
         state.loading = false;
 
-        const payload = action.payload;
+        const p = action.payload;
 
-        state.batches = payload.items ?? [];
-        state.totalCount = payload.totalCount;
-        state.pageSize = payload.pageSize;
-        state.currentPage = payload.currentPage;
-        state.totalPages = payload.totalPages;
+        // Correct paginated mapping
+        state.batches = p.items ?? [];
+        state.totalCount = p.totalCount;
+        state.pageSize = p.pageSize;
+        state.page = p.currentPage;       // <-- IMPORTANT FIX
+        state.totalPages = p.totalPages;
       })
       .addCase(fetchBatches.rejected, (state, action) => {
         state.loading = false;
         state.error =
-          (action.payload as ApiError) ?? {
-            error: "Failed to fetch batches",
-            errors: null,
-          };
+          (action.payload as ApiError) ??
+          { error: "Failed to fetch batches", errors: null };
       })
 
       // -------------------------------------------------
-      // 🔹 FETCH BATCH BY ID
+      // 🔹 FETCH SINGLE BATCH BY ID
       // -------------------------------------------------
       .addCase(fetchBatchById.pending, (state) => {
         state.loading = true;
@@ -92,16 +95,14 @@ const batchSlice = createSlice({
       .addCase(fetchBatchById.rejected, (state, action) => {
         state.loading = false;
         state.error =
-          (action.payload as ApiError) ?? {
-            error: "Failed to fetch batch",
-            errors: null,
-          };
+          (action.payload as ApiError) ??
+          { error: "Failed to fetch batch", errors: null };
       })
 
       // -------------------------------------------------
-      // 🔹 CREATE BATCH 
+      // 🔹 CREATE BATCH
       // -------------------------------------------------
-       .addCase(createBatch.pending, (state) => {
+      .addCase(createBatch.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -115,12 +116,9 @@ const batchSlice = createSlice({
           action.payload ?? { error: "Failed to create batch", errors: null };
       })
 
-
       // -------------------------------------------------
-      // 🔹 UPDATE BATCH 
+      // 🔹 UPDATE BATCH
       // -------------------------------------------------
-
-
       .addCase(updateBatch.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -129,10 +127,12 @@ const batchSlice = createSlice({
         state.loading = false;
         state.error = null;
 
-        const updated = action.payload.data; // Batch | null
+        const updated = action.payload.data;
 
         if (updated) {
-          const index = state.batches.findIndex(b => b.batchId === updated.batchId);
+          const index = state.batches.findIndex(
+            (b) => b.batchId === updated.batchId
+          );
           if (index !== -1) {
             state.batches[index] = updated;
           }
@@ -143,7 +143,6 @@ const batchSlice = createSlice({
         state.error =
           action.payload ?? { error: "Failed to update batch", errors: null };
       })
-
 
       // -------------------------------------------------
       // 🔹 DELETE BATCH
@@ -157,18 +156,18 @@ const batchSlice = createSlice({
 
         const deletedId = action.payload.id;
 
+        // Remove from current page (UI)
         state.batches = state.batches.filter((b) => b.batchId !== deletedId);
 
-        state.totalCount -= 1;
-        state.totalPages = Math.ceil(state.totalCount / state.pageSize);
+        // ❌ No manual totalCount update
+        // ❌ No manual totalPages recalculation
+        // Let refetch() fix it.
       })
       .addCase(deleteBatch.rejected, (state, action) => {
         state.loading = false;
         state.error =
-          (action.payload as ApiError) ?? {
-            error: "Failed to delete batch",
-            errors: null,
-          };
+          (action.payload as ApiError) ??
+          { error: "Failed to delete batch", errors: null };
       });
   },
 });
@@ -181,5 +180,4 @@ export const {
   resetBatchFilters,
 } = batchSlice.actions;
 
-export const batchReducer = batchSlice.reducer;
 export default batchSlice.reducer;

@@ -113,6 +113,9 @@ const ProtectedLayout = ({ children }: layoutParams) => {
         { text: "Batches", icon: <BookSharp />, path: AppRoutes.BATCHES },
         { text: "Batch Assignments", icon: <BookSharp />, path: AppRoutes.STUDENT_BATCH_ASSIGNMENTS },
 
+        { text: "Studywork Attachements", icon: <BookSharp />, path: AppRoutes.STUDENT_BATCH_ASSIGNMENTS },
+
+
 
 
         { text: "Reports", icon: <BarChartIcon />, path: "/reports" },

@@ -72,25 +72,29 @@ export default function EditBatchPage() {
 
   useEffect(() => {
     if (currentBatch) {
-  setForm({
-    batchCode: currentBatch.batchCode,
+      setForm({
+        batchCode: currentBatch.batchCode,
 
-    branchId: currentBatch.branchId ? String(currentBatch.branchId) : "",
-    courseModuleId: currentBatch.courseModuleId ? String(currentBatch.courseModuleId) : "",
-    trainerId: currentBatch.trainerId ? String(currentBatch.trainerId) : "",
-    classRoomId: currentBatch.classRoomId ? String(currentBatch.classRoomId) : "",
+        branchId: currentBatch.branchId ? String(currentBatch.branchId) : "",
+        courseModuleId: currentBatch.courseModuleId
+          ? String(currentBatch.courseModuleId)
+          : "",
+        trainerId: currentBatch.trainerId ? String(currentBatch.trainerId) : "",
+        classRoomId: currentBatch.classRoomId
+          ? String(currentBatch.classRoomId)
+          : "",
 
-    startDate: currentBatch.startDate?.slice(0, 10) ?? "",
-    actualStartDate: currentBatch.actualStartDate?.slice(0, 10) ?? "",
-    endDate: currentBatch.endDate?.slice(0, 10) ?? "",
-    actualEndDate: currentBatch.actualEndDate?.slice(0, 10) ?? "",
+        startDate: currentBatch.startDate?.slice(0, 10) ?? "",
+        actualStartDate: currentBatch.actualStartDate?.slice(0, 10) ?? "",
+        endDate: currentBatch.endDate?.slice(0, 10) ?? "",
+        actualEndDate: currentBatch.actualEndDate?.slice(0, 10) ?? "",
 
-    startTime: currentBatch.startTime?.slice(0, 5) ?? "",
+        startTime: currentBatch.startTime?.slice(0, 5) ?? "",
 
-    batchDurationInHr: currentBatch.batchDurationInHr ?? 1,
-    isActive: currentBatch.isActive,
-  });
-}
+        batchDurationInHr: currentBatch.batchDurationInHr ?? 1,
+        isActive: currentBatch.isActive,
+      });
+    }
   }, [currentBatch]);
 
   const handleSubmit = async (e: any) => {
@@ -98,15 +102,18 @@ export default function EditBatchPage() {
 
     const dto = {
       batchCode: form.batchCode,
-      branchId: Number(form.branchId),
+
+      branchId: form.branchId ? Number(form.branchId) : null, // ✔ FIXED
       courseModuleId: Number(form.courseModuleId),
       trainerId: Number(form.trainerId),
       classRoomId: Number(form.classRoomId),
+
       startDate: form.startDate || null,
       actualStartDate: form.actualStartDate || null,
       endDate: form.endDate || null,
       actualEndDate: form.actualEndDate || null,
-      startTime: form.startTime,
+
+      startTime: form.startTime ? form.startTime + ":00" : null, // ✔ FIXED
       batchDurationInHr: Number(form.batchDurationInHr),
       isActive: form.isActive,
     };
@@ -125,11 +132,8 @@ export default function EditBatchPage() {
           Edit Batch
         </Typography>
 
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          sx={{ display: "grid", gap: 2 }}
-        >
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: "grid", gap: 2 }}>
+          
           <TextField
             label="Batch Code"
             name="batchCode"
@@ -138,13 +142,15 @@ export default function EditBatchPage() {
             required
           />
 
+          {/* Branch optional */}
           <TextField
             select
-            label="Branch"
+            label="Branch (optional)"
             name="branchId"
             value={form.branchId}
             onChange={handleChange}
           >
+            <MenuItem value="">None</MenuItem>
             {branches.map((b: any) => (
               <MenuItem key={b.branchId} value={b.branchId}>
                 {b.branchName}
@@ -202,6 +208,7 @@ export default function EditBatchPage() {
             value={form.startDate}
             onChange={handleChange}
           />
+
           <TextField
             type="date"
             name="endDate"
@@ -210,6 +217,7 @@ export default function EditBatchPage() {
             value={form.endDate}
             onChange={handleChange}
           />
+
           <TextField
             type="date"
             name="actualStartDate"
@@ -218,6 +226,7 @@ export default function EditBatchPage() {
             value={form.actualStartDate}
             onChange={handleChange}
           />
+
           <TextField
             type="date"
             name="actualEndDate"
