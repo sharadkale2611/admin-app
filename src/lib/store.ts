@@ -29,6 +29,8 @@ import { moduleReducer } from "@/lib/features/module/moduleSlice";
 import { courseModuleReducer } from "@/lib/features/courseModules/courseModuleSlice";
 import { batchReducer } from "@/lib/features/batch/batchSlice";
 import { studentBatchAssignmentReducer } from "@/lib/features/studentBatchAssignment/studentBatchAssignmentSlice";
+import batchStudyWorksReducer from "@/lib/features/BatchStudyWorks/batchStudyWorkSlice";
+
 
 
 const rootReducer = combineReducers({
@@ -46,7 +48,8 @@ const rootReducer = combineReducers({
     modules: moduleReducer,
     courseModules: courseModuleReducer,
     batches:batchReducer,
-    studentBatchAssignments:studentBatchAssignmentReducer
+    studentBatchAssignments: studentBatchAssignmentReducer,
+        batchStudyWorks: batchStudyWorksReducer,
 
 });
 
