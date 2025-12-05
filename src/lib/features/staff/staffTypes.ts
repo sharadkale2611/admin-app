@@ -30,6 +30,7 @@ export interface PaginatedStaff {
 
 
 export interface StaffState {
+    dropdownStaff: Staff[];
     staff: Staff[];
     currentStaff: Staff | null;
     totalCount: number;

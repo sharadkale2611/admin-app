@@ -27,6 +27,8 @@ import {
   Add,
   Search,
   FilterList,
+  UploadFile
+
 } from "@mui/icons-material";
 
 import Link from "next/link";
@@ -121,6 +123,15 @@ const BatchStudyWorkList: React.FC = () => {
       sortable: false,
       renderCell: (params) => (
         <Stack direction="row" spacing={1}>
+          {/* Upload Docx / other docs */}
+          <Link
+            href={`/BatchStudyWorkAttachments?id=${params.row.batchStudyWorkId}`}
+          >
+            <IconButton size="small" color="secondary">
+              <UploadFile fontSize="small" />
+            </IconButton>
+          </Link>
+
           {/* View */}
           <Link
             href={`/BatchStudyWorks/details?id=${params.row.batchStudyWorkId}`}
