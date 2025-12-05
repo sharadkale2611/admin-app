@@ -5,13 +5,16 @@ import {
     fetchStaff,
     updateStaff,
     deleteStaff,
-    fetchStaffById
+    fetchStaffById,
+    fetchAllStaff,   // ⭐ NEW IMPORT
 } from "./staffThunks";
 
 import { Staff, StaffState, PaginatedStaff } from "./staffTypes";
 
 const initialState: StaffState = {
-    staff: [],
+    staff: [],               // paginated list
+    dropdownStaff: [],        // ⭐ NEW LIST FOR DROPDOWNS
+
     currentStaff: null,
 
     totalCount: 0,
@@ -29,7 +32,7 @@ const initialState: StaffState = {
     selectedDepartment: "",
     selectedPosition: "",
 
-    firmId: null 
+    firmId: null,
 };
 
 const staffSlice = createSlice({
@@ -72,14 +75,14 @@ const staffSlice = createSlice({
 
         setPage(state, action: PayloadAction<number>) {
             state.page = action.payload;
-        }
+        },
     },
 
     extraReducers: (builder) => {
         builder
-            // ------------------------------------------------
-            // FETCH STAFF LIST
-            // ------------------------------------------------
+            /* =====================================================
+               ⭐ FETCH PAGINATED STAFF
+            ===================================================== */
             .addCase(fetchStaff.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -88,22 +91,36 @@ const staffSlice = createSlice({
             .addCase(fetchStaff.fulfilled, (state, action: PayloadAction<PaginatedStaff>) => {
                 state.loading = false;
 
-                
                 state.staff = action.payload.items;
                 state.totalCount = action.payload.totalCount;
                 state.currentPage = action.payload.currentPage;
                 state.pageSize = action.payload.pageSize;
-                state.totalPages = action.payload.totalPages;;
+                state.totalPages = action.payload.totalPages;
             })
 
             .addCase(fetchStaff.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload as string || "Failed to fetch staff";
+                state.error = (action.payload as string) || "Failed to fetch staff";
             })
 
-            // ------------------------------------------------
-            // FETCH STAFF BY ID
-            // ------------------------------------------------
+            /* =====================================================
+               ⭐ FETCH ALL STAFF (NON PAGINATED → For dropdown)
+            ===================================================== */
+            .addCase(fetchAllStaff.pending, (state) => {
+                // NOT blocking UI
+            })
+
+            .addCase(fetchAllStaff.fulfilled, (state, action: PayloadAction<Staff[]>) => {
+                state.dropdownStaff = action.payload;
+            })
+
+            .addCase(fetchAllStaff.rejected, (state, action) => {
+                state.error = (action.payload as string) || "Failed to load staff list";
+            })
+
+            /* =====================================================
+               ⭐ FETCH STAFF BY ID
+            ===================================================== */
             .addCase(fetchStaffById.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -116,13 +133,13 @@ const staffSlice = createSlice({
 
             .addCase(fetchStaffById.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload as string || "Failed to fetch staff details";
+                state.error = (action.payload as string) || "Failed to fetch staff details";
                 state.currentStaff = null;
             })
 
-            // ------------------------------------------------
-            // CREATE STAFF
-            // ------------------------------------------------
+            /* =====================================================
+               ⭐ CREATE STAFF
+            ===================================================== */
             .addCase(createStaff.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -132,7 +149,8 @@ const staffSlice = createSlice({
                 state.loading = false;
 
                 if (action.payload.success && action.payload.staff) {
-                    state.staff.unshift(action.payload.staff);
+                    state.staff.unshift(action.payload.staff); // update paginated
+                    state.dropdownStaff.unshift(action.payload.staff); // ⭐ also update dropdown
                     state.totalCount += 1;
                     state.totalPages = Math.ceil(state.totalCount / state.pageSize);
                 }
@@ -140,12 +158,12 @@ const staffSlice = createSlice({
 
             .addCase(createStaff.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload as string || "Failed to create staff member";
+                state.error = (action.payload as string) || "Failed to create staff member";
             })
 
-            // ------------------------------------------------
-            // UPDATE STAFF
-            // ------------------------------------------------
+            /* =====================================================
+               ⭐ UPDATE STAFF
+            ===================================================== */
             .addCase(updateStaff.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -157,14 +175,20 @@ const staffSlice = createSlice({
                 if (action.payload.success) {
                     const updated = action.payload.staff;
 
-                    // Update in list
-                    const index = state.staff.findIndex(s => s.staffId === updated.staffId);
+                    // Update in paginated list
+                    const index = state.staff.findIndex((s) => s.staffId === updated.staffId);
                     if (index !== -1) {
                         state.staff[index] = { ...state.staff[index], ...updated };
                     }
 
-                    // Update currentStaff if opened
-                    if (state.currentStaff && state.currentStaff.staffId === updated.staffId) {
+                    // Update in dropdown staff ⭐
+                    const ddIndex = state.dropdownStaff.findIndex((s) => s.staffId === updated.staffId);
+                    if (ddIndex !== -1) {
+                        state.dropdownStaff[ddIndex] = { ...state.dropdownStaff[ddIndex], ...updated };
+                    }
+
+                    // Update currentStaff
+                    if (state.currentStaff?.staffId === updated.staffId) {
                         state.currentStaff = { ...state.currentStaff, ...updated };
                     }
                 }
@@ -172,12 +196,12 @@ const staffSlice = createSlice({
 
             .addCase(updateStaff.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload as string || "Failed to update staff member";
+                state.error = (action.payload as string) || "Failed to update staff member";
             })
 
-            // ------------------------------------------------
-            // DELETE STAFF
-            // ------------------------------------------------
+            /* =====================================================
+               ⭐ DELETE STAFF
+            ===================================================== */
             .addCase(deleteStaff.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -187,7 +211,14 @@ const staffSlice = createSlice({
                 state.loading = false;
 
                 if (action.payload.success) {
-                    state.staff = state.staff.filter(s => s.staffId !== action.payload.id);
+                    // remove from paginated list
+                    state.staff = state.staff.filter((s) => s.staffId !== action.payload.id);
+
+                    // remove from dropdown list ⭐
+                    state.dropdownStaff = state.dropdownStaff.filter(
+                        (s) => s.staffId !== action.payload.id
+                    );
+
                     state.totalCount -= 1;
                     state.totalPages = Math.ceil(state.totalCount / state.pageSize);
                 }
@@ -195,9 +226,9 @@ const staffSlice = createSlice({
 
             .addCase(deleteStaff.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload as string || "Failed to delete staff member";
+                state.error = (action.payload as string) || "Failed to delete staff member";
             });
-    }
+    },
 });
 
 export const {
@@ -207,7 +238,7 @@ export const {
     setDepartmentFilter,
     setPositionFilter,
     resetFilters,
-    setPage
+    setPage,
 } = staffSlice.actions;
 
 export default staffSlice.reducer;

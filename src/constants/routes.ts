@@ -34,6 +34,8 @@ export const AppRoutes = {
     STUDENT_BATCH_ASSIGNMENTS:'/studentBatchAssignments',
     BATCH_STUDYWORK:'/BatchStudyWorks',
     BATCH_STUDYWORK_ATTACHEMENTS:'/batchStudyWorkAttachements',
+    BATCH_SCHEDULES:'/batch-schedules',
+    
 
 
 

@@ -10,6 +10,7 @@ const base_url_api = process.env.NEXT_PUBLIC_API_BASE_URL_API || "";
 // derived from another environment variable, or a fallback path.
 const API_ENDPOINTS = {
   PARENT_URL: process.env.NEXT_PUBLIC_API_PARENT_URL || "", // Parent URL, if applicable
+  BASE_URL_FILES:base_url,
   BASE_URL: base_url, // General base URL
   BASE_URL_API: base_url_api, // Base URL specifically for API calls
   TIMEOUT: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || "5000", 10), // API timeout in milliseconds
@@ -207,6 +208,27 @@ const API_ENDPOINTS = {
     DELETE:
       process.env.NEXT_PUBLIC_BATCH_STUDY_WORKS_ENDPOINT ||
       "/BatchStudyWorks",
+  },
+
+
+
+  BATCH_STUDY_WORK_ATTACHMENTS: {
+    GET_BY_BATCH: "/BatchStudyWorkAttachements/by-batch",
+    UPLOAD: "/BatchStudyWorkAttachements/upload",
+    DELETE: "/BatchStudyWorkAttachements",
+  },
+
+
+    BATCH_SCHEDULES: {
+    GET_BY_BATCH:
+      process.env.NEXT_PUBLIC_BATCH_SCHEDULES_BY_BATCH_ENDPOINT ||
+      "/BatchSchedules/by-batch",
+    POST_CREATE_BULK:
+      process.env.NEXT_PUBLIC_BATCH_SCHEDULES_BULK_ENDPOINT ||
+      "/BatchSchedules/bulk-create",
+    POST_CREATE_SINGLE:
+      process.env.NEXT_PUBLIC_BATCH_SCHEDULES_ENDPOINT ||
+      "/BatchSchedules/create",
   },
 
 

@@ -58,10 +58,37 @@ export const fetchStaff = createAsyncThunk<
 );
 
 /* ========================================================
-    ✅ CREATE STAFF
+    🔵 NEW THUNK ADDED HERE
+    ✅ FETCH ALL STAFF (NON PAGINATED) → For Dropdowns
 ======================================================== */
+export const fetchAllStaff = createAsyncThunk<
+    Staff[],
+    void,
+    { rejectValue: string }
+>(
+    "staff/fetchAllStaff",
+    async (_, { rejectWithValue }) => {
+        try {
+
+            const response = await api.get<Staff[]>(
+                API_ENDPOINTS.STAFF.GET_LIST,  // <-- non paginated
+                { withCredentials: true }
+            );
+
+            if (!response.success) {
+                return rejectWithValue(response.error || "Failed to load staff list");
+            }
+
+            return response.data || [];
+
+        } catch (error: any) {
+            return rejectWithValue(error.message || "Server error");
+        }
+    }
+);
+
 /* ========================================================
-    ✅ CREATE STAFF (FULL FIX)
+    ✅ CREATE STAFF
 ======================================================== */
 export const createStaff = createAsyncThunk<
     {
@@ -85,10 +112,6 @@ export const createStaff = createAsyncThunk<
 
             const res = response.data;
 
-            // console.log("thunk response:", res);
-            // console.log("thunk Msg:", response.message);
-
-            // Backend: success: false
             if (response.success === false) {
                 return rejectWithValue(response.message || "Failed to create staff");
             }
@@ -103,8 +126,6 @@ export const createStaff = createAsyncThunk<
 
         } catch (error: any) {
             const errRes = error.response?.message;
-
-            console.log("🔥 BACKEND ERROR:", errRes);
 
             if (errRes?.errors) {
                 const all = Object.values(errRes.errors).flat();
@@ -150,10 +171,8 @@ export const updateStaff = createAsyncThunk<
         }
       );
 
-      // Axios may remove "success", so we treat HTTP 200 as success
       const apiRes = response.data || {};
 
-      // Merge with state or DTO
       const state = getState() as RootState;
       const existing =
         state.staff.currentStaff ||
