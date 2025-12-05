@@ -60,32 +60,25 @@ function parseApiError(error: any): ApiError {
 export const fetchBatches = createAsyncThunk<
   PaginatedBatch,
   FetchBatchParams,
-  { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
+  { rejectValue: ApiError }
 >(
   "batches/fetchBatches",
-  async (
-    { page = 1, searchTerm = "", activeOnly = true },
-    { rejectWithValue }
-  ) => {
+  async ({ page = 1, searchTerm = "", activeOnly = true }, { rejectWithValue }) => {
     try {
       const params: Record<string, string> = {
         pageNumber: page.toString(),
         pageSize: "10",
         search: searchTerm,
+        isActive: activeOnly.toString(),
         _: Date.now().toString(),
       };
 
-      if (activeOnly) params.isActive = "true";
-
       const query = new URLSearchParams(params).toString();
 
-      // ⬇️ IMPORTANT: response already contains success, data, error directly
-      const response = await api.get<PaginatedBatch>(
+      const response = await api.get<Batch[]>(
         `${API_ENDPOINTS.BATCHES.GET_LIST_PAGINATED}?${query}`,
         { withCredentials: true }
       );
-
-      // response = { success, message, data, error, status, ... }
 
       if (!response.success || !response.data) {
         return rejectWithValue({
@@ -94,12 +87,21 @@ export const fetchBatches = createAsyncThunk<
         });
       }
 
-      return response.data;
+      // 🔥 Map API → PaginatedBatch format
+      return {
+        items: response.data,   // list
+        totalCount: response.data.length,
+        currentPage: page,
+        pageSize: 10,
+        totalPages: 1
+      };
+
     } catch (error: any) {
       return rejectWithValue(parseApiError(error));
     }
   }
 );
+
 /**
  * 🔹 Fetch single Batch by ID
  * Uses: GET /Batches/{id}

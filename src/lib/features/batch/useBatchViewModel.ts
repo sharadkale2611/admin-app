@@ -21,6 +21,7 @@ export const useBatchViewModel = () => {
     error,
     page,
     totalPages,
+    totalCount,
     searchTerm,
     activeOnly,
   } = useAppSelector((state: RootState) => state.batches);
@@ -48,12 +49,14 @@ export const useBatchViewModel = () => {
   const handleSearch = useCallback(
     (term: string) => {
       dispatch(setBatchSearchTerm(term));
+      dispatch(setBatchPage(1)); // reset page
     },
     [dispatch]
   );
 
   const handleToggleActive = useCallback(() => {
     dispatch(toggleBatchActiveOnly());
+    dispatch(setBatchPage(1));
   }, [dispatch]);
 
   const handleResetFilters = useCallback(() => {
@@ -62,19 +65,20 @@ export const useBatchViewModel = () => {
 
   const handlePageChange = useCallback(
     (newPage: number) => {
-      if (newPage >= 1 && newPage <= (totalPages || 1)) {
-        dispatch(setBatchPage(newPage));
-      }
+      dispatch(setBatchPage(newPage));
     },
-    [dispatch, totalPages]
+    [dispatch]
   );
 
   return {
-    batches: safeBatches,
+    batches,
     isLoading: loading,
     error,
+
     page,
-    totalPages: totalPages || 1,
+    totalPages,
+    totalCount,
+
     searchTerm,
     activeOnly,
 

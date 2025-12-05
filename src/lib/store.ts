@@ -27,7 +27,7 @@ import { discountCodeReducer } from './features/discountCode/discountCodeSlice';
 import { classRoomReducer } from "@/lib/features/classRoom/classRoomSlice";
 import { moduleReducer } from "@/lib/features/module/moduleSlice";
 import { courseModuleReducer } from "@/lib/features/courseModules/courseModuleSlice";
-import { batchReducer } from "@/lib/features/batch/batchSlice";
+import batchReducer from "@/lib/features/batch/batchSlice";
 import { studentBatchAssignmentReducer } from "@/lib/features/studentBatchAssignment/studentBatchAssignmentSlice";
 import batchStudyWorksReducer from "@/lib/features/BatchStudyWorks/batchStudyWorkSlice";
 

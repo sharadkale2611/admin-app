@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   Typography,
@@ -65,7 +65,6 @@ const formatDate = (dateString: string | null) => {
 
 const formatTime = (timeString: string | null) => {
   if (!timeString) return "-";
-  // just display HH:mm
   return timeString.slice(0, 5);
 };
 
@@ -76,6 +75,7 @@ export default function BatchesPage() {
     error,
     page,
     totalPages,
+    totalCount,   // ⬅ NEW
     searchTerm,
     activeOnly,
     handleSearch,
@@ -88,6 +88,11 @@ export default function BatchesPage() {
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
   const { handleDelete } = useDeleteBatch();
   const [isDeleting, setIsDeleting] = useState<number | null>(null);
+
+  // Sync local search UI state when store updates
+  useEffect(() => {
+    setLocalSearchTerm(searchTerm);
+  }, [searchTerm]);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setLocalSearchTerm(event.target.value);
@@ -108,7 +113,7 @@ export default function BatchesPage() {
     try {
       const success = await handleDelete(batch.batchId, batch.batchCode);
       if (success) {
-        refetch();
+        refetch(); // ALWAYS refetch after delete
       }
     } catch (error) {
       console.error("Delete error:", error);
@@ -116,8 +121,6 @@ export default function BatchesPage() {
       setIsDeleting(null);
     }
   };
-
-  const totalCountApprox = batches.length * totalPages;
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
@@ -216,6 +219,7 @@ export default function BatchesPage() {
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
+
             <TableBody>
               {isLoading ? (
                 Array.from(new Array(5)).map((_, index) => (
@@ -248,6 +252,7 @@ export default function BatchesPage() {
                         {batch.batchCode}
                       </Typography>
                     </TableCell>
+
                     <TableCell>
                       <Typography variant="body2">
                         {batch.branchName || "-"}
@@ -256,6 +261,7 @@ export default function BatchesPage() {
                         {batch.branchCode || ""}
                       </Typography>
                     </TableCell>
+
                     <TableCell>
                       <Typography variant="body2">
                         {batch.courseName || "-"}
@@ -264,17 +270,22 @@ export default function BatchesPage() {
                         {batch.courseCategoryName || ""}
                       </Typography>
                     </TableCell>
+
                     <TableCell>{batch.moduleName || "-"}</TableCell>
                     <TableCell>{batch.classRoomName || "-"}</TableCell>
                     <TableCell>{batch.trainerId ?? "-"}</TableCell>
+
                     <TableCell>
                       {formatDate(batch.startDate)}{" "}
                       {batch.startTime
                         ? `(${formatTime(batch.startTime)})`
                         : ""}
                     </TableCell>
+
                     <TableCell>{formatDate(batch.endDate)}</TableCell>
+
                     <TableCell>{batch.batchDurationInHr ?? "-"}</TableCell>
+
                     <TableCell>
                       <Chip
                         label={batch.isActive ? "Active" : "Inactive"}
@@ -282,7 +293,9 @@ export default function BatchesPage() {
                         size="small"
                       />
                     </TableCell>
+
                     <TableCell>{formatDate(batch.createdAt)}</TableCell>
+
                     <TableCell>
                       <Stack direction="row" spacing={1}>
                         <Link href={`/batches/${batch.batchId}`} passHref>
@@ -295,6 +308,7 @@ export default function BatchesPage() {
                             <Edit />
                           </IconButton>
                         </Link>
+
                         <IconButton
                           size="small"
                           color="error"
@@ -320,9 +334,10 @@ export default function BatchesPage() {
           </Table>
         </TableContainer>
 
+        {/* Pagination using REAL backend count */}
         <TablePagination
           component="div"
-          count={totalCountApprox}
+          count={totalCount}       // ⬅ FIXED
           page={page - 1}
           onPageChange={(_, newPage) => handlePageChange(newPage + 1)}
           rowsPerPage={10}
