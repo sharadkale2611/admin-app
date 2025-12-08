@@ -24,9 +24,9 @@ import {
 
 import API_ENDPOINTS from "@/lib/config/apiConfig";
 import { api } from "@/lib/services/apiService";
-
 // Redux
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+import { useRouter } from "next/navigation";
 
 import {
   createBulkSchedules,
@@ -66,6 +66,7 @@ const weekDaysOptions = [
   { label: "Sun", value: 0 },
 ];
 
+
 function combineDateTime(dateStr: string, timeStr: string) {
   return `${dateStr}T${timeStr}:00`;
 }
@@ -100,9 +101,10 @@ async function fetchBatchesApi(): Promise<Batch[]> {
 
 const BatchSchedulesPage: React.FC = () => {
   const dispatch = useAppDispatch();
+  const router = useRouter();
 
   const { items: savedSchedules, loading, error, successMessage } = useAppSelector(
-    (state) => state.batchSchedules
+    (state) => state.batchSchedules 
   );
 
   const staffList = useAppSelector((state) => state.staff.dropdownStaff);
@@ -227,7 +229,13 @@ const BatchSchedulesPage: React.FC = () => {
     while (currentDate <= end) {
       const dow = currentDate.getDay();
       if (selectedDays.includes(dow)) {
-        const dateStr = currentDate.toISOString().split("T")[0];
+        // const dateStr = currentDate.toISOString().split("T")[0];
+        
+        const year = currentDate.getFullYear();
+        const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+        const day = String(currentDate.getDate()).padStart(2, "0");
+
+        const dateStr = `${year}-${month}-${day}`;
 
         items.push({
           expectedDateTime: combineDateTime(dateStr, startTime),
@@ -270,12 +278,17 @@ const BatchSchedulesPage: React.FC = () => {
 
       dispatch(fetchBatchSchedules(Number(selectedBatchId)));
 
+      // Hide preview
       setGeneratedItems([]);
+
+      // Redirect to Batch Details Page
+      router.push(`/batches/${selectedBatchId}`);
 
     } catch (err: any) {
       setLocalError(err || "Bulk creation failed");
     }
   };
+
 
   // ========== Re-Schedule Example ==========
   const handleRescheduleExample = async (index: number) => {
@@ -554,7 +567,7 @@ const BatchSchedulesPage: React.FC = () => {
                 return (
                   <TableRow key={index}>
                     <TableCell>{index + 1}</TableCell>
-                    <TableCell>{datePart}</TableCell>
+                    <TableCell>{formatScheduleDate(item.expectedDateTime)}</TableCell>
                     <TableCell>
                       {timeStart}
                       {timeEnd ? ` - ${timeEnd}` : ""}

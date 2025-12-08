@@ -41,6 +41,8 @@ import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 // Thunks
 import { fetchBatchById } from "@/lib/features/batch/batchThunks";
 import { fetchBatchSchedules } from "@/lib/features/batchSchedules/batchScheduleThunks";
+import { fetchAllStaff } from "@/lib/features/staff/staffThunks";
+import { fetchClassRooms } from "@/lib/features/classRoom/classRoomThunks";
 
 export default function BatchDetailsPage() {
   const { id } = useParams();
@@ -56,10 +58,14 @@ export default function BatchDetailsPage() {
     (state) => state.batches
   );
 
-  // Fetch batch + schedules
+  // Fetch all required data
   useEffect(() => {
     dispatch(fetchBatchById(batchId));
     dispatch(fetchBatchSchedules(batchId));
+
+    // REQUIRED for trainer + classroom names
+    dispatch(fetchAllStaff());
+    dispatch(fetchClassRooms());
   }, [batchId]);
 
   // Helpers
@@ -75,6 +81,18 @@ export default function BatchDetailsPage() {
   const formatTime = (time: string | null) => {
     if (!time) return "-";
     return time.slice(0, 5);
+  };
+  
+  const formatScheduleDate = (dateString: string) => {
+    const d = new Date(dateString);
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const dayName = days[d.getDay()];
+
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear();
+
+    return `[${dayName}] ${dd}-${mm}-${yyyy}`;
   };
 
   if (loading) {
@@ -144,7 +162,7 @@ export default function BatchDetailsPage() {
 
       <Grid container spacing={3}>
         {/* LEFT PANEL */}
-        <Grid size={{xs:12, md:4}}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Paper sx={{ p: 3, textAlign: "center" }} elevation={2}>
             <Box
               sx={{
@@ -213,16 +231,16 @@ export default function BatchDetailsPage() {
         </Grid>
 
         {/* RIGHT PANEL */}
-        <Grid size={{xs:12, md:8}}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <Card elevation={2}>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 3 }}>
                 Schedule Information
               </Typography>
 
-              {/* Schedule Info Grid */}
+              {/* Schedule Info */}
               <Grid container spacing={3}>
-                <Grid size={{xs:12, sm:6}}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
                     <CalendarMonth fontSize="small" />
                     <Typography variant="subtitle2">Start Date</Typography>
@@ -230,7 +248,7 @@ export default function BatchDetailsPage() {
                   <Typography>{formatDate(currentBatch.startDate)}</Typography>
                 </Grid>
 
-                <Grid size={{xs:12, sm:6}}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
                     <CalendarMonth fontSize="small" />
                     <Typography variant="subtitle2">End Date</Typography>
@@ -238,7 +256,7 @@ export default function BatchDetailsPage() {
                   <Typography>{formatDate(currentBatch.endDate)}</Typography>
                 </Grid>
 
-                <Grid size={{xs:12, sm:6}}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
                     <AccessTime fontSize="small" />
                     <Typography variant="subtitle2">Start Time</Typography>
@@ -246,7 +264,7 @@ export default function BatchDetailsPage() {
                   <Typography>{formatTime(currentBatch.startTime)}</Typography>
                 </Grid>
 
-                <Grid size={{xs:12, sm:6}}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
                     <Class fontSize="small" />
                     <Typography variant="subtitle2">Duration</Typography>
@@ -262,21 +280,21 @@ export default function BatchDetailsPage() {
               </Typography>
 
               <Grid container spacing={3}>
-                <Grid size={{xs:12, sm:6}}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography variant="subtitle2" color="text.secondary">
                     Batch ID
                   </Typography>
                   <Typography>{currentBatch.batchId}</Typography>
                 </Grid>
 
-                <Grid size={{xs:12, sm:6}}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography variant="subtitle2" color="text.secondary">
                     Created At
                   </Typography>
                   <Typography>{formatDate(currentBatch.createdAt)}</Typography>
                 </Grid>
 
-                <Grid size={{xs:12, sm:6}}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography variant="subtitle2" color="text.secondary">
                     Last Updated
                   </Typography>
@@ -292,10 +310,10 @@ export default function BatchDetailsPage() {
         </Grid>
       </Grid>
 
-      {/* ---------- FULL WIDTH SAVED SCHEDULES SECTION ---------- */}
+      {/* ---------- SAVED SCHEDULES SECTION ---------- */}
       <Box sx={{ mt: 5 }}>
         <Typography variant="h6" sx={{ mb: 2 }}>
-          Saved Schedules (from API)
+          Saved Schedules
         </Typography>
 
         {savedSchedules.length === 0 ? (
@@ -317,7 +335,7 @@ export default function BatchDetailsPage() {
               <TableBody>
                 {savedSchedules.map((s, idx) => {
                   const d = new Date(s.expectedDateTime);
-                  const dateStr = d.toLocaleDateString("en-GB"); // DD-MM-YYYY
+                  const dateStr = d.toLocaleDateString("en-GB");
                   const timeStr = d.toTimeString().slice(0, 5);
 
                   const trainer =
@@ -336,11 +354,11 @@ export default function BatchDetailsPage() {
                   return (
                     <TableRow key={s.batchScheduleId}>
                       <TableCell>{idx + 1}</TableCell>
-                      <TableCell>{dateStr}</TableCell>
+                      <TableCell>{formatScheduleDate(s.expectedDateTime)}</TableCell>
                       <TableCell>{timeStr}</TableCell>
                       <TableCell>{s.status}</TableCell>
                       <TableCell>{trainerName}</TableCell>
-                      <TableCell>{classRoomName}</TableCell>
+                      <TableCell>{classRoomName}</TableCell>  
                     </TableRow>
                   );
                 })}

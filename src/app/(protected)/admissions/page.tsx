@@ -15,13 +15,12 @@ import {
   Theme,
   CardContent,
   Collapse,
-  TableSortLabel,
   Button,
   TextField,
   Avatar,
   Chip,
-  SelectChangeEvent,
 } from "@mui/material";
+
 import {
   ArrowBack,
   Edit,
@@ -32,10 +31,13 @@ import {
   Add,
   Search,
 } from "@mui/icons-material";
+
 import { DataGrid, GridColDef, GridSortModel } from "@mui/x-data-grid";
 import Link from "next/link";
+
 import { useAdmissionsViewModel } from "@/lib/features/admission/useAdmissionsViewModel";
 import { useDeleteAdmission } from "@/lib/features/admission/useDeleteAdmission";
+
 import {
   Admission,
   AdmissionStatus,
@@ -48,7 +50,7 @@ const AdmissionList: React.FC = () => {
     theme.breakpoints.down("sm")
   );
 
-  // ViewModel hook
+  // ViewModel
   const {
     admissions,
     isLoading,
@@ -68,7 +70,7 @@ const AdmissionList: React.FC = () => {
 
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [sortModel, setSortModel] = React.useState<GridSortModel>([
-    { field: "admissionId", sort: "asc" },
+    { field: "studentEnrollmentId", sort: "asc" },
   ]);
   const [expandedRows, setExpandedRows] = React.useState<string[]>([]);
   const [localSearchTerm, setLocalSearchTerm] = React.useState(searchTerm);
@@ -76,24 +78,24 @@ const AdmissionList: React.FC = () => {
   const { handleDelete } = useDeleteAdmission();
 
   const onDeleteAdmission = async (
-    admissionId: number,
+    enrollmentId: number,
     studentName: string
   ) => {
-    const success = await handleDelete(admissionId, studentName);
+    const success = await handleDelete(enrollmentId, studentName);
     if (success) refetch();
   };
 
-  const handleChangeRowsPerPage = (event: SelectChangeEvent<string>) => {
-    setRowsPerPage(Number(event.target.value));
+  const handleChangeRowsPerPage = (e: any) => {
+    setRowsPerPage(Number(e.target.value));
     handlePageChange(1);
   };
 
   const toggleRowExpand = (id: number) => {
-    const idString = id.toString();
+    const idStr = id.toString();
     setExpandedRows((prev) =>
-      prev.includes(idString)
-        ? prev.filter((rowId) => rowId !== idString)
-        : [...prev, idString]
+      prev.includes(idStr)
+        ? prev.filter((rowId) => rowId !== idStr)
+        : [...prev, idStr]
     );
   };
 
@@ -102,78 +104,61 @@ const AdmissionList: React.FC = () => {
     handleSearch(localSearchTerm);
   };
 
+  // Sorting (client-side)
+  const sortedAdmissions = [...admissions].sort((a, b) => {
+    const sort = sortModel[0];
+    if (!sort) return 0;
+
+    const aVal = a[sort.field as keyof Admission];
+    const bVal = b[sort.field as keyof Admission];
+
+    return sort.sort === "asc"
+      ? String(aVal).localeCompare(String(bVal))
+      : String(bVal).localeCompare(String(aVal));
+  });
+
   const startIndex = (page - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
+  const currentAdmissions = sortedAdmissions.slice(
+    startIndex,
+    startIndex + rowsPerPage
+  );
 
-  const sortedAdmissions =
-    admissions.length > 0
-      ? [...admissions].sort((a, b) => {
-          const sortItem = sortModel[0];
-          if (!sortItem) return 0;
-
-          const aValue = a?.[sortItem.field as keyof typeof a];
-          const bValue = b?.[sortItem.field as keyof typeof b];
-
-          if (aValue === undefined && bValue === undefined) return 0;
-          if (aValue === undefined) return sortItem.sort === "asc" ? 1 : -1;
-          if (bValue === undefined) return sortItem.sort === "asc" ? -1 : 1;
-
-          if (typeof aValue === "boolean" && typeof bValue === "boolean") {
-            return sortItem.sort === "asc"
-              ? aValue === bValue
-                ? 0
-                : aValue
-                ? -1
-                : 1
-              : aValue === bValue
-              ? 0
-              : aValue
-              ? 1
-              : -1;
-          }
-
-          const aString = String(aValue || "");
-          const bString = String(bValue || "");
-
-          return sortItem.sort === "asc"
-            ? aString.localeCompare(bString)
-            : bString.localeCompare(aString);
-        })
-      : [];
-
-  const currentAdmissions = sortedAdmissions.slice(startIndex, endIndex);
-
+  // FIXED COLUMNS
   const columns: GridColDef<Admission>[] = [
-    { field: "admissionId", headerName: "ID", width: 80 },
+    {
+      field: "studentEnrollmentId",
+      headerName: "ID",
+      width: 90,
+    },
     { field: "studentName", headerName: "Student", flex: 1 },
     { field: "courseName", headerName: "Course", flex: 1 },
+
     {
       field: "enrollmentType",
       headerName: "Type",
       width: 130,
-      renderCell: (params) => (
-        <Chip label={params.row.enrollmentType} size="small" />
-      ),
+      renderCell: (params) => <Chip label={params.row.enrollmentType} size="small" />,
     },
+
     {
       field: "paymentStatus",
       headerName: "Payment",
       width: 130,
       renderCell: (params) => {
-        let color: "success" | "warning" | "error" = "warning";
-        if (params.row.paymentStatus === PaymentStatus.Paid) color = "success";
-        else if (params.row.paymentStatus === PaymentStatus.Pending)
-          color = "warning";
-        else if (params.row.paymentStatus === PaymentStatus.PartiallyPaid)
-          color = "error";
+        const val = params.row.paymentStatus;
+        const color =
+          val === PaymentStatus.Paid
+            ? "success"
+            : val === PaymentStatus.Pending
+            ? "warning"
+            : "error";
 
-        return (
-          <Chip label={params.row.paymentStatus} size="small" color={color} />
-        );
+        return <Chip label={val} size="small" color={color} />;
       },
     },
 
     { field: "finalAmount", headerName: "Final Amount", width: 120 },
+
     {
       field: "status",
       headerName: "Active",
@@ -186,6 +171,8 @@ const AdmissionList: React.FC = () => {
         />
       ),
     },
+
+    // FIXED ACTION URLS
     {
       field: "actions",
       headerName: "Actions",
@@ -197,23 +184,28 @@ const AdmissionList: React.FC = () => {
             size="small"
             color="info"
             component={Link}
-            href={`/admissions/${params.row.admissionId}`}
+            href={`/admissions/${params.row.studentEnrollmentId}`}
           >
             <Visibility fontSize="small" />
           </IconButton>
+
           <IconButton
             size="small"
             color="primary"
             component={Link}
-            href={`/admissions/${params.row.admissionId}/edit`}
+            href={`/admissions/${params.row.studentEnrollmentId}/edit`}
           >
             <Edit fontSize="small" />
           </IconButton>
+
           <IconButton
             size="small"
             color="error"
             onClick={() =>
-              onDeleteAdmission(params.row.admissionId, params.row.studentName)
+              onDeleteAdmission(
+                params.row.studentEnrollmentId,
+                params.row.studentName
+              )
             }
           >
             <Delete fontSize="small" />
@@ -224,11 +216,11 @@ const AdmissionList: React.FC = () => {
   ];
 
   if (isLoading) return <Box sx={{ p: 3 }}>Loading admissions...</Box>;
-  if (error)
-    return <Box sx={{ p: 3, color: "error.main" }}>Error: {error}</Box>;
+  if (error) return <Box sx={{ p: 3, color: "error.main" }}>Error: {error}</Box>;
 
   return (
     <Box sx={{ p: isMobile ? 1 : 3 }}>
+      {/* HEADER */}
       <Stack
         direction="row"
         alignItems="center"
@@ -239,8 +231,9 @@ const AdmissionList: React.FC = () => {
           <IconButton component={Link} href="/dashboard">
             <ArrowBack />
           </IconButton>
-          <Typography variant={isMobile ? "h5" : "h4"}>Admissions</Typography>
+          <Typography variant="h4">Admissions</Typography>
         </Stack>
+
         <Button
           variant="contained"
           startIcon={<Add />}
@@ -251,7 +244,7 @@ const AdmissionList: React.FC = () => {
         </Button>
       </Stack>
 
-      {/* Filters */}
+      {/* FILTERS */}
       <Paper sx={{ mb: 3, p: 2 }}>
         <Stack
           direction={isMobile ? "column" : "row"}
@@ -273,11 +266,12 @@ const AdmissionList: React.FC = () => {
             size="small"
             fullWidth={isMobile}
           />
-          <FormControl size="small" sx={{ minWidth: 120 }}>
+
+          <FormControl size="small">
             <InputLabel>Status</InputLabel>
             <Select
-              value={statusFilter ?? ""}
-              onChange={(e: SelectChangeEvent<string>) =>
+              value={(statusFilter ?? "") as string}
+              onChange={(e) =>
                 handleStatusFilter(
                   e.target.value === ""
                     ? null
@@ -290,32 +284,34 @@ const AdmissionList: React.FC = () => {
               <MenuItem value={AdmissionStatus.Inactive}>Inactive</MenuItem>
             </Select>
           </FormControl>
-          <FormControl size="small" sx={{ minWidth: 150 }}>
+
+          <FormControl size="small">
             <InputLabel>Enrollment Type</InputLabel>
             <Select
               value={enrollmentTypeFilter ?? ""}
               onChange={(e) => handleEnrollmentTypeFilter(e.target.value ?? "")}
             >
               <MenuItem value="">All</MenuItem>
-              <MenuItem value={EnrollmentType.Regular}>Regular</MenuItem>
-              <MenuItem value={EnrollmentType.Trial}>Trial</MenuItem>
-              <MenuItem value={EnrollmentType.Transfer}>Transfer</MenuItem>
-              <MenuItem value={EnrollmentType.Special}>Special</MenuItem>
+              <MenuItem value="Regular">Regular</MenuItem>
+              <MenuItem value="Trial">Trial</MenuItem>
+              <MenuItem value="Transfer">Transfer</MenuItem>
+              <MenuItem value="Special">Special</MenuItem>
             </Select>
           </FormControl>
+
           <Button variant="outlined" size="small" onClick={handleResetFilters}>
             Reset
           </Button>
         </Stack>
       </Paper>
 
-      {/* Pagination & Data */}
+      {/* TOP PAGINATION */}
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
           mb: 2,
+          alignItems: "center",
         }}
       >
         <FormControl size="small" sx={{ minWidth: 120 }}>
@@ -339,120 +335,124 @@ const AdmissionList: React.FC = () => {
         <Pagination
           count={totalPages}
           page={page}
-          onChange={(_, newPage) => handlePageChange(newPage)}
+          onChange={(_, p) => handlePageChange(p)}
         />
       </Box>
 
-      {/* Desktop DataGrid */}
+      {/* DESKTOP GRID */}
       {!isMobile ? (
         <DataGrid
           autoHeight
           rows={currentAdmissions}
           columns={columns}
-          sortingMode="server"
+          sortingMode="client"
           sortModel={sortModel}
           onSortModelChange={setSortModel}
-          // getRowId={(row) => row.admissionId.toString()}
-          getRowId={(row) => row.studentEnrollmentId.toString()}
+          getRowId={(row) => row.studentEnrollmentId}
           disableColumnMenu
           loading={isLoading}
-          paginationModel={{ page: page - 1, pageSize: rowsPerPage }}
-          onPaginationModelChange={(model) => {
-            setRowsPerPage(model.pageSize);
-            handlePageChange(model.page + 1);
-          }}
+          paginationMode="client"
+          pageSizeOptions={[5, 10, 25, 50]}
         />
       ) : (
-        /* Mobile Collapsible List */
-        <Box component={Paper}>
-          {currentAdmissions.map((adm) => (
-            <Box key={adm.admissionId}>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  p: 2,
-                  borderBottom: "1px solid",
-                  cursor: "pointer",
-                }}
-                onClick={() => toggleRowExpand(adm.admissionId)}
-              >
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Avatar>{adm.studentName?.charAt(0)}</Avatar>
-                  <Box>
-                    <Typography fontWeight="bold">{adm.studentName}</Typography>
-                    <Typography variant="body2">{adm.courseName}</Typography>
-                  </Box>
-                </Stack>
-                <IconButton>
-                  {expandedRows.includes(adm.admissionId.toString()) ? (
+        <>
+          {/* MOBILE COLLAPSIBLE LIST */}
+          <Paper>
+            {currentAdmissions.map((adm) => (
+              <Box key={adm.studentEnrollmentId}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    p: 2,
+                    borderBottom: "1px solid #ddd",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => toggleRowExpand(adm.studentEnrollmentId)}
+                >
+                  <Stack direction="row" spacing={2}>
+                    <Avatar>{adm.studentName?.charAt(0)}</Avatar>
+                    <Box>
+                      <Typography fontWeight="bold">{adm.studentName}</Typography>
+                      <Typography variant="body2">{adm.courseName}</Typography>
+                    </Box>
+                  </Stack>
+
+                  {expandedRows.includes(
+                    adm.studentEnrollmentId.toString()
+                  ) ? (
                     <KeyboardArrowUp />
                   ) : (
                     <KeyboardArrowDown />
                   )}
-                </IconButton>
-              </Box>
-              <Collapse in={expandedRows.includes(adm.admissionId.toString())}>
-                <CardContent>
-                  <Stack spacing={1}>
-                    <Chip label={`Type: ${adm.enrollmentType}`} size="small" />
-                    <Chip
-                      label={`Payment: ${adm.paymentStatus}`}
-                      size="small"
-                    />
-                    <Chip
-                      label={`Final Amount: ${adm.finalAmount}`}
-                      size="small"
-                    />
-                    <Chip
-                      label={`Active: ${adm.status ? "Yes" : "No"}`}
-                      size="small"
-                    />
-                    <Stack direction="row" spacing={1}>
-                      <Button
-                        component={Link}
-                        href={`/admissions/${adm.admissionId}`}
+                </Box>
+
+                <Collapse
+                  in={expandedRows.includes(
+                    adm.studentEnrollmentId.toString()
+                  )}
+                >
+                  <CardContent>
+                    <Stack spacing={1}>
+                      <Chip label={`Type: ${adm.enrollmentType}`} size="small" />
+                      <Chip
+                        label={`Payment: ${adm.paymentStatus}`}
                         size="small"
-                        variant="outlined"
-                      >
-                        View
-                      </Button>
-                      <Button
-                        component={Link}
-                        href={`/admissions/${adm.admissionId}/edit`}
+                      />
+                      <Chip
+                        label={`Final Amount: ${adm.finalAmount}`}
                         size="small"
-                        variant="outlined"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        onClick={() =>
-                          onDeleteAdmission(adm.admissionId, adm.studentName)
-                        }
+                      />
+                      <Chip
+                        label={`Active: ${adm.status ? "Yes" : "No"}`}
                         size="small"
-                        variant="outlined"
-                        color="error"
-                      >
-                        Delete
-                      </Button>
+                      />
+
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          size="small"
+                          component={Link}
+                          href={`/admissions/${adm.studentEnrollmentId}`}
+                        >
+                          View
+                        </Button>
+
+                        <Button
+                          size="small"
+                          component={Link}
+                          href={`/admissions/${adm.studentEnrollmentId}/edit`}
+                        >
+                          Edit
+                        </Button>
+
+                        <Button
+                          size="small"
+                          color="error"
+                          onClick={() =>
+                            onDeleteAdmission(
+                              adm.studentEnrollmentId,
+                              adm.studentName
+                            )
+                          }
+                        >
+                          Delete
+                        </Button>
+                      </Stack>
                     </Stack>
-                  </Stack>
-                </CardContent>
-              </Collapse>
-            </Box>
-          ))}
-        </Box>
+                  </CardContent>
+                </Collapse>
+              </Box>
+            ))}
+          </Paper>
+        </>
       )}
 
-      {/* Bottom Pagination */}
-      {totalPages > 1 && (
-        <Pagination
-          count={totalPages}
-          page={page}
-          onChange={(_, newPage) => handlePageChange(newPage)}
-          sx={{ mt: 3 }}
-        />
-      )}
+      <Pagination
+        count={totalPages}
+        page={page}
+        onChange={(_, p) => handlePageChange(p)}
+        sx={{ mt: 3 }}
+      />
     </Box>
   );
 };
