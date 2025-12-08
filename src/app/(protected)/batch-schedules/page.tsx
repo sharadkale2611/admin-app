@@ -70,6 +70,25 @@ function combineDateTime(dateStr: string, timeStr: string) {
   return `${dateStr}T${timeStr}:00`;
 }
 
+
+function formatScheduleDate(dateTime: string) {
+  if (!dateTime) return "-";
+
+  const date = new Date(dateTime);
+
+  // DAY names
+  const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+  const dayName = days[date.getDay()];
+
+  const dd = String(date.getDate()).padStart(2, "0");
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const yyyy = date.getFullYear();
+
+  return `[${dayName}] ${dd}-${mm}-${yyyy}`;
+}
+
+
 // Get all batches (simple list)
 async function fetchBatchesApi(): Promise<Batch[]> {
   const res = await api.get<Batch[]>(API_ENDPOINTS.BATCHES.GET_LIST);
@@ -250,6 +269,9 @@ const BatchSchedulesPage: React.FC = () => {
       ).unwrap();
 
       dispatch(fetchBatchSchedules(Number(selectedBatchId)));
+
+      setGeneratedItems([]);
+
     } catch (err: any) {
       setLocalError(err || "Bulk creation failed");
     }
@@ -501,7 +523,7 @@ const BatchSchedulesPage: React.FC = () => {
                 <TableCell>Time (Start - End)</TableCell>
                 <TableCell>Trainer</TableCell>
                 <TableCell>Classroom</TableCell>
-                <TableCell>Re-Schedule</TableCell>
+                {/* <TableCell>Re-Schedule</TableCell> */}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -539,7 +561,7 @@ const BatchSchedulesPage: React.FC = () => {
                     </TableCell>
                     <TableCell>{trainerName}</TableCell>
                     <TableCell>{classRoomName}</TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <Button
                         size="small"
                         variant="text"
@@ -548,7 +570,7 @@ const BatchSchedulesPage: React.FC = () => {
                       >
                         Re-Schedule
                       </Button>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 );
               })}
@@ -579,12 +601,22 @@ const BatchSchedulesPage: React.FC = () => {
                   classRooms.find((c) => c.classRoomId === s.classRoomId)
                     ?.classRoomName ?? "-";
 
+                            // Trainer name lookup
+                const trainer = trainers.find(
+                  (t) => Number(t.staffId) === Number(s.expectedTrainerId)
+                );
+
+                const trainerName = trainer
+                  ? `${trainer.firstName} ${trainer.lastName}`
+                  : "-";
+
+
                 return (
                   <TableRow key={s.batchScheduleId}>
                     <TableCell>{idx + 1}</TableCell>
-                    <TableCell>{s.expectedDateTime}</TableCell>
+                    <TableCell>{formatScheduleDate(s.expectedDateTime)}</TableCell>
                     <TableCell>{s.status}</TableCell>
-                    <TableCell>{s.expectedTrainerId ?? "-"}</TableCell>
+                    <TableCell>{trainerName}</TableCell>
                     <TableCell>{classRoomName}</TableCell>
                   </TableRow>
                 );
