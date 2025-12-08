@@ -46,6 +46,21 @@ export interface Admission {
     finalAmount: number;
     createdAt: string;
     updatedAt?: string;
+
+    remarks?: string;
+    courseFeeId?: number | null;
+    discountCode?: string | null;     
+    discountAmount?: number | null; 
+    installments?: {
+        installmentCount: number;
+        amount: number;
+        date: string;
+    }[];
+}
+
+export interface UpdateAdmissionDto extends CreateAdmissionDto {
+    studentEnrollmentId: number; 
+    admissionId: number; // backend still needs this
 }
 
 export interface AdmissionFilters {

@@ -15,7 +15,12 @@ import {
   Stack,
   Skeleton,
   Alert,
-  Grid
+  Grid,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody
 } from "@mui/material";
 
 import Link from "next/link";
@@ -27,41 +32,67 @@ import {
   School,
   Person,
   Apartment,
-  Code,
-  CheckCircle,
-  Cancel,
   Home,
-  Class,
+  Class
 } from "@mui/icons-material";
 
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+
+// Thunks
 import { fetchBatchById } from "@/lib/features/batch/batchThunks";
+import { fetchBatchSchedules } from "@/lib/features/batchSchedules/batchScheduleThunks";
+import { fetchAllStaff } from "@/lib/features/staff/staffThunks";
+import { fetchClassRooms } from "@/lib/features/classRoom/classRoomThunks";
 
 export default function BatchDetailsPage() {
   const { id } = useParams();
   const batchId = Number(id);
 
   const dispatch = useAppDispatch();
+
+  const staffList = useAppSelector((state) => state.staff.dropdownStaff);
+  const classRooms = useAppSelector((state) => state.classRooms.classRooms);
+  const savedSchedules = useAppSelector((state) => state.batchSchedules.items);
+
   const { currentBatch, loading, error } = useAppSelector(
     (state) => state.batches
   );
 
+  // Fetch all required data
   useEffect(() => {
     dispatch(fetchBatchById(batchId));
+    dispatch(fetchBatchSchedules(batchId));
+
+    // REQUIRED for trainer + classroom names
+    dispatch(fetchAllStaff());
+    dispatch(fetchClassRooms());
   }, [batchId]);
 
+  // Helpers
   const formatDate = (date: string | null) => {
     if (!date) return "-";
     return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
-      day: "numeric",
+      day: "numeric"
     });
   };
 
   const formatTime = (time: string | null) => {
     if (!time) return "-";
-    return time.slice(0, 5); // HH:mm
+    return time.slice(0, 5);
+  };
+  
+  const formatScheduleDate = (dateString: string) => {
+    const d = new Date(dateString);
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const dayName = days[d.getDay()];
+
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear();
+
+    return `[${dayName}] ${dd}-${mm}-${yyyy}`;
   };
 
   if (loading) {
@@ -104,13 +135,13 @@ export default function BatchDetailsPage() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
-      {/* Header */}
+      {/* HEADER */}
       <Box
         sx={{
           mb: 4,
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
+          justifyContent: "space-between"
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -130,8 +161,8 @@ export default function BatchDetailsPage() {
       </Box>
 
       <Grid container spacing={3}>
-        {/* LEFT SIDE CARD */}
-        <Grid size={{xs:12,md:4}}>
+        {/* LEFT PANEL */}
+        <Grid size={{ xs: 12, md: 4 }}>
           <Paper sx={{ p: 3, textAlign: "center" }} elevation={2}>
             <Box
               sx={{
@@ -145,7 +176,7 @@ export default function BatchDetailsPage() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "2rem",
+                fontSize: "2rem"
               }}
             >
               {currentBatch.batchCode.slice(0, 2)}
@@ -199,16 +230,17 @@ export default function BatchDetailsPage() {
           </Paper>
         </Grid>
 
-        {/* RIGHT SIDE DETAILS */}
-        <Grid size={{ xs:12, md:8}}>
+        {/* RIGHT PANEL */}
+        <Grid size={{ xs: 12, md: 8 }}>
           <Card elevation={2}>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 3 }}>
                 Schedule Information
               </Typography>
 
+              {/* Schedule Info */}
               <Grid container spacing={3}>
-                <Grid size={{ xs:12, sm:6}}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
                     <CalendarMonth fontSize="small" />
                     <Typography variant="subtitle2">Start Date</Typography>
@@ -224,7 +256,7 @@ export default function BatchDetailsPage() {
                   <Typography>{formatDate(currentBatch.endDate)}</Typography>
                 </Grid>
 
-                <Grid size={{xs:12, sm:6}}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
                     <AccessTime fontSize="small" />
                     <Typography variant="subtitle2">Start Time</Typography>
@@ -232,14 +264,12 @@ export default function BatchDetailsPage() {
                   <Typography>{formatTime(currentBatch.startTime)}</Typography>
                 </Grid>
 
-                <Grid size={{xs:12, sm:6}}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
                     <Class fontSize="small" />
                     <Typography variant="subtitle2">Duration</Typography>
                   </Box>
-                  <Typography>
-                    {currentBatch.batchDurationInHr} hours
-                  </Typography>
+                  <Typography>{currentBatch.batchDurationInHr} hours</Typography>
                 </Grid>
               </Grid>
 
@@ -250,21 +280,21 @@ export default function BatchDetailsPage() {
               </Typography>
 
               <Grid container spacing={3}>
-                <Grid size={{xs:12, sm:6}}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography variant="subtitle2" color="text.secondary">
                     Batch ID
                   </Typography>
                   <Typography>{currentBatch.batchId}</Typography>
                 </Grid>
 
-                <Grid size={{xs:12, sm:6}}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography variant="subtitle2" color="text.secondary">
                     Created At
                   </Typography>
                   <Typography>{formatDate(currentBatch.createdAt)}</Typography>
                 </Grid>
 
-                <Grid size={{xs:12, sm:6}}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography variant="subtitle2" color="text.secondary">
                     Last Updated
                   </Typography>
@@ -279,6 +309,64 @@ export default function BatchDetailsPage() {
           </Card>
         </Grid>
       </Grid>
+
+      {/* ---------- SAVED SCHEDULES SECTION ---------- */}
+      <Box sx={{ mt: 5 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Saved Schedules
+        </Typography>
+
+        {savedSchedules.length === 0 ? (
+          <Alert severity="info">No schedules found for this batch.</Alert>
+        ) : (
+          <Paper sx={{ p: 2 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>#</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Time</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Trainer</TableCell>
+                  <TableCell>Classroom</TableCell>
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {savedSchedules.map((s, idx) => {
+                  const d = new Date(s.expectedDateTime);
+                  const dateStr = d.toLocaleDateString("en-GB");
+                  const timeStr = d.toTimeString().slice(0, 5);
+
+                  const trainer =
+                    staffList.find(
+                      (t) => Number(t.staffId) === Number(s.expectedTrainerId)
+                    ) || null;
+
+                  const trainerName = trainer
+                    ? `${trainer.firstName} ${trainer.lastName}`
+                    : "-";
+
+                  const classRoomName =
+                    classRooms.find((c) => c.classRoomId === s.classRoomId)
+                      ?.classRoomName ?? "-";
+
+                  return (
+                    <TableRow key={s.batchScheduleId}>
+                      <TableCell>{idx + 1}</TableCell>
+                      <TableCell>{formatScheduleDate(s.expectedDateTime)}</TableCell>
+                      <TableCell>{timeStr}</TableCell>
+                      <TableCell>{s.status}</TableCell>
+                      <TableCell>{trainerName}</TableCell>
+                      <TableCell>{classRoomName}</TableCell>  
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </Paper>
+        )}
+      </Box>
     </Container>
   );
 }
