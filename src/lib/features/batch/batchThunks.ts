@@ -57,6 +57,7 @@ function parseApiError(error: any): ApiError {
  * 🔹 Fetch Batches (paginated)
  * Uses: GET /Batches/paginated?pageNumber=&pageSize=&search=&isActive=
  */
+
 export const fetchBatches = createAsyncThunk<
   PaginatedBatch,
   FetchBatchParams,
@@ -75,7 +76,8 @@ export const fetchBatches = createAsyncThunk<
 
       const query = new URLSearchParams(params).toString();
 
-      const response = await api.get<Batch[]>(
+      // ✅ FIX: Expect PAGINATED response, not Batch[]
+      const response = await api.get<PaginatedBatch>(
         `${API_ENDPOINTS.BATCHES.GET_LIST_PAGINATED}?${query}`,
         { withCredentials: true }
       );
@@ -87,20 +89,15 @@ export const fetchBatches = createAsyncThunk<
         });
       }
 
-      // 🔥 Map API → PaginatedBatch format
-      return {
-        items: response.data,   // list
-        totalCount: response.data.length,
-        currentPage: page,
-        pageSize: 10,
-        totalPages: 1
-      };
+      // ✅ FIX: Directly return backend pagination
+      return response.data;
 
     } catch (error: any) {
       return rejectWithValue(parseApiError(error));
     }
   }
 );
+
 
 /**
  * 🔹 Fetch single Batch by ID

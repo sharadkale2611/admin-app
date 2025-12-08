@@ -122,6 +122,15 @@ export default function BatchesPage() {
     }
   };
 
+ useEffect(() => {
+   return () => {
+     console.log('====================================');
+     console.log("batches", batches);
+     console.log('====================================');
+   };
+ }, [batches])
+  
+
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       {/* Header */}

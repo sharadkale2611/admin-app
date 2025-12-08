@@ -121,7 +121,7 @@ const handleSubmit = async (e: any) => {
             required
           />
 
-          {/* Branch */}
+          {/*            
           <TextField
             select
             label="Branch (optional)"
@@ -136,6 +136,7 @@ const handleSubmit = async (e: any) => {
               </MenuItem>
             ))}
           </TextField>
+          */}
 
           {/* Course Module */}
           <TextField
@@ -186,25 +187,25 @@ const handleSubmit = async (e: any) => {
           </TextField>
 
           {/* Dates */}
-          <TextField
+          {/* <TextField
             type="date"
             label="Start Date"
             name="startDate"
             InputLabelProps={{ shrink: true }}
             value={form.startDate}
             onChange={handleChange}
-          />
+          /> */}
 
-          <TextField
+          {/* <TextField
             type="date"
             label="End Date"
             name="endDate"
             InputLabelProps={{ shrink: true }}
             value={form.endDate}
             onChange={handleChange}
-          />
+          /> */}
 
-          <TextField
+          {/* <TextField
             type="date"
             label="Actual Start Date"
             name="actualStartDate"
@@ -212,34 +213,34 @@ const handleSubmit = async (e: any) => {
             value={form.actualStartDate}
             onChange={handleChange}
           />
-
-          <TextField
+ */}
+          {/* <TextField
             type="date"
             label="Actual End Date"
             name="actualEndDate"
             InputLabelProps={{ shrink: true }}
             value={form.actualEndDate}
             onChange={handleChange}
-          />
+          /> */}
 
           {/* Time */}
-          <TextField
+          {/* <TextField
             type="time"
             label="Start Time"
             name="startTime"
             InputLabelProps={{ shrink: true }}
             value={form.startTime}
             onChange={handleChange}
-          />
+          /> */}
 
           {/* Duration */}
-          <TextField
+          {/* <TextField
             type="number"
             label="Duration (hours)"
             name="batchDurationInHr"
             value={form.batchDurationInHr}
             onChange={handleChange}
-          />
+          /> */}
 
           <FormControlLabel
             control={
