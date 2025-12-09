@@ -26,7 +26,6 @@ import {
   Person,
   Cake,
   School,
-  Event,
   Code,
 } from "@mui/icons-material";
 import { useStudentDetailsViewModel } from "@/lib/features/student/useStudentDetailsViewModel";
@@ -86,7 +85,7 @@ export default function StudentDetails() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      {/* Header Section */}
+      {/* Header */}
       <Box
         sx={{
           display: "flex",
@@ -101,10 +100,9 @@ export default function StudentDetails() {
               Back
             </Button>
           </Link>
-          <Typography variant="h4" component="h1">
-            Student Details
-          </Typography>
+          <Typography variant="h4">Student Details</Typography>
         </Box>
+
         <Chip
           label={student.isActive ? "Active" : "Inactive"}
           color={student.isActive ? "success" : "error"}
@@ -130,12 +128,12 @@ export default function StudentDetails() {
               {student.lastName?.charAt(0)}
             </Avatar>
 
-            <Typography variant="h5" gutterBottom>
+            <Typography variant="h5">
               {student.firstName} {student.lastName}
             </Typography>
 
-            <Typography variant="body1" color="secondary" gutterBottom>
-              {student.studentCode || "No student code"}
+            <Typography variant="body1" color="secondary">
+              {student.studentCode}
             </Typography>
 
             <Divider sx={{ my: 2 }} />
@@ -175,153 +173,185 @@ export default function StudentDetails() {
         <Grid size={{ xs: 12, md: 8 }}>
           <Card elevation={2}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
+              {/* Personal Information */}
+              <Typography variant="h6" sx={{ mb: 3 }}>
                 Personal Information
               </Typography>
 
               <Grid container spacing={3}>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      mb: 1,
-                    }}
-                  >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Code fontSize="small" color="primary" />
                     <Typography variant="subtitle2">Student Code</Typography>
                   </Box>
-                  <Typography variant="body1">
-                    {student.studentCode || "Not specified"}
-                  </Typography>
+                  <Typography>{student.studentCode}</Typography>
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      mb: 1,
-                    }}
-                  >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Cake fontSize="small" color="primary" />
                     <Typography variant="subtitle2">Date of Birth</Typography>
                   </Box>
-                  <Typography variant="body1">
-                    {formatDate(student.dateOfBirth)}
-                  </Typography>
+                  <Typography>{formatDate(student.dateOfBirth)}</Typography>
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      mb: 1,
-                    }}
-                  >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Person fontSize="small" color="primary" />
                     <Typography variant="subtitle2">Gender</Typography>
                   </Box>
-                  <Typography variant="body1">
+                  <Typography>
                     {student.gender === "M"
                       ? "Male"
                       : student.gender === "F"
                       ? "Female"
-                      : student.gender || "Not specified"}
+                      : student.gender}
                   </Typography>
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      mb: 1,
-                    }}
-                  >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <School fontSize="small" color="primary" />
                     <Typography variant="subtitle2">Status</Typography>
                   </Box>
-                  <Typography variant="body1">
-                    {student.isActive ? "Active Student" : "Inactive Student"}
+                  <Typography>
+                    {student.isActive ? "Active" : "Inactive"}
                   </Typography>
                 </Grid>
               </Grid>
 
               <Divider sx={{ my: 3 }} />
 
-              <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
+              {/* System Info */}
+              <Typography variant="h6" sx={{ mb: 3 }}>
                 System Information
               </Typography>
 
               <Grid container spacing={3}>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography
-                    variant="subtitle2"
-                    color="text.secondary"
-                    gutterBottom
-                  >
-                    Student ID
-                  </Typography>
-                  <Typography variant="body2">{student.studentId}</Typography>
+                  <Typography variant="subtitle2">Student ID</Typography>
+                  <Typography>{student.studentId}</Typography>
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography
-                    variant="subtitle2"
-                    color="text.secondary"
-                    gutterBottom
-                  >
-                    User ID
-                  </Typography>
-                  <Typography variant="body2">{student.userId}</Typography>
+                  <Typography variant="subtitle2">User ID</Typography>
+                  <Typography>{student.userId}</Typography>
                 </Grid>
 
                 {student.firmId && (
                   <Grid size={{ xs: 12, sm: 6 }}>
-                    <Typography
-                      variant="subtitle2"
-                      color="text.secondary"
-                      gutterBottom
-                    >
-                      Firm
-                    </Typography>
-                    <Typography variant="body2">
+                    <Typography variant="subtitle2">Firm</Typography>
+                    <Typography>
                       {student.firmName} ({student.firmCode})
                     </Typography>
                   </Grid>
                 )}
 
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography
-                    variant="subtitle2"
-                    color="text.secondary"
-                    gutterBottom
-                  >
-                    Created
+                  <Typography variant="subtitle2">Created</Typography>
+                  <Typography>{formatDate(student.createdAt)}</Typography>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="subtitle2">Last Updated</Typography>
+                  <Typography>
+                    {student.updatedAt
+                      ? formatDate(student.updatedAt)
+                      : "Never"}
                   </Typography>
-                  <Typography variant="body2">
-                    {formatDate(student.createdAt)}
+                </Grid>
+              </Grid>
+
+              {/* ------------------- ADMISSION DETAILS ------------------- */}
+              <Divider sx={{ my: 4 }} />
+
+              <Typography variant="h6" gutterBottom>
+                Admission Details
+              </Typography>
+
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="subtitle2">Enrollment Type</Typography>
+                  <Typography>
+                    {student.enrollmentType || "Not specified"}
                   </Typography>
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography
-                    variant="subtitle2"
-                    color="text.secondary"
-                    gutterBottom
-                  >
-                    Last Updated
+                  <Typography variant="subtitle2">Enrollment Date</Typography>
+                  <Typography>
+                    {student.enrollmentDate
+                      ? formatDate(student.enrollmentDate)
+                      : "Not specified"}
                   </Typography>
-                  <Typography variant="body2">
-                    {student.updatedAt
-                      ? formatDate(student.updatedAt)
-                      : "Never"}
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="subtitle2">Payment Status</Typography>
+                  <Typography>
+                    {student.paymentStatus || "Not specified"}
+                  </Typography>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="subtitle2">Final Amount</Typography>
+                  <Typography>
+                    {student.finalAmount != null
+                      ? `₹${student.finalAmount}`
+                      : "Not specified"}
+                  </Typography>
+                </Grid>
+              </Grid>
+
+              {/* ------------------- BATCH DETAILS ------------------- */}
+              <Divider sx={{ my: 4 }} />
+
+              <Typography variant="h6" gutterBottom>
+                Batch Details
+              </Typography>
+
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="subtitle2">Batch Code</Typography>
+                  <Typography>{student.batchCode || "Not assigned"}</Typography>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="subtitle2">Branch Name</Typography>
+                  <Typography>
+                    {student.branchName || "Not specified"}
+                  </Typography>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="subtitle2">Batch Start Date</Typography>
+                  <Typography>
+                    {student.batchStartDate
+                      ? formatDate(student.batchStartDate)
+                      : "Not specified"}
+                  </Typography>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="subtitle2">Batch End Date</Typography>
+                  <Typography>
+                    {student.batchEndDate
+                      ? formatDate(student.batchEndDate)
+                      : "Not specified"}
+                  </Typography>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="subtitle2">Start Time</Typography>
+                  <Typography>
+                    {student.startTime || "Not specified"}
+                  </Typography>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="subtitle2">Duration (Hours)</Typography>
+                  <Typography>
+                    {student.batchDurationInHr ?? "Not specified"}
                   </Typography>
                 </Grid>
               </Grid>

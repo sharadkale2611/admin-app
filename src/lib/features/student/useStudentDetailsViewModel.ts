@@ -1,23 +1,26 @@
+"use client";
+
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { useEffect } from "react";
-import type { RootState } from "@/lib/store";
-import { AnyAction, ThunkDispatch } from "@reduxjs/toolkit";
 import { fetchStudentById } from "./studentThunks";
+import type { StudentDetails } from "./studentDetailsTypes";
 
 export const useStudentDetailsViewModel = (studentId: string) => {
-    const dispatch: ThunkDispatch<RootState, unknown, AnyAction> = useAppDispatch();
+  const dispatch = useAppDispatch();
 
-    const { currentStudent, loading, error } = useAppSelector((state: RootState) => state.students);
+  const { currentStudent, loading, error } = useAppSelector(
+    (state) => state.students
+  );
 
-    useEffect(() => {
-        if (studentId) {
-            dispatch(fetchStudentById(studentId));
-        }
-    }, [dispatch, studentId]);
+  useEffect(() => {
+    if (studentId) {
+      dispatch(fetchStudentById(studentId));
+    }
+  }, [studentId, dispatch]);
 
-    return {
-        student: currentStudent,
-        isLoading: loading,
-        error
-    };
+  return {
+    student: currentStudent as StudentDetails | null,
+    isLoading: loading,
+    error
+  };
 };
