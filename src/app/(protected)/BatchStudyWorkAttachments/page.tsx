@@ -13,9 +13,14 @@ import {
   IconButton,
   Link as MuiLink,
 } from "@mui/material";
+import Swal from "sweetalert2";
+import DownloadIcon from "@mui/icons-material/Download";
 import { useSearchParams } from "next/navigation";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import DeleteIcon from "@mui/icons-material/Delete";
+
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import Link from "next/link"; // important for navigation
 
 import API_ENDPOINTS from "@/lib/config/apiConfig";
 import api from "@/lib/services/apiService";
@@ -49,14 +54,15 @@ interface BatchStudyWorkAttachment {
   updatedAt: string | null;
 }
 
-
 const BatchStudyWorkAttachmentsPage: React.FC = () => {
   const searchParams = useSearchParams();
   const idParam = searchParams.get("id");
   const id = idParam ? Number(idParam) : null;
 
   const [work, setWork] = useState<BatchStudyWork | null>(null);
-  const [attachments, setAttachments] = useState<BatchStudyWorkAttachment[]>([]);
+  const [attachments, setAttachments] = useState<BatchStudyWorkAttachment[]>(
+    []
+  );
 
   const [loadingWork, setLoadingWork] = useState(false);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
@@ -81,7 +87,9 @@ const BatchStudyWorkAttachmentsPage: React.FC = () => {
         );
 
         if (!res.data) {
-          throw new Error(res.error || res.message || "Failed to fetch details");
+          throw new Error(
+            res.error || res.message || "Failed to fetch details"
+          );
         }
 
         setWork(res.data);
@@ -94,6 +102,30 @@ const BatchStudyWorkAttachmentsPage: React.FC = () => {
 
     loadWork();
   }, [id]);
+
+  const forceDownload = async (url: string, fileName: string) => {
+    try {
+      const response = await fetch(url, {
+        credentials: "include",
+      });
+
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+
+      // cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error("Download error:", err);
+      alert("Failed to download file.");
+    }
+  };
 
   // ---------- Load attachments for this work ----------
   const fetchAttachments = async () => {
@@ -137,17 +169,13 @@ const BatchStudyWorkAttachmentsPage: React.FC = () => {
       const formData = new FormData();
       formData.append("batchStudyWorkId", String(id));
       formData.append("file", file);
-      // description: only if you add it to upload API
-      // formData.append("description", description);
 
       const res = await api.post<BatchStudyWorkAttachment>(
         API_ENDPOINTS.BATCH_STUDY_WORK_ATTACHMENTS.UPLOAD,
         formData,
         {
           withCredentials: true,
-          headers: {
-            "Content-Type": "multipart/form-data", // override default JSON
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
 
@@ -158,9 +186,20 @@ const BatchStudyWorkAttachmentsPage: React.FC = () => {
       setFile(null);
       setDescription("");
       await fetchAttachments();
-      alert("File uploaded successfully");
+
+      Swal.fire({
+        icon: "success",
+        title: "Uploaded!",
+        text: "Your file has been uploaded successfully.",
+        timer: 1500,
+        showConfirmButton: false,
+      });
     } catch (err: any) {
-      setError(err.message || "Error uploading file");
+      Swal.fire({
+        icon: "error",
+        title: "Upload Failed",
+        text: err.message || "Error uploading file",
+      });
     } finally {
       setUploading(false);
     }
@@ -168,7 +207,17 @@ const BatchStudyWorkAttachmentsPage: React.FC = () => {
 
   // ---------- Delete attachment ----------
   const handleDelete = async (attachmentId: number) => {
-    if (!confirm("Are you sure you want to delete this attachment?")) return;
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "This file will be permanently deleted!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       setError(null);
@@ -183,20 +232,22 @@ const BatchStudyWorkAttachmentsPage: React.FC = () => {
       }
 
       await fetchAttachments();
+
+      Swal.fire({
+        icon: "success",
+        title: "Deleted!",
+        text: "The file has been removed.",
+        timer: 1500,
+        showConfirmButton: false,
+      });
     } catch (err: any) {
-      setError(err.message || "Error deleting attachment");
+      Swal.fire({
+        icon: "error",
+        title: "Delete Failed",
+        text: err.message || "Error deleting attachment",
+      });
     }
   };
-
-  if (!id) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Typography color="error">
-          Invalid request. BatchStudyWork ID is missing.
-        </Typography>
-      </Box>
-    );
-  }
 
   // ---------- UI ----------
   return (
@@ -282,6 +333,16 @@ const BatchStudyWorkAttachmentsPage: React.FC = () => {
             {uploading ? "Uploading..." : "Upload"}
           </Button>
 
+          {/* BACK BUTTON (New) */}
+          <Button
+            variant="outlined"
+            color="primary"
+            component={Link}
+            href="/BatchStudyWorks"
+          >
+            BACK
+          </Button>
+
           {error && (
             <Typography color="error" variant="body2">
               {error}
@@ -305,38 +366,56 @@ const BatchStudyWorkAttachmentsPage: React.FC = () => {
           <Typography>No attachments found.</Typography>
         ) : (
           <Stack spacing={1}>
-            {attachments.map((att) => (
-              <Stack
-                key={att.batchStudyWorkAttachementId}
-                direction="row"
-                alignItems="center"
-                justifyContent="space-between"
-              >
-                <Stack spacing={0.5}>
-                  <MuiLink
-                    href={`${API_ENDPOINTS.BASE_URL_FILES}${att.filePath}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    underline="hover"
-                  >
-                    {att.filePath.split("/").pop()}
-                  </MuiLink>
-                  <Typography variant="caption">
-                    Uploaded: {new Date(att.createdAt).toLocaleString()}
-                  </Typography>
-                </Stack>
+            {attachments.map((att) => {
+              const fileUrl = `${API_ENDPOINTS.BASE_URL_FILES}${att.filePath}`;
+              const fileName = att.filePath.split("/").pop() || "download";
 
-                <IconButton
-                  color="error"
-                  size="small"
-                  onClick={() =>
-                    handleDelete(att.batchStudyWorkAttachementId)
-                  }
+              return (
+                <Stack
+                  key={att.batchStudyWorkAttachementId}
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
                 >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </Stack>
-            ))}
+                  <Stack spacing={0.5}>
+                    <MuiLink
+                      href={fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      underline="hover"
+                    >
+                      {fileName}
+                    </MuiLink>
+
+                    <Typography variant="caption">
+                      Uploaded: {new Date(att.createdAt).toLocaleString()}
+                    </Typography>
+                  </Stack>
+
+                  <Stack direction="row" spacing={1}>
+                    {/* Download Button */}
+                    <IconButton
+                      color="primary"
+                      size="small"
+                      onClick={() => forceDownload(fileUrl, fileName)}
+                    >
+                      <DownloadIcon fontSize="small" />
+                    </IconButton>
+
+                    {/* Delete Button */}
+                    <IconButton
+                      color="error"
+                      size="small"
+                      onClick={() =>
+                        handleDelete(att.batchStudyWorkAttachementId)
+                      }
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Stack>
+                </Stack>
+              );
+            })}
           </Stack>
         )}
       </Paper>
@@ -345,3 +424,7 @@ const BatchStudyWorkAttachmentsPage: React.FC = () => {
 };
 
 export default BatchStudyWorkAttachmentsPage;
+
+
+
+
