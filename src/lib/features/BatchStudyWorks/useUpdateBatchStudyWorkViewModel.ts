@@ -8,15 +8,20 @@ export const useUpdateBatchStudyWork = () => {
   const dispatch = useAppDispatch();
 
   const handleUpdateBatchStudyWork = async (id: number, dto: any) => {
-    // 👉 FIX: MERGE id + dto
-    const result = await dispatch(updateBatchStudyWork({ id, ...dto }));
+    // FIX: Build correct update DTO
+    const result = await dispatch(
+      updateBatchStudyWork({
+        batchStudyWorkId: id,
+        ...dto,
+      })
+    );
 
     if (updateBatchStudyWork.fulfilled.match(result)) {
       Swal.fire({
         icon: "success",
         title: "Updated!",
         text: "Batch Study Work updated successfully!",
-        timer: 800,
+        timer: 1000,
         timerProgressBar: true,
         showConfirmButton: false,
       });

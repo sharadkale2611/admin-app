@@ -111,7 +111,7 @@ export default function CreateBatchStudyWork() {
             </FormControl>
 
             {/* STAFF */}
-            <FormControl fullWidth size="small" disabled={staffLoading}>
+            {/* <FormControl fullWidth size="small" disabled={staffLoading}>
               <InputLabel>Assigned By (Staff)</InputLabel>
               <Select
                 label="Assigned By (Staff)"
@@ -137,7 +137,7 @@ export default function CreateBatchStudyWork() {
                   </MenuItem>
                 ))}
               </Select>
-            </FormControl>
+            </FormControl> */}
 
             {/* BATCH */}
             <FormControl fullWidth size="small" disabled={batchLoading}>

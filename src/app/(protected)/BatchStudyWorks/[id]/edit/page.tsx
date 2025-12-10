@@ -151,7 +151,7 @@ export default function EditBatchStudyWorkPage() {
           </FormControl>
 
           {/* Assigned By */}
-          <FormControl>
+          {/* <FormControl>
             <InputLabel>Assigned By (Staff)</InputLabel>
             <Select
               label="Assigned By"
@@ -168,7 +168,7 @@ export default function EditBatchStudyWorkPage() {
                 </MenuItem>
               ))}
             </Select>
-          </FormControl>
+          </FormControl> */}
 
           {/* Batch */}
           <FormControl>
