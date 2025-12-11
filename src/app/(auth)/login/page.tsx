@@ -21,7 +21,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const { isAuthenticated, hasChecked } = useAppSelector((state) => state.auth);
 
-  useEffect(() => {
+  useEffect(() => { 
     console.log("isAuthenticated", isAuthenticated);
 
     // Only redirect if we already know user is authenticated
