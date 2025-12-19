@@ -67,27 +67,27 @@ export default function LoginPage() {
                     sx={{ mt: 3, width: '100%' }}
                 >
                     <TextField
-                        margin="normal"
-                        required
-                        fullWidth
-                        id="username"
-                        label="Username"
-                        name="username"
-                        autoComplete="username"
-                        // value={"admin"}
-                        autoFocus
+                      margin="normal"
+                      required
+                      fullWidth
+                      id="username"
+                      label="Username"
+                      name="username"
+                      inputProps={{ autoComplete: "username" }}
+                      // value={"admin"}
+                      autoFocus
                     />
                     {/* admin: admin123 */}
                     <TextField
-                        margin="normal"
-                        required
-                        fullWidth
-                        name="password"
-                        label="Password"
-                        type="password"
-                        id="password"
-                        // value={"admin123"}
-                        autoComplete="current-password"
+                      margin="normal"
+                      required
+                      fullWidth
+                      name="password"
+                      label="Password"
+                      type="password"
+                      id="password"
+                      // value={"admin123"}
+                      inputProps={{ autoComplete: "current-password" }}
                     />
                     <Button
                         type="submit"
@@ -151,7 +151,7 @@ export default function LoginPage() {
             id="username"
             label="Username"
             name="username"
-            autoComplete="username"
+            inputProps={{ autoComplete: "username" }}
             autoFocus
           />
           <TextField
@@ -162,7 +162,7 @@ export default function LoginPage() {
             label="Password"
             type="password"
             id="password"
-            autoComplete="current-password"
+            inputProps={{ autoComplete: "current-password" }}
           />
 
           <Button

@@ -26,7 +26,7 @@ export const useBatchViewModel = () => {
     activeOnly,
   } = useAppSelector((state: RootState) => state.batches);
 
-  const safeBatches = batches || [];
+  const safeBatches = Array.isArray(batches) ? batches : [];
 
   const fetchBatchData = useCallback(() => {
     dispatch(
@@ -71,7 +71,7 @@ export const useBatchViewModel = () => {
   );
 
   return {
-    batches,
+    batches: safeBatches,
     isLoading: loading,
     error,
 
