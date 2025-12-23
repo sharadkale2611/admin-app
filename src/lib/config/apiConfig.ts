@@ -156,6 +156,7 @@ const API_ENDPOINTS = {
     PUT_UPDATE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
     DELETE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
   },
+
   STUDENT_BATCH_ASSIGNMENTS: {
     GET_LIST_PAGINATED:
       process.env.NEXT_PUBLIC_STUDENT_BATCH_ASSIGNMENTS_ENDPOINT ||
@@ -229,6 +230,14 @@ const API_ENDPOINTS = {
     POST_CREATE_SINGLE:
       process.env.NEXT_PUBLIC_BATCH_SCHEDULES_ENDPOINT ||
       "/BatchSchedules/create",
+  },
+
+   NOTICES: {
+    GET_LIST: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
+    GET_BY_ID: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
+    POST_CREATE: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
+    PUT_UPDATE: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
+    DELETE: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
   },
 
 

@@ -24,6 +24,7 @@ import {
     Menu,
     MenuItem,
     Avatar,
+    
 } from "@mui/material";
 
 import {
@@ -38,7 +39,16 @@ import {
     BookSharp,
     BookmarkSharp,
     Class,
-    Layers
+    Layers,
+    School,
+    CurrencyRupee,
+    LocalOffer,
+    ViewModule,
+    MenuBook,
+    Groups,
+    AssignmentInd,
+    Assignment,
+    EventNote,
 } from "@mui/icons-material";
 
 import { useTheme } from "@mui/material/styles";
@@ -101,21 +111,27 @@ const ProtectedLayout = ({ children }: layoutParams) => {
         { text: "Staff", icon: <PeopleIcon />, path: AppRoutes.STAFF },
         { text: "Students", icon: <PeopleIcon />, path: AppRoutes.STUDENTS },
         { text: "Admissions", icon: <PeopleIcon />, path: AppRoutes.ADMISSIONS },
-
         { text: "Courses Category", icon: <BookmarkSharp />, path: AppRoutes.COURSE_CATEGORY },
-        { text: "Courses", icon: <BookSharp />, path: AppRoutes.COURSES },
-        { text: "Courses Fees", icon: <BookSharp />, path: AppRoutes.FEES },
-        { text: "Discounts", icon: <BookSharp />, path: AppRoutes.DISCOUNTS },
 
-        { text: "Modules", icon: <BookSharp />, path: AppRoutes.MODULES },
-        { text: "Course Modules", icon: <BookSharp />, path: AppRoutes.COURSE_MODULES },
+        { text: "Courses", icon: <School />, path: AppRoutes.COURSES },
 
-        { text: "Batches", icon: <BookSharp />, path: AppRoutes.BATCHES },
-        { text: "Batch Assignments", icon: <BookSharp />, path: AppRoutes.STUDENT_BATCH_ASSIGNMENTS },
+        { text: "Courses Fees", icon: <CurrencyRupee  />, path: AppRoutes.FEES },
+
+        { text: "Discounts", icon: <LocalOffer  />, path: AppRoutes.DISCOUNTS },
+
+        { text: "Modules", icon: <ViewModule  />, path: AppRoutes.MODULES },
+
+        { text: "Course Modules", icon: <MenuBook  />, path: AppRoutes.COURSE_MODULES },
+
+        { text: "Batches", icon: <Groups  />, path: AppRoutes.BATCHES },
+
+        { text: "Batch Assignments", icon: <AssignmentInd  />, path: AppRoutes.STUDENT_BATCH_ASSIGNMENTS },
        
-        { text: "Batch StudyWorks", icon: <BookSharp />, path: AppRoutes.BATCH_STUDYWORK},
+        { text: "Batch StudyWorks", icon: <Assignment  />, path: AppRoutes.BATCH_STUDYWORK},
 
-        { text: "Batch Schedules", icon: <BookSharp />, path: AppRoutes.BATCH_SCHEDULES},
+        { text: "Batch Schedules", icon: <EventNote  />, path: AppRoutes.BATCH_SCHEDULES},
+
+        {text: "Notices", icon: <NotificationsIcon />, path: AppRoutes.NOTICES},
 
 
         
