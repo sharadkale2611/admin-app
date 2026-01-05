@@ -90,3 +90,20 @@ export interface CreateCourseDto {
     status: boolean;
     courseOrder: number;
 }
+
+export interface Module {
+  moduleName: string;
+  moduleDescription: string;
+}
+
+
+export interface CourseFee {
+  totalInstallments: number;
+  feeAmount: number;
+  gstPercentage: number;
+}
+
+export interface CourseWithDetails extends Course {
+  modules?: Module[];
+  fees?: CourseFee[];
+}
