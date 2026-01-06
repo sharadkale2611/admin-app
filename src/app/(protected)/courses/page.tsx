@@ -22,7 +22,10 @@ import {
     Avatar,
     Chip,
     Switch,
-    FormControlLabel
+    FormControlLabel,
+    Card,
+    CardActions,
+    Grid
 } from '@mui/material';
 import {
     ArrowBack,
@@ -39,8 +42,11 @@ import Link from 'next/link';
 import { useDeleteCourse } from '@/lib/features/course/useDeleteCourse';
 import { useCourseViewModel } from '@/lib/features/course/useCourseViewModel';
 import { Course, CourseLevel } from '@/lib/features/course/courseTypes';
+import { useRouter } from 'next/navigation';
+
 
 const CourseList: React.FC = () => {
+    const router = useRouter();
     const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
     // Use the ViewModel
@@ -291,160 +297,115 @@ const CourseList: React.FC = () => {
                         Course Management
                     </Typography>
                 </Stack>
-                <Button
-                    variant="contained"
-                    startIcon={<Add />}
-                    size={isMobile ? 'small' : 'medium'}
-                    component={Link}
-                    href="/courses/create"
-                >
-                    Add Course
-                </Button>
+
             </Stack>
 
-            {/* Search and Filters */}
-            <Paper sx={{ mb: 3, p: 2 }}>
-                <Stack direction={isMobile ? 'column' : 'row'} spacing={2} alignItems="flex-end">
-                    <FormControl fullWidth size="small">
-                        <TextField
-                            label="Search Courses"
-                            value={localSearchTerm}
-                            onChange={(e) => setLocalSearchTerm(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && handleSearchSubmit(e)}
-                            InputProps={{
-                                endAdornment: (
-                                    <IconButton onClick={handleSearchSubmit} size="small">
-                                        <Search />
-                                    </IconButton>
-                                )
-                            }}
-                        />
-                    </FormControl>
 
-                    <FormControl size="small" sx={{ minWidth: 120 }}>
-                        <InputLabel>Status</InputLabel>
-                        <Select
-                            value={statusFilter === null ? '' : statusFilter.toString()}
-                            onChange={(e) => handleStatusFilter(
-                                e.target.value === '' ? null : e.target.value === 'true'
-                            )}
-                            label="Status"
-                        >
-                            <MenuItem value="">All</MenuItem>
-                            <MenuItem value="true">Active</MenuItem>
-                            <MenuItem value="false">Inactive</MenuItem>
-                        </Select>
-                    </FormControl>
 
-                    <FormControl size="small" sx={{ minWidth: 120 }}>
-                        <InputLabel>Level</InputLabel>
-                        <Select
-                            value={courseLevelFilter === null ? '' : courseLevelFilter}
-                            onChange={(e) => {
-                                // Pass the raw value to the handler, which will handle the conversion
-                                handleCourseLevelFilter(e.target.value);
-                            }}
-                            label="Level"
-                        >
-                            <MenuItem value="">All Levels</MenuItem>
-                            <MenuItem value={CourseLevel.Beginner}>Beginner</MenuItem>
-                            <MenuItem value={CourseLevel.Intermediate}>Intermediate</MenuItem>
-                            <MenuItem value={CourseLevel.Expert}>Expert</MenuItem>
-                        </Select>
-                    </FormControl>
 
-                    <Button
-                        variant="outlined"
-                        onClick={handleResetFilters}
-                        size="small"
-                    >
-                        Reset
-                    </Button>
-                </Stack>
-            </Paper>
 
-            {/* Pagination controls */}
-            <Box sx={{
-                display: 'flex',
-                flexDirection: isMobile ? 'column' : 'row',
-                gap: isMobile ? 2 : 0,
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mb: 2
-            }}>
-                <FormControl size="small" sx={{ minWidth: 120 }}>
-                    <InputLabel>Rows</InputLabel>
-                    <Select
-                        value={rowsPerPage.toString()}
-                        label="Rows"
-                        onChange={handleChangeRowsPerPage}
-                    >
-                        {[5, 10, 25, 50].map((option) => (
-                            <MenuItem key={option} value={option}>
-                                {option}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-
-                <Typography variant="body2" sx={{ textAlign: isMobile ? 'center' : 'left' }}>
-                    Page {page} of {totalPages} | Total: {courses.length} courses
-                </Typography>
-
-                <Pagination
-                    count={totalPages}
-                    page={page}
-                    onChange={(_, newPage) => handlePageChange(newPage)}
-                    color="primary"
-                    shape="rounded"
-                    size={isMobile ? 'small' : 'medium'}
-                />
-            </Box>
-
-            {/* Desktop DataGrid */}
+            {/* Desktop Card Grid */}
             {!isMobile ? (
-                <Box sx={{ height: 600, width: '100%', mb: 2 }}>
-                    {error ? (
-                        <Box sx={{
-                            height: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexDirection: 'column',
-                            gap: 2
-                        }}>
-                            <Typography color="error" variant="h6">
-                                Error loading data
-                            </Typography>
-                            <Button
-                                variant="contained"
-                                onClick={refetch}
-                            >
-                                Retry
-                            </Button>
-                        </Box>
-                    ) : (
-                        <DataGrid
-                            rows={currentCourses}
-                            columns={columns}
-                            hideFooter
-                            sortingMode="server"
-                            sortModel={sortModel}
-                            onSortModelChange={handleSortModelChange}
-                            disableColumnMenu
-                            getRowId={(row) => row?.courseId ? row.courseId.toString() : Math.random().toString()}
-                            loading={isLoading}
-                            slots={{
-                                noRowsOverlay: () => (
-                                    <Stack height="100%" alignItems="center" justifyContent="center">
-                                        <Typography>No courses found</Typography>
-                                    </Stack>
-                                )
+                <Grid container spacing={2} sx={{ mb: 2 }}>
+
+                    {/* CREATE NEW CARD */}
+                    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}  >
+                        <Card
+                            elevation={3}
+                            sx={{
+                                height: 200,
+                                borderRadius: 2,
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                cursor: "pointer",
+                                "&:hover": { boxShadow: 6 }
                             }}
-                        />
-                    )}
-                </Box>
+                            onClick={() => router.push("/courses/create")}
+                        >
+                            <Stack alignItems="center" spacing={1}>
+                                <Add fontSize="large" />
+                                <Typography fontWeight={600}>Create New</Typography>
+                            </Stack>
+                        </Card>
+                    </Grid>
+
+                    {/* COURSE CARDS */}
+                    {currentCourses.map(course => (
+                        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={course.courseId}>
+                            <Card
+                                elevation={3}
+                                sx={{
+                                    height: 200,
+                                    borderRadius: 2,
+                                    cursor: "pointer",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    position: "relative",
+                                    "&:hover": { boxShadow: 6 }
+                                }}
+                                onClick={() => router.push(`/courses/${course.courseId}`)}
+                            >
+
+                                {/* Top right chips */}
+                                <Box sx={{ position: "absolute", right: 10, top: 10 }}>
+                                    <Chip
+                                        size="small"
+                                        label={course.courseLevel}
+                                        sx={{ mr: 1 }}
+                                    />
+                                    <Chip
+                                        size="small"
+                                        label={course.status ? "Active" : "Inactive"}
+                                        color={course.status ? "success" : "error"}
+                                    />
+                                </Box>
+
+                                <CardContent sx={{ mt: 3 }}>
+                                    <Typography variant="h6" fontWeight={700}>
+                                        {course.courseName}
+                                    </Typography>
+
+                                    <Typography variant="body2" color="text.secondary">
+                                        {course.courseCategoryName}
+                                    </Typography>
+                                </CardContent>
+
+                                <CardActions
+                                    sx={{ mt: "auto", px: 2 }}
+                                    onClick={(e) => e.stopPropagation()} // prevent card click
+                                >
+                                    <Button
+                                        fullWidth
+                                        size="small"
+                                        variant="outlined"
+                                        startIcon={<Edit />}
+                                        component={Link}
+                                        href={`/courses/${course.courseId}/edit`}
+                                    >
+                                        Edit
+                                    </Button>
+
+                                    <Button
+                                        fullWidth
+                                        size="small"
+                                        variant="outlined"
+                                        color="error"
+                                        startIcon={<Delete />}
+                                        onClick={() =>
+                                            onDeleteCourse(course.courseId, course.courseName)
+                                        }
+                                    >
+                                        Delete
+                                    </Button>
+                                </CardActions>
+
+                            </Card>
+                        </Grid>
+                    ))}
+                </Grid>
             ) : (
+
                 /* Mobile Collapsible List */
                 <Box component={Paper} elevation={3} sx={{ mb: 2 }}>
                     {currentCourses.map((course) => (

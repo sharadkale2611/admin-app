@@ -8,15 +8,11 @@ export interface Batch {
   branchName: string | null;
   branchCode: string | null;
 
-  courseModuleId: number | null;
-  courseId: number | null;
-  courseName: string | null;
-  courseCategoryName: string | null;
-
   moduleId: number | null;
   moduleName: string | null;
 
   trainerId: number | null;
+  trainerName: string | null;
 
   classRoomId: number | null;
   classRoomName: string | null;
@@ -28,6 +24,8 @@ export interface Batch {
 
   startTime: string | null;          // "HH:mm:ss"
   batchDurationInHr: number | null;
+
+  totalEnrolls: number | null;
 
   isActive: boolean;
   isDeleted: boolean;
@@ -67,7 +65,7 @@ export interface FetchBatchParams {
 export interface CreateBatchDto {
   BatchCode: string;
   BranchId: number;
-  CourseModuleId: number;
+  moduleId: number;
   TrainerId: number;
   ClassRoomId: number;
 
@@ -92,7 +90,7 @@ export interface CreateBatchResponse {
 export interface UpdateBatchDto {
   batchCode: string;
   branchId: number;
-  courseModuleId: number;
+  moduleId: number;
   trainerId: number;
   classRoomId: number;
 
