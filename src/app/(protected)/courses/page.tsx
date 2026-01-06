@@ -313,7 +313,7 @@ const CourseList: React.FC = () => {
                         <Card
                             elevation={3}
                             sx={{
-                                height: 200,
+                                height: 170,
                                 borderRadius: 2,
                                 display: "flex",
                                 justifyContent: "center",
@@ -336,7 +336,7 @@ const CourseList: React.FC = () => {
                             <Card
                                 elevation={3}
                                 sx={{
-                                    height: 200,
+                                    height: 170,
                                     borderRadius: 2,
                                     cursor: "pointer",
                                     display: "flex",

@@ -29,7 +29,7 @@ export interface PaginatedCourses {
 
 export interface CourseState {
     courses: Course[];
-    currentCourse: Course | null;
+    currentCourse: CourseWithDetails  | null;
     totalCount: number;
     pageSize: number;
     currentPage: number;
@@ -89,4 +89,25 @@ export interface CreateCourseDto {
     courseLevel: CourseLevel;
     status: boolean;
     courseOrder: number;
+}
+
+export interface Module {
+  moduleId: number;
+  moduleName: string;
+  moduleDescription: string;
+}
+
+
+export interface CourseFee {
+  courseFeeId: number;
+  totalInstallments: number;
+  feeAmount: number;
+  gstPercentage: number;
+  createdAt: string;     // or Date if you parse it
+  updatedAt?: string;
+}
+
+export interface CourseWithDetails extends Course {
+  modules?: Module[];
+  fees?: CourseFee[];
 }

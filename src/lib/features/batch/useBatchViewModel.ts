@@ -46,6 +46,21 @@ export const useBatchViewModel = () => {
     return () => clearTimeout(timer);
   }, [fetchBatchData, searchTerm]);
 
+
+    /* ===============================
+     DROPDOWN SUPPORT (NON-PAGINATED)
+  ================================ */
+
+  const ensureBatchesLoaded = useCallback(() => {
+    if (!safeBatches.length && !loading) {
+      dispatch(fetchBatches({
+        page,
+        searchTerm,
+        activeOnly,
+      })); 
+    }
+  }, [dispatch, safeBatches.length, loading]);
+
   const handleSearch = useCallback(
     (term: string) => {
       dispatch(setBatchSearchTerm(term));
@@ -87,5 +102,7 @@ export const useBatchViewModel = () => {
     handleResetFilters,
     handlePageChange,
     refetch: fetchBatchData,
+    dropdownBatches: safeBatches,
+    ensureBatchesLoaded,
   };
 };

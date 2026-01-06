@@ -86,7 +86,7 @@ export const useCourseFeesEditViewModel = (id: string) => {
                 timer: 2000,
                 showConfirmButton: false
             }); 
-                router.push('/fees');               
+                router.push('/courses/' + data.courseId);               
                 return result;
             } catch (err: any) {
                 setSubmitError(err.message || 'Failed to update course fee');

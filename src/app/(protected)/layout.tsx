@@ -24,6 +24,7 @@ import {
     Menu,
     MenuItem,
     Avatar,
+    
 } from "@mui/material";
 
 import {
@@ -38,7 +39,16 @@ import {
     BookSharp,
     BookmarkSharp,
     Class,
-    Layers
+    Layers,
+    School,
+    CurrencyRupee,
+    LocalOffer,
+    ViewModule,
+    MenuBook,
+    Groups,
+    AssignmentInd,
+    Assignment,
+    EventNote,
 } from "@mui/icons-material";
 
 import { useTheme } from "@mui/material/styles";

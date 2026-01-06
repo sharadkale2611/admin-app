@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -38,6 +38,13 @@ import {
 } from '@mui/icons-material';
 
 import { useCourseDetailsViewModel } from '@/lib/features/course/useCourseDetailsViewModel';
+import { useModuleViewModel } from "@/lib/features/module/useModuleViewModel";
+import { useCourseModuleViewModel } from "@/lib/features/courseModules/useCourseModuleViewModel";
+
+
+
+import { useRouter } from "next/navigation";
+
 
 /* ---------------- TAB PANEL HELPER ---------------- */
 interface TabPanelProps {
@@ -50,6 +57,8 @@ interface FeeFormData {
     feeAmount: number;
     gstPercentage: number;
     totalInstallments: number;
+    createdAt: string;     // or Date if you parse it
+    updatedAt?: string | null;
     branchId?: number | null;
 }
 
@@ -70,9 +79,22 @@ export default function CourseDetails() {
         setTabIndex(newValue);
     };
 
-   
-    
-    
+    const router = useRouter();
+
+    const handleEditFees = () => {
+        if (!course?.courseId) return;
+        router.push(`/fees/${course?.fees?.[0]?.courseFeeId}/edit`);
+    };
+
+    const { modules: allModules, isLoading: modulesLoading, createModule, updateModule, refetch } = useModuleViewModel();
+
+    const {
+        courseModules,
+        createCourseModule,
+        deleteCourseModule,
+        refetch: refetchCourseModules
+    } = useCourseModuleViewModel();
+
 
     const formatDate = (dateString?: string | null) =>
         dateString
@@ -96,34 +118,38 @@ export default function CourseDetails() {
         }
     };
 
-    /* ---------- STATIC FEES (TEMP) ---------- */
-    const feeDetails = {
-        feeAmount: 25000,
-        gstPercentage: 18,
-        installments: 3
-    };
+    const [feeDetails, setFeeDetails] = React.useState<FeeFormData | null>(null);
 
+    const [feesExist, setFeesExist] = React.useState(false);
 
-    const feesExist = true; // later from API
+    React.useEffect(() => {
+        if (course?.fees?.length) {
+            const fee = course.fees[0];
+
+            setFeeDetails({
+                feeAmount: fee.feeAmount,
+                gstPercentage: fee.gstPercentage,
+                totalInstallments: fee.totalInstallments,
+                updatedAt: fee.updatedAt || null,
+                createdAt: fee.createdAt,
+                branchId: null
+            });
+
+            setFeesExist(true);
+        } else {
+            setFeeDetails(null);
+        }
+    }, [course]);
 
     const [isEditingFees, setIsEditingFees] = React.useState(false);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [isAddingSaving, setIsAddingSaving] = React.useState(false);
 
-    const [formData, setFormData] = React.useState<FeeFormData>({
-        feeAmount: feeDetails.feeAmount,
-        gstPercentage: feeDetails.gstPercentage,
-        totalInstallments: feeDetails.installments,
-        branchId: null
-    });
+    const [formData, setFormData] = React.useState<FeeFormData | null>(null);
 
-    const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-
-        setFormData(prev => ({
-            ...prev,
-            [name]: value === '' ? '' : Number(value)
-        }));
-    };
+    React.useEffect(() => {
+        if (feeDetails) setFormData(feeDetails);
+    }, [feeDetails]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -137,9 +163,12 @@ export default function CourseDetails() {
         }, 800);
     };
 
+    const gstAmount = formData
+        ? (formData.feeAmount * formData.gstPercentage) / 100
+        : 0;
 
-    const gstAmount = (feeDetails.feeAmount * feeDetails.gstPercentage) / 100;
-    const totalFee = feeDetails.feeAmount + gstAmount;
+    const totalFee = formData ? formData.feeAmount + gstAmount : 0;
+
 
     function FeeDetailsView({ feeDetails, gstAmount, totalFee }: any) {
         return (
@@ -160,7 +189,7 @@ export default function CourseDetails() {
 
                     <Grid size={{ xs: 12, sm: 4 }}>
                         <Typography color="text.secondary">Installments</Typography>
-                        <Typography variant="h6">{feeDetails.installments}</Typography>
+                        <Typography variant="h6">{feeDetails.totalInstallments}</Typography>
                     </Grid>
 
                     <Grid size={{ xs: 12 }}>
@@ -188,104 +217,111 @@ export default function CourseDetails() {
         );
     }
 
-    function FeeForm({
-        formData,
-        totalFee,
-        isSubmitting,
-        onCancel,
-        onSubmit
-    }: any) {
-        return (
-            <Paper sx={{ p: 3 }}>
-                <Typography variant="h6">Fee Structure</Typography>
-                <Divider sx={{ my: 2 }} />
+    {/* =====================================================
+                            EDIT FEES FORM
+        ====================================================== */}
 
-                <form onSubmit={onSubmit}>
-                    <Grid container spacing={3}>
-                        <Grid size={{ xs: 12 }}>
-                            <Typography variant="subtitle2" color="text.secondary">
-                                Fee Configuration
-                            </Typography>
-                        </Grid>
 
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                            <TextField
-                                fullWidth
-                                label="Fee Amount (₹)"
-                                size="small"
-                                type="number"
-                                required
-                            />
-                        </Grid>
+    // function FeeForm({
+    //     formData,
+    //     totalFee,
+    //     isSubmitting,
+    //     onCancel,
+    //     onSubmit
+    // }: any) {
+    //     return (
+    //         <Paper sx={{ p: 3 }}>
+    //             <Typography variant="h6">Fee Structure</Typography>
+    //             <Divider sx={{ my: 2 }} />
 
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                            <TextField
-                                fullWidth
-                                label="GST Percentage (%)"
-                                size="small"
-                                type="number"
-                                required
-                            />
-                        </Grid>
+    //             <form onSubmit={onSubmit}>
+    //                 <Grid container spacing={3}>
+    //                     <Grid size={{ xs: 12 }}>
+    //                         <Typography variant="subtitle2" color="text.secondary">
+    //                             Fee Configuration
+    //                         </Typography>
+    //                     </Grid>
 
-                        <Grid size={{ xs: 12 }}>
-                            <TextField
-                                fullWidth
-                                label="Total Installments"
-                                size="small"
-                                type="number"
-                                helperText="1–12 installments allowed"
-                            />
-                        </Grid>
+    //                     <Grid size={{ xs: 12, sm: 6 }}>
+    //                         <TextField
+    //                             fullWidth
+    //                             label="Fee Amount (₹)"
+    //                             size="small"
+    //                             type="number"
+    //                             required
+    //                         />
+    //                     </Grid>
 
-                        {/* SUMMARY */}
-                        <Grid size={{ xs: 12 }}>
-                            <Card variant="outlined">
-                                <CardContent>
-                                    <Typography variant="subtitle1" gutterBottom>
-                                        Fee Summary
-                                    </Typography>
+    //                     <Grid size={{ xs: 12, sm: 6 }}>
+    //                         <TextField
+    //                             fullWidth
+    //                             label="GST Percentage (%)"
+    //                             size="small"
+    //                             type="number"
+    //                             required
+    //                         />
+    //                     </Grid>
 
-                                    <Grid container spacing={1}>
-                                        <Grid size={{ xs: 6 }}>Total Fee</Grid>
-                                        <Grid size={{ xs: 6 }} textAlign="right">
-                                            <Typography fontWeight="bold" color="primary">
-                                                ₹ {totalFee}
-                                            </Typography>
-                                        </Grid>
-                                    </Grid>
-                                </CardContent>
-                            </Card>
-                        </Grid>
+    //                     <Grid size={{ xs: 12 }}>
+    //                         <TextField
+    //                             fullWidth
+    //                             label="Total Installments"
+    //                             size="small"
+    //                             type="number"
+    //                             helperText="1–12 installments allowed"
+    //                         />
+    //                     </Grid>
 
-                        {/* ACTIONS */}
-                        <Grid size={{ xs: 12 }}>
-                            <Stack direction="row" spacing={2}>
-                                <Button
-                                    variant="outlined"
-                                    color="secondary"
-                                    onClick={onCancel}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    variant="contained"
-                                    disabled={isSubmitting}
-                                >
-                                    Save Fees
-                                </Button>
-                            </Stack>
-                        </Grid>
-                    </Grid>
-                </form>
-            </Paper>
-        );
-    }
+    //                     {/* SUMMARY */}
+    //                     <Grid size={{ xs: 12 }}>
+    //                         <Card variant="outlined">
+    //                             <CardContent>
+    //                                 <Typography variant="subtitle1" gutterBottom>
+    //                                     Fee Summary
+    //                                 </Typography>
+
+    //                                 <Grid container spacing={1}>
+    //                                     <Grid size={{ xs: 6 }}>Total Fee</Grid>
+    //                                     <Grid size={{ xs: 6 }} textAlign="right">
+    //                                         <Typography fontWeight="bold" color="primary">
+    //                                             ₹ {totalFee}
+    //                                         </Typography>
+    //                                     </Grid>
+    //                                 </Grid>
+    //                             </CardContent>
+    //                         </Card>
+    //                     </Grid>
+
+    //                     {/* ACTIONS */}
+    //                     <Grid size={{ xs: 12 }}>
+    //                         <Stack direction="row" spacing={2}>
+    //                             <Button
+    //                                 variant="outlined"
+    //                                 color="secondary"
+    //                                 onClick={onCancel}
+    //                             >
+    //                                 Cancel
+    //                             </Button>
+    //                             <Button
+    //                                 type="submit"
+    //                                 variant="contained"
+    //                                 disabled={isSubmitting}
+    //                             >
+    //                                 Save Fees
+    //                             </Button>
+    //                         </Stack>
+    //                     </Grid>
+    //                 </Grid>
+    //             </form>
+    //         </Paper>
+    //     );
+    // }
 
     function FeeActions({
         feesExist,
-        onAddEdit,
+        onEditFees,
+        onAddFees,
+        // onAddEdit,
         createdAt,
         updatedAt
     }: any) {
@@ -294,12 +330,15 @@ export default function CourseDetails() {
                 <Typography variant="h6">Fee Actions</Typography>
 
                 <Stack spacing={2} sx={{ my: 3 }}>
-                    <Button
-                        variant="contained"
-                        onClick={onAddEdit}
-                    >
-                        {feesExist ? 'Edit Fees' : 'Add Fees'}
-                    </Button>
+                    {feesExist && (
+                        <Button variant="contained" onClick={onEditFees}>
+                            Edit Fees
+                        </Button>
+                    )}
+
+                    {/* <Button variant="outlined" color="success" onClick={onAddFees}>
+                        Add Fees
+                    </Button> */}
                 </Stack>
 
                 <Divider />
@@ -318,9 +357,7 @@ export default function CourseDetails() {
         );
     }
 
-
-
-    /* ---------- MODULES (STATIC FOR NOW) ---------- */
+    /* ---------- MODULES ---------- */
 
 
     type ModuleItem = {
@@ -328,16 +365,32 @@ export default function CourseDetails() {
         name: string;
     };
 
-    const [modules, setModules] = React.useState<ModuleItem[]>([
-        { id: 1, name: 'Introduction to Course' },
-        { id: 2, name: 'Basic Concepts' },
-        { id: 3, name: 'Advanced Topics' },
-        { id: 4, name: 'Practice & Assignments' }
-    ]);
+    const [modules, setModules] = React.useState<ModuleItem[]>([]);
 
-    const [selectedModuleIds, setSelectedModuleIds] = React.useState<number[]>(
-        modules.map(m => m.id)
-    );
+    React.useEffect(() => {
+        if (course?.modules?.length) {
+            setModules(
+                course.modules.map(m => ({
+                    id: m.moduleId,
+                    name: m.moduleName
+                }))
+            );
+
+            setSelectedModuleIds(course.modules.map(m => m.moduleId));
+        }
+    }, [course]);
+
+    const [selectedModuleIds, setSelectedModuleIds] = useState<number[]>([]);
+
+    const courseAssignedModules =
+        courseModules
+            ?.filter(x => x.courseId === course?.courseId && !x.isDeleted)
+            ?.map(x => x.moduleId) ?? [];
+
+
+    useEffect(() => {
+        setSelectedModuleIds(courseAssignedModules);
+    }, [courseAssignedModules.length]);
 
     const [isEditingModules, setIsEditingModules] = React.useState(false); // checkbox mode
     const [isAddingModule, setIsAddingModule] = React.useState(false);
@@ -345,15 +398,7 @@ export default function CourseDetails() {
     // 🔹 edit module name
     const [editingModuleId, setEditingModuleId] = React.useState<number | null>(null);
     const [editingModuleName, setEditingModuleName] = React.useState('');
-
-
-    const allModules = [
-        { id: 1, name: 'Introduction to Course' },
-        { id: 2, name: 'Basic Concepts' },
-        { id: 3, name: 'Advanced Topics' },
-        { id: 4, name: 'Practice & Assignments' },
-        { id: 5, name: 'Final Assessment' }
-    ];
+    const [isSaving, setIsSaving] = React.useState(false);
 
     const handleModuleToggle = (id: number) => {
         setSelectedModuleIds(prev =>
@@ -364,53 +409,139 @@ export default function CourseDetails() {
     };
 
 
-    const handleSaveModules = () => {
-        console.log('Selected Modules:', selectedModuleIds);
-        setIsEditingModules(false);
+    const handleSaveModules = async () => {
+        if (!course?.courseId) return;
+
+        const courseId = course.courseId;
+
+        const oldIds = courseAssignedModules || [];
+        const newIds = selectedModuleIds;
+
+        // NEW = create
+        const toAdd = newIds.filter(id => !oldIds.includes(id));
+
+        // REMOVED = delete
+        const toRemove = oldIds.filter(id => !newIds.includes(id));
+
+        try {
+            // CREATE NEW COURSE-MODULE LINKS
+            for (let i = 0; i < toAdd.length; i++) {
+                await createCourseModule({
+                    courseId,
+                    moduleId: toAdd[i],
+                    moduleOrder: i + 1,   
+                    isActive: true
+                });
+            }
+
+            // DELETE UNCHECKED LINKS
+            for (const moduleId of toRemove) {
+                const rec = courseModules.find(
+                    x => x.courseId === courseId && x.moduleId === moduleId
+                );
+
+                if (rec) await deleteCourseModule(rec.courseModuleId);
+            }
+
+            await refetchCourseModules();
+            setIsEditingModules(false);
+
+        } catch (e) {
+            console.error("Save modules failed", e);
+        }
     };
 
+
     const visibleModules = isEditingModules
-        ? modules
+        ? allModules.map(m => ({
+            id: m.moduleId,
+            name: m.moduleName
+        }))
         : modules.filter(m => selectedModuleIds.includes(m.id));
 
 
+
+
     const [newModuleName, setNewModuleName] = React.useState('');
-    
-    const handleAddModule = () => {
+
+    const handleAddModule = async () => {
         if (!newModuleName.trim()) return;
 
-        const newModule: ModuleItem = {
-            id: Date.now(),
-            name: newModuleName.trim()
-        };
+        try {
+            setIsAddingSaving(true);
 
-        setModules(prev => [...prev, newModule]);
-        setSelectedModuleIds(prev => [...prev, newModule.id]);
+            // CALL API 
+            const res = await createModule({
+                moduleName: newModuleName.trim(),
+                moduleDescription: "",
+                isActive: true
+            });
 
-        setNewModuleName('');
-        setIsAddingModule(false);
+            // UPDATE UI LIST (include ID from backend)
+            setModules(prev => [
+                ...prev,
+                { id: res.module.moduleId, name: res.module.moduleName }
+            ]);
+
+
+            setSelectedModuleIds(prev => [...prev, res.module.moduleId]);
+
+            // RESET UI
+            setNewModuleName('');
+            setIsAddingModule(false);
+
+        } catch (err) {
+            console.error("Failed to create module", err);
+        } finally {
+            setIsAddingSaving(false);
+        }
     };
+
 
     const startEditModule = (module: ModuleItem) => {
         setEditingModuleId(module.id);
         setEditingModuleName(module.name);
     };
 
-    const handleSaveEditModule = () => {
+    const handleSaveEditModule = async () => {
+
         if (!editingModuleName.trim() || editingModuleId === null) return;
 
-        setModules(prev =>
-            prev.map(m =>
-                m.id === editingModuleId
-                    ? { ...m, name: editingModuleName.trim() }
-                    : m
-            )
-        );
+        try {
+            setIsSaving(true);
 
-        setEditingModuleId(null);
-        setEditingModuleName('');
+            await updateModule({
+                id: editingModuleId,
+                data: {
+                    moduleName: editingModuleName.trim(),
+                    moduleDescription: "",
+                    isActive: true   // or existing description if you have it
+                }
+            });
+
+            await refetch();
+
+
+            // Update local UI list
+            setModules(prev =>
+                prev.map(m =>
+                    m.id === editingModuleId
+                        ? { ...m, name: editingModuleName.trim() }
+                        : m
+                )
+            );
+
+            // exit edit mode
+            setEditingModuleId(null);
+            setEditingModuleName('');
+
+        } catch (err) {
+            console.error("Module update failed", err);
+        } finally {
+            setIsSaving(false);  // 👈 STOP LOADING
+        }
     };
-    
+
     const cancelEditModule = () => {
         setEditingModuleId(null);
         setEditingModuleName('');
@@ -537,7 +668,6 @@ export default function CourseDetails() {
                                         Edit Course
                                     </Button>
                                 </Link>
-                                <Button variant="outlined">View Modules</Button>
                             </Stack>
 
                             <Divider />
@@ -560,15 +690,46 @@ export default function CourseDetails() {
             ====================================================== */}
             <TabPanel value={tabIndex} index={1}>
                 <Grid container spacing={3}>
-                    {/* LEFT SIDE */}
                     <Grid size={{ xs: 12, md: 8 }}>
-                        {!isEditingFees ? (
+
+                        {isLoading && <Skeleton variant="rounded" height={220} />}
+
+                        {!isLoading && !feeDetails && (
+                            <Paper sx={{ p: 3 }}>
+                                <Typography variant="h6">Course Fees</Typography>
+                                <Divider sx={{ my: 2 }} />
+
+                                <Alert severity="info">
+                                    No fee found for this course.
+                                </Alert>
+
+                                <Button
+                                    sx={{ mt: 2 }}
+                                    variant="contained"
+                                    onClick={() => setIsEditingFees(true)}
+                                >
+                                    Add Fees
+                                </Button>
+                            </Paper>
+                        )}
+
+                        {!isLoading && feeDetails && !isEditingFees && (
                             <FeeDetailsView
                                 feeDetails={feeDetails}
-                                gstAmount={gstAmount}
-                                totalFee={totalFee}
+                                gstAmount={(feeDetails.feeAmount * feeDetails.gstPercentage) / 100}
+                                totalFee={
+                                    feeDetails.feeAmount +
+                                    (feeDetails.feeAmount * feeDetails.gstPercentage) / 100
+                                }
                             />
-                        ) : (
+                        )}
+
+                        
+                    {/* =====================================================
+                                            EDIT FEES FORM CALL
+                        ====================================================== */}
+
+                        {/* {!isLoading && feeDetails && isEditingFees && (
                             <FeeForm
                                 formData={formData}
                                 totalFee={totalFee}
@@ -576,16 +737,19 @@ export default function CourseDetails() {
                                 onCancel={() => setIsEditingFees(false)}
                                 onSubmit={handleSubmit}
                             />
-                        )}
+                        )} */}
+
+
                     </Grid>
 
                     {/* RIGHT SIDE */}
                     <Grid size={{ xs: 12, md: 4 }}>
                         <FeeActions
                             feesExist={feesExist}
-                            onAddEdit={() => setIsEditingFees(true)}
-                            createdAt="12 Jan 2025"
-                            updatedAt="20 Jan 2025"
+                            // onAddEdit={() => setIsEditingFees(true)}
+                            onEditFees={handleEditFees}
+                            createdAt={formatDate(course?.fees?.[0]?.createdAt)}
+                            updatedAt={formatDate(course?.fees?.[0]?.updatedAt) || 'Not updated'}
                         />
                     </Grid>
                 </Grid>
@@ -606,7 +770,6 @@ export default function CourseDetails() {
                                 {visibleModules.map(module => {
                                     const isSelected = selectedModuleIds.includes(module.id);
                                     const isEditingThis = editingModuleId === module.id;
-
                                     return (
                                         <Box
                                             key={module.id}
@@ -660,13 +823,19 @@ export default function CourseDetails() {
                                             {/* Save / Cancel name edit */}
                                             {isEditingThis && (
                                                 <Stack direction="row" spacing={1}>
-                                                    <Button size="small" onClick={handleSaveEditModule}>
-                                                        Save
+                                                    <Button
+                                                        size="small"
+                                                        onClick={handleSaveEditModule}
+                                                        disabled={isSaving}
+                                                    >
+                                                        {isSaving ? "Saving..." : "Save"}
                                                     </Button>
+
                                                     <Button
                                                         size="small"
                                                         color="secondary"
                                                         onClick={cancelEditModule}
+                                                        disabled={isSaving}
                                                     >
                                                         Cancel
                                                     </Button>
@@ -697,7 +866,10 @@ export default function CourseDetails() {
                                     <>
                                         <Button
                                             variant="contained"
-                                            onClick={() => setIsEditingModules(true)}
+                                            onClick={async () => {
+                                                await refetch();
+                                                setIsEditingModules(true);
+                                            }}
                                         >
                                             Edit Modules
                                         </Button>
@@ -779,7 +951,6 @@ export default function CourseDetails() {
 
                 </Grid>
             </TabPanel>
-
 
             {/* =====================================================
                 TAB 4 : TEACHERS
