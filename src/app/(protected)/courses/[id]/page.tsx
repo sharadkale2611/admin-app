@@ -429,7 +429,7 @@ export default function CourseDetails() {
                 await createCourseModule({
                     courseId,
                     moduleId: toAdd[i],
-                    moduleOrder: i + 1,   
+                    moduleOrder: i + 1,
                     isActive: true
                 });
             }
@@ -445,6 +445,8 @@ export default function CourseDetails() {
 
             await refetchCourseModules();
             setIsEditingModules(false);
+
+            window.location.reload();;
 
         } catch (e) {
             console.error("Save modules failed", e);
@@ -477,6 +479,8 @@ export default function CourseDetails() {
                 isActive: true
             });
 
+            await refetch();
+
             // UPDATE UI LIST (include ID from backend)
             setModules(prev => [
                 ...prev,
@@ -489,6 +493,8 @@ export default function CourseDetails() {
             // RESET UI
             setNewModuleName('');
             setIsAddingModule(false);
+            
+            window.location.reload();
 
         } catch (err) {
             console.error("Failed to create module", err);
@@ -703,13 +709,20 @@ export default function CourseDetails() {
                                     No fee found for this course.
                                 </Alert>
 
-                                <Button
+                                {/* <Button
                                     sx={{ mt: 2 }}
                                     variant="contained"
                                     onClick={() => setIsEditingFees(true)}
                                 >
                                     Add Fees
-                                </Button>
+                                </Button> */}
+
+                                <Link href="/fees/create">
+                                    <Button sx={{ mt: 2 }} variant="contained">
+                                        Add Fees
+                                    </Button>
+                                </Link>
+
                             </Paper>
                         )}
 
@@ -724,8 +737,8 @@ export default function CourseDetails() {
                             />
                         )}
 
-                        
-                    {/* =====================================================
+
+                        {/* =====================================================
                                             EDIT FEES FORM CALL
                         ====================================================== */}
 

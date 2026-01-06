@@ -57,6 +57,7 @@ export interface UpdateCourseDto {
     id: number;
     firmId?: number;
     courseCategoryId: number; // Make this required
+    courseCategoryName: string;
     courseName: string;
     courseDescription: string;
     courseLevel: CourseLevel;
