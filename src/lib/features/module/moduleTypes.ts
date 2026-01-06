@@ -15,8 +15,11 @@ export interface ModuleDto {
     isActive: boolean;
 }
 
-export interface ModuleResponseDto extends ModuleDto {
+export interface ModuleResponseDto{
     moduleId: number;
+    moduleName: string;
+    moduleDescription?: string | null;
+    isActive: boolean;
     firmId?: number | null;
     firmName?: string | null;
     firmCode?: string | null;

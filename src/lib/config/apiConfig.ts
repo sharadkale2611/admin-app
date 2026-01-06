@@ -104,7 +104,7 @@ const API_ENDPOINTS = {
       process.env.NEXT_PUBLIC_COURSES_PAGINATED_ENDPOINT ||
       "/api/Courses/paginated",
     GET_LIST: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",
-    GET_BY_ID: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses/details",
+    GET_BY_ID: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",
     POST_CREATE: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",
     PUT_UPDATE: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",
     DELETE: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",

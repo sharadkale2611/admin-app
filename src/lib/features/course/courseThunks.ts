@@ -128,7 +128,7 @@ export const fetchCourses = createAsyncThunk<
 );
 
 export const fetchCourseById = createAsyncThunk<
-    Course,
+    CourseWithDetails,
     number,
     { dispatch: AppDispatch; state: RootState; rejectValue: string }
 >(
@@ -136,7 +136,7 @@ export const fetchCourseById = createAsyncThunk<
     async (courseId, { rejectWithValue }) => {
         try {
             const response = await api.get<CourseWithDetails>(
-                `${API_ENDPOINTS.COURSES.GET_BY_ID}/${courseId}`,
+                `${API_ENDPOINTS.COURSES.GET_BY_ID}/details/${courseId}`,
                 { withCredentials: true }
             );
 

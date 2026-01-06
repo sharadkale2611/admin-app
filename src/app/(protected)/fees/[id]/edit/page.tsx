@@ -116,7 +116,7 @@ export default function CourseFeeEdit() {
             {/* Header Section */}
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Link href={`/fees/${id}`} passHref>
+                    <Link href={`/courses/${formData.courseId}`} passHref>
                         <Button startIcon={<ArrowBack />} variant="outlined" size="small">
                             Back to Details
                         </Button>
@@ -285,7 +285,7 @@ export default function CourseFeeEdit() {
                             >
                                 {isSubmitting ? <CircularProgress size={20} /> : 'Save'}
                             </Button>
-                            <Link href="/fees" passHref>
+                            <Link href={`/courses/${formData.courseId}`} passHref>
                                 <Button variant="outlined" disabled={isSubmitting}>
                                     Cancel
                                 </Button>
