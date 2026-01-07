@@ -40,6 +40,9 @@ import {
 import { useCourseDetailsViewModel } from '@/lib/features/course/useCourseDetailsViewModel';
 import { useModuleViewModel } from "@/lib/features/module/useModuleViewModel";
 import { useCourseModuleViewModel } from "@/lib/features/courseModules/useCourseModuleViewModel";
+import { useCreateCourseFeeViewModel } from "@/lib/features/fees/useCreateCourseFeeViewModel";
+import { useCourseFeesEditViewModel } from "@/lib/features/fees/useCourseFeesEditViewModel";
+
 
 
 
@@ -70,6 +73,7 @@ function TabPanel({ children, value, index }: TabPanelProps) {
 
 /* ---------------- MAIN COMPONENT ---------------- */
 export default function CourseDetails() {
+
     const { id } = useParams();
     const { course, isLoading, error } = useCourseDetailsViewModel(id as string);
 
@@ -80,11 +84,6 @@ export default function CourseDetails() {
     };
 
     const router = useRouter();
-
-    const handleEditFees = () => {
-        if (!course?.courseId) return;
-        router.push(`/fees/${course?.fees?.[0]?.courseFeeId}/edit`);
-    };
 
     const { modules: allModules, isLoading: modulesLoading, createModule, updateModule, refetch } = useModuleViewModel();
 
@@ -118,7 +117,6 @@ export default function CourseDetails() {
         }
     };
 
-    const [feeDetails, setFeeDetails] = React.useState<FeeFormData | null>(null);
 
     const [feesExist, setFeesExist] = React.useState(false);
 
@@ -142,10 +140,32 @@ export default function CourseDetails() {
     }, [course]);
 
     const [isEditingFees, setIsEditingFees] = React.useState(false);
+    const [feeDetails, setFeeDetails] = React.useState<FeeFormData | null>(null);
+
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isAddingSaving, setIsAddingSaving] = React.useState(false);
 
     const [formData, setFormData] = React.useState<FeeFormData | null>(null);
+
+
+    // Create mode hook
+    const createVM = useCreateCourseFeeViewModel();
+
+    // Edit mode hook (pass feeId if exists)
+    const editVM = useCourseFeesEditViewModel(
+        String(course?.fees?.[0]?.courseFeeId || "")
+    );
+
+    const isEditMode = feesExist;
+    const handleSaveFees = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (isEditMode) {
+            await editVM.handleUpdateCourseFee(editVM.formData);
+        } else {
+            await createVM.handleSubmit(e);
+        }
+    };
 
     React.useEffect(() => {
         if (feeDetails) setFormData(feeDetails);
@@ -157,17 +177,25 @@ export default function CourseDetails() {
 
         // simulate API call
         setTimeout(() => {
-            console.log('Fee Data Submitted:', formData);
+            // console.log('Fee Data Submitted:', formData);
             setIsSubmitting(false);
             setIsEditingFees(false);
         }, 800);
     };
+
+    useEffect(() => {
+        if (isEditMode && isEditingFees && course?.fees?.[0]?.courseFeeId) {
+            editVM.handleFetchCourseFeeById(course.fees[0].courseFeeId);
+        }
+    }, [isEditMode, isEditingFees, course?.fees]);
 
     const gstAmount = formData
         ? (formData.feeAmount * formData.gstPercentage) / 100
         : 0;
 
     const totalFee = formData ? formData.feeAmount + gstAmount : 0;
+
+
 
 
     function FeeDetailsView({ feeDetails, gstAmount, totalFee }: any) {
@@ -222,123 +250,132 @@ export default function CourseDetails() {
         ====================================================== */}
 
 
-    // function FeeForm({
-    //     formData,
-    //     totalFee,
-    //     isSubmitting,
-    //     onCancel,
-    //     onSubmit
-    // }: any) {
-    //     return (
-    //         <Paper sx={{ p: 3 }}>
-    //             <Typography variant="h6">Fee Structure</Typography>
-    //             <Divider sx={{ my: 2 }} />
-
-    //             <form onSubmit={onSubmit}>
-    //                 <Grid container spacing={3}>
-    //                     <Grid size={{ xs: 12 }}>
-    //                         <Typography variant="subtitle2" color="text.secondary">
-    //                             Fee Configuration
-    //                         </Typography>
-    //                     </Grid>
-
-    //                     <Grid size={{ xs: 12, sm: 6 }}>
-    //                         <TextField
-    //                             fullWidth
-    //                             label="Fee Amount (₹)"
-    //                             size="small"
-    //                             type="number"
-    //                             required
-    //                         />
-    //                     </Grid>
-
-    //                     <Grid size={{ xs: 12, sm: 6 }}>
-    //                         <TextField
-    //                             fullWidth
-    //                             label="GST Percentage (%)"
-    //                             size="small"
-    //                             type="number"
-    //                             required
-    //                         />
-    //                     </Grid>
-
-    //                     <Grid size={{ xs: 12 }}>
-    //                         <TextField
-    //                             fullWidth
-    //                             label="Total Installments"
-    //                             size="small"
-    //                             type="number"
-    //                             helperText="1–12 installments allowed"
-    //                         />
-    //                     </Grid>
-
-    //                     {/* SUMMARY */}
-    //                     <Grid size={{ xs: 12 }}>
-    //                         <Card variant="outlined">
-    //                             <CardContent>
-    //                                 <Typography variant="subtitle1" gutterBottom>
-    //                                     Fee Summary
-    //                                 </Typography>
-
-    //                                 <Grid container spacing={1}>
-    //                                     <Grid size={{ xs: 6 }}>Total Fee</Grid>
-    //                                     <Grid size={{ xs: 6 }} textAlign="right">
-    //                                         <Typography fontWeight="bold" color="primary">
-    //                                             ₹ {totalFee}
-    //                                         </Typography>
-    //                                     </Grid>
-    //                                 </Grid>
-    //                             </CardContent>
-    //                         </Card>
-    //                     </Grid>
-
-    //                     {/* ACTIONS */}
-    //                     <Grid size={{ xs: 12 }}>
-    //                         <Stack direction="row" spacing={2}>
-    //                             <Button
-    //                                 variant="outlined"
-    //                                 color="secondary"
-    //                                 onClick={onCancel}
-    //                             >
-    //                                 Cancel
-    //                             </Button>
-    //                             <Button
-    //                                 type="submit"
-    //                                 variant="contained"
-    //                                 disabled={isSubmitting}
-    //                             >
-    //                                 Save Fees
-    //                             </Button>
-    //                         </Stack>
-    //                     </Grid>
-    //                 </Grid>
-    //             </form>
-    //         </Paper>
-    //     );
-    // }
-
-    function FeeActions({
-        feesExist,
-        onEditFees,
-        onAddFees,
-        // onAddEdit,
-        createdAt,
-        updatedAt
+    function FeeForm({
+        formData,
+        totalFee,
+        setFormData,
+        isSubmitting,
+        onCancel,
+        onSubmit
     }: any) {
+        return (
+            <Paper sx={{ p: 3 }}>
+                <Typography variant="h6">Fee Structure</Typography>
+                <Divider sx={{ my: 2 }} />
+
+                <form onSubmit={onSubmit}>
+                    <Grid container spacing={3}>
+                        <Grid size={{ xs: 12 }}>
+                            <Typography variant="subtitle2" color="text.secondary">
+                                Fee Configuration
+                            </Typography>
+                        </Grid>
+
+                        <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                                fullWidth
+                                label="Fee Amount (₹)"
+                                size="small"
+                                type="text"
+                                required
+                                value={formData?.feeAmount ?? ""}
+                                onChange={(e) =>
+                                    setFormData((prev: any) => ({
+                                        ...prev,
+                                        feeAmount: Number(e.target.value)
+                                    }))
+                                }
+                            />
+                        </Grid>
+
+                        <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                                fullWidth
+                                label="GST Percentage (%)"
+                                size="small"
+                                type="text"
+                                required
+                                value={formData?.gstPercentage ?? ""}
+                                onChange={(e) =>
+                                    setFormData((prev: any) => ({
+                                        ...prev,
+                                        gstPercentage: Number(e.target.value)
+                                    }))
+                                }
+                            />
+                        </Grid>
+
+                        <Grid size={{ xs: 12 }}>
+                            <TextField
+                                fullWidth
+                                label="Total Installments"
+                                size="small"
+                                type="number"
+                                helperText="1–12 installments allowed"
+                                value={formData?.totalInstallments ?? ""}
+                                onChange={(e) =>
+                                    setFormData((prev: any) => ({
+                                        ...prev,
+                                        totalInstallments: Number(e.target.value)
+                                    }))
+                                }
+                            />
+                        </Grid>
+
+                        {/* SUMMARY */}
+                        <Grid size={{ xs: 12 }}>
+                            <Card variant="outlined">
+                                <CardContent>
+                                    <Typography variant="subtitle1" gutterBottom>
+                                        Fee Summary
+                                    </Typography>
+
+                                    <Grid container spacing={1}>
+                                        <Grid size={{ xs: 6 }}>Total Fee</Grid>
+                                        <Grid size={{ xs: 6 }} textAlign="right">
+                                            <Typography fontWeight="bold" color="primary">
+                                                ₹ {totalFee}
+                                            </Typography>
+                                        </Grid>
+                                    </Grid>
+                                </CardContent>
+                            </Card>
+                        </Grid>
+
+                        {/* ACTIONS */}
+                        <Grid size={{ xs: 12 }}>
+                            <Stack direction="row" spacing={2}>
+                                <Button
+                                    variant="outlined"
+                                    color="secondary"
+                                    onClick={onCancel}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    variant="contained"
+                                    disabled={isSubmitting}
+                                >
+                                    Save Fees
+                                </Button>
+                            </Stack>
+                        </Grid>
+                    </Grid>
+                </form>
+            </Paper>
+        );
+    }
+
+    function FeeActions({ feesExist, onAddEdit, createdAt, updatedAt }: any) {
         return (
             <Paper sx={{ p: 3 }}>
                 <Typography variant="h6">Fee Actions</Typography>
 
                 <Stack spacing={2} sx={{ my: 3 }}>
-                    {feesExist && (
-                        <Button variant="contained" onClick={onEditFees}>
-                            Edit Fees
-                        </Button>
-                    )}
-
-                    {/* <Button variant="outlined" color="success" onClick={onAddFees}>
-                        Add Fees
-                    </Button> */}
+                    <Button variant="contained" onClick={onAddEdit}>
+                        {feesExist ? "Edit Fees" : "Add Fees"}
+                    </Button>
                 </Stack>
 
                 <Divider />
@@ -347,15 +384,12 @@ export default function CourseDetails() {
                     System Info
                 </Typography>
 
-                <Typography variant="body2">
-                    Created: {createdAt}
-                </Typography>
-                <Typography variant="body2">
-                    Updated: {updatedAt}
-                </Typography>
+                <Typography variant="body2">Created: {createdAt}</Typography>
+                <Typography variant="body2">Updated: {updatedAt}</Typography>
             </Paper>
         );
     }
+
 
     /* ---------- MODULES ---------- */
 
@@ -493,7 +527,7 @@ export default function CourseDetails() {
             // RESET UI
             setNewModuleName('');
             setIsAddingModule(false);
-            
+
             window.location.reload();
 
         } catch (err) {
@@ -697,36 +731,9 @@ export default function CourseDetails() {
             <TabPanel value={tabIndex} index={1}>
                 <Grid container spacing={3}>
                     <Grid size={{ xs: 12, md: 8 }}>
-
                         {isLoading && <Skeleton variant="rounded" height={220} />}
 
-                        {!isLoading && !feeDetails && (
-                            <Paper sx={{ p: 3 }}>
-                                <Typography variant="h6">Course Fees</Typography>
-                                <Divider sx={{ my: 2 }} />
-
-                                <Alert severity="info">
-                                    No fee found for this course.
-                                </Alert>
-
-                                {/* <Button
-                                    sx={{ mt: 2 }}
-                                    variant="contained"
-                                    onClick={() => setIsEditingFees(true)}
-                                >
-                                    Add Fees
-                                </Button> */}
-
-                                <Link href="/fees/create">
-                                    <Button sx={{ mt: 2 }} variant="contained">
-                                        Add Fees
-                                    </Button>
-                                </Link>
-
-                            </Paper>
-                        )}
-
-                        {!isLoading && feeDetails && !isEditingFees && (
+                        {!isLoading && !isEditingFees && feeDetails && (
                             <FeeDetailsView
                                 feeDetails={feeDetails}
                                 gstAmount={(feeDetails.feeAmount * feeDetails.gstPercentage) / 100}
@@ -737,33 +744,62 @@ export default function CourseDetails() {
                             />
                         )}
 
+                        {!isLoading && !isEditingFees && !feeDetails && (
+                            <Paper sx={{ p: 3 }}>
+                                <Typography variant="h6">Course Fees</Typography>
+                                <Divider sx={{ my: 2 }} />
 
-                        {/* =====================================================
-                                            EDIT FEES FORM CALL
-                        ====================================================== */}
+                                <Alert severity="info">No fee found for this course.</Alert>
 
-                        {/* {!isLoading && feeDetails && isEditingFees && (
+                                <Button
+                                    sx={{ mt: 2 }}
+                                    variant="contained"
+                                    onClick={() => {
+                                        createVM.setFormData(prev => ({
+                                            ...prev,
+                                            courseId: Number(course?.courseId)   // 👈 set here
+                                        }));
+
+                                        setIsEditingFees(true);
+                                    }}
+                                >
+                                    Add Fees
+                                </Button>
+                            </Paper>
+                        )}
+
+                        {/* ALWAYS show form when editing */}
+                        {!isLoading && isEditingFees && (
                             <FeeForm
-                                formData={formData}
-                                totalFee={totalFee}
-                                isSubmitting={isSubmitting}
+                                formData={isEditMode ? editVM.formData : createVM.formData}
+                                setFormData={isEditMode ? editVM.setFormData : createVM.setFormData}
+                                totalFee={isEditMode ? editVM.totalFee : createVM.totalFee}
+                                isSubmitting={isEditMode ? editVM.isSubmitting : createVM.isSubmitting}
                                 onCancel={() => setIsEditingFees(false)}
-                                onSubmit={handleSubmit}
+                                onSubmit={handleSaveFees}
                             />
-                        )} */}
-
-
+                        )}
                     </Grid>
+
 
                     {/* RIGHT SIDE */}
                     <Grid size={{ xs: 12, md: 4 }}>
+
                         <FeeActions
                             feesExist={feesExist}
-                            // onAddEdit={() => setIsEditingFees(true)}
-                            onEditFees={handleEditFees}
+                            onAddEdit={() => {
+                                createVM.setFormData(prev => ({
+                                    ...prev,
+                                    courseId: Number(course?.courseId)
+                                }));
+
+                                setIsEditingFees(true);
+                            }}
                             createdAt={formatDate(course?.fees?.[0]?.createdAt)}
-                            updatedAt={formatDate(course?.fees?.[0]?.updatedAt) || 'Not updated'}
+                            updatedAt={formatDate(course?.fees?.[0]?.updatedAt)}
                         />
+
+
                     </Grid>
                 </Grid>
             </TabPanel>

@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { CourseFeeDto } from './feesThunks';
 import { createCourseFee } from './feesThunks';
 import { fetchCourses } from '../course/courseThunks';
+import Swal from 'sweetalert2';
 
 interface FormData {
     courseId: number;
@@ -91,11 +92,11 @@ export const useCreateCourseFeeViewModel = () => {
             }
 
             const courseFeeDto: CourseFeeDto = {
-                courseId: formData.courseId,
-                totalInstallments: formData.totalInstallments,
-                feeAmount: formData.feeAmount,
-                gstPercentage: formData.gstPercentage,
-                branchId: formData.branchId
+                courseId: Number(formData.courseId),
+                totalInstallments: Number(formData.totalInstallments),
+                feeAmount: Number(formData.feeAmount),
+                gstPercentage: Number(formData.gstPercentage),
+                branchId: formData.branchId ? Number(formData.branchId) : undefined
             };
 
             console.log('Dispatching createCourseFee with:', courseFeeDto);
@@ -107,8 +108,16 @@ export const useCreateCourseFeeViewModel = () => {
                 // Success case
                 const result = resultAction.payload;
                 console.log('Create course fee success:', result);
-                router.push('/fees');
-                router.refresh();
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Recrod Added successfully!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                window.location.reload();
+                // router.push('/fees');
+                // router.refresh();
             } else if (createCourseFee.rejected.match(resultAction)) {
                 // Error case - get the error from the action payload
                 console.log('Create course fee rejected:', resultAction);
@@ -129,7 +138,7 @@ export const useCreateCourseFeeViewModel = () => {
         } finally {
             setIsSubmitting(false);
         }
-    };  
+    };
 
     const resetForm = () => {
         setFormData(initialFormData);
@@ -141,6 +150,7 @@ export const useCreateCourseFeeViewModel = () => {
 
     return {
         formData,
+        setFormData,
         totalFee,
         isSubmitting,
         error,
