@@ -12,14 +12,24 @@ import { useEffect, useCallback } from "react";
 import type { RootState } from "@/lib/store";
 import { AnyAction, ThunkDispatch } from "@reduxjs/toolkit";
 
+import { fetchCourses } from "@/lib/features/course/courseThunks";
+import { fetchModules } from "@/lib/features/module/moduleThunks";
+
 export const useExamViewModel = () => {
+
   const dispatch: ThunkDispatch<RootState, unknown, AnyAction> =
     useAppDispatch();
 
-  // ⭐ Get auth user (firmId comes from backend)
-  const authUser = useAppSelector((state: RootState) => state.auth.user);
+  /* ------------------------------
+     Auth user (FirmId source)
+  ------------------------------ */
+  const authUser = useAppSelector(
+    (state: RootState) => state.auth.user
+  );
 
-  // ⭐ Exam slice state
+  /* ------------------------------
+     Exam state
+  ------------------------------ */
   const {
     exams,
     loading,
@@ -31,23 +41,44 @@ export const useExamViewModel = () => {
 
     searchTerm,
     isActive,
-    firmId
+    firmId,
   } = useAppSelector((state: RootState) => state.exam);
 
   const safeExams = exams || [];
 
-  /* ============================================================
-      ⭐ Auto-set firmId when user logs in
-  ============================================================ */
+  /* ------------------------------
+     Courses + Modules state
+  ------------------------------ */
+  const courses =
+    useAppSelector(
+      (state: RootState) => state.courses.courses
+    ) || [];
+
+  const modules =
+    useAppSelector(
+      (state: RootState) => state.modules.modules
+    ) || [];
+
+  /* ------------------------------
+     Load course + module dropdowns
+  ------------------------------ */
+  useEffect(() => {
+    dispatch(fetchCourses({ page: 1 }));
+    dispatch(fetchModules());
+  }, [dispatch]);
+
+  /* ------------------------------
+     Auto-set FirmId
+  ------------------------------ */
   useEffect(() => {
     if (authUser?.firmId && firmId !== Number(authUser.firmId)) {
       dispatch(setFirmId(Number(authUser.firmId)));
     }
   }, [authUser?.firmId, firmId, dispatch]);
 
-  /* ============================================================
-      ⭐ Fetch exams with filters + firmId
-  ============================================================ */
+  /* ------------------------------
+     Fetch exams
+  ------------------------------ */
   const fetchExamData = useCallback(() => {
     dispatch(
       fetchExams({
@@ -55,14 +86,14 @@ export const useExamViewModel = () => {
         pageSize,
         searchTerm,
         isActive,
-        firmId
+        firmId,
       })
     );
   }, [dispatch, page, pageSize, searchTerm, isActive, firmId]);
 
-  /* ============================================================
-      ⭐ Auto refetch (debounced search)
-  ============================================================ */
+  /* ------------------------------
+     Debounced auto fetch
+  ------------------------------ */
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchExamData();
@@ -71,9 +102,9 @@ export const useExamViewModel = () => {
     return () => clearTimeout(timer);
   }, [fetchExamData, searchTerm]);
 
-  /* ============================================================
-      ⭐ UI handlers
-  ============================================================ */
+  /* ------------------------------
+     UI handlers
+  ------------------------------ */
   const handleSearch = useCallback(
     (term: string) => {
       dispatch(setSearchTerm(term));
@@ -98,11 +129,14 @@ export const useExamViewModel = () => {
     [dispatch, totalPages]
   );
 
-  /* ============================================================
-      ⭐ Return values for UI components
-  ============================================================ */
+  /* ------------------------------
+     Return to UI
+  ------------------------------ */
   return {
     exams: safeExams,
+    courses,
+    modules,
+
     isLoading: loading,
     error,
 
@@ -117,6 +151,7 @@ export const useExamViewModel = () => {
     handleToggleActive,
     handleResetFilters,
     handlePageChange,
-    refetch: fetchExamData
+
+    refetch: fetchExamData,
   };
 };
