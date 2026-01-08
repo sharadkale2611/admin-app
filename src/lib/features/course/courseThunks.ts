@@ -92,7 +92,8 @@ export const fetchCourses = createAsyncThunk<
 
         // Add filters
         if (searchTerm) queryObj.search = searchTerm;
-        if (status !== null) queryObj.status = status.toString();
+        // Align with Batches: backend expects `isActive` for active filter
+        if (status !== null) queryObj.isActive = status.toString();
         if (courseLevel) queryObj.courseLevel = courseLevel;
         if (categoryId !== null) queryObj.categoryId = categoryId.toString();
 

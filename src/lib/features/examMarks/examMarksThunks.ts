@@ -29,6 +29,7 @@ export const fetchExamMarksPaginated = createAsyncThunk<
 
       if (examId !== null) queryParams.examId = String(examId);
       if (studentId !== null) queryParams.studentId = String(studentId);
+      // Send status filter as "status"; backend must accept this param
       if (status !== null) queryParams.status = String(status);
 
       const query = new URLSearchParams(queryParams).toString();

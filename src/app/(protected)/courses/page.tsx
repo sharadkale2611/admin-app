@@ -1,354 +1,187 @@
-'use client'
-import React from 'react';
+'use client';
+import React, { useEffect, useState } from 'react';
 import {
-    Box,
+    Container,
     Typography,
-    IconButton,
+    Box,
     Paper,
-    Pagination,
-    Select,
-    MenuItem,
-    FormControl,
-    InputLabel,
-    Stack,
-    SelectChangeEvent,
-    useMediaQuery,
-    Theme,
-    CardContent,
-    Collapse,
-    TableSortLabel,
-    Button,
     TextField,
-    Avatar,
+    Button,
     Chip,
-    Switch,
+    IconButton,
+    InputAdornment,
     FormControlLabel,
+    Checkbox,
+    Alert,
+    Skeleton,
+    Stack,
+    Grid,
     Card,
+    CardContent,
     CardActions,
-    Grid
+    TablePagination,
 } from '@mui/material';
-import {
-    ArrowBack,
-    Edit,
-    Visibility,
-    Delete,
-    KeyboardArrowDown,
-    KeyboardArrowUp,
-    Add,
-    Search
-} from '@mui/icons-material';
-import { DataGrid, GridColDef, GridSortModel } from '@mui/x-data-grid';
+import { Search, Refresh, FilterList, Edit, Delete } from '@mui/icons-material';
 import Link from 'next/link';
-import { useDeleteCourse } from '@/lib/features/course/useDeleteCourse';
-import { useCourseViewModel } from '@/lib/features/course/useCourseViewModel';
-import { Course, CourseLevel } from '@/lib/features/course/courseTypes';
 import { useRouter } from 'next/navigation';
+import { useCourseViewModel } from '@/lib/features/course/useCourseViewModel';
+import { useDeleteCourse } from '@/lib/features/course/useDeleteCourse';
+import type { Course } from '@/lib/features/course/courseTypes';
 
-
-const CourseList: React.FC = () => {
+const CoursesPage: React.FC = () => {
     const router = useRouter();
-    const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
-    // Use the ViewModel
     const {
         courses,
         isLoading,
         error,
         page,
         totalPages,
+        totalCount,
+        pageSize,
         searchTerm,
         statusFilter,
-        courseLevelFilter,
-        categoryFilter,
         handleSearch,
         handleStatusFilter,
-        handleCourseLevelFilter,
-        handleCategoryFilter,
         handleResetFilters,
         handlePageChange,
-        refetch
+        refetch,
     } = useCourseViewModel();
 
-    // State for UI controls
-    const [rowsPerPage, setRowsPerPage] = React.useState(10);
-    const [sortModel, setSortModel] = React.useState<GridSortModel>([{ field: 'courseId', sort: 'asc' }]);
-    const [expandedRows, setExpandedRows] = React.useState<string[]>([]);
-    const [localSearchTerm, setLocalSearchTerm] = React.useState(searchTerm);
-
-    // Use the delete hook
+    const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
     const { handleDelete } = useDeleteCourse();
+    const [isDeleting, setIsDeleting] = useState<number | null>(null);
 
-    // Delete handler
-    const onDeleteCourse = async (courseId: number, courseName: string) => {
-        const success = await handleDelete(courseId, courseName);
-        if (success) {
-            refetch();
+    useEffect(() => {
+        setLocalSearchTerm(searchTerm);
+    }, [searchTerm]);
+
+    const activeOnly = statusFilter === true;
+
+    const handleToggleActive = () => {
+        handleStatusFilter(activeOnly ? null : true);
+    };
+
+    const handleDeleteClick = async (course: Course) => {
+        setIsDeleting(course.courseId);
+        try {
+            const success = await handleDelete(course.courseId, course.courseName);
+            if (success) refetch();
+        } finally {
+            setIsDeleting(null);
         }
     };
-
-    const handleChangeRowsPerPage = (event: SelectChangeEvent) => {
-        setRowsPerPage(Number(event.target.value));
-        handlePageChange(1);
-    };
-
-    const handleSortModelChange = (newModel: GridSortModel) => {
-        setSortModel(newModel);
-    };
-
-    const toggleRowExpand = (courseId: number) => {
-        const idString = courseId.toString();
-        setExpandedRows(prev =>
-            prev.includes(idString) ? prev.filter(rowId => rowId !== idString) : [...prev, idString]
-        );
-    };
-
-    const handleSearchSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        handleSearch(localSearchTerm);
-    };
-
-    // Calculate current page data
-    const startIndex = (page - 1) * rowsPerPage;
-    const endIndex = startIndex + rowsPerPage;
-
-    // Sort data
-    const sortedCourses = courses.length > 0 ? [...courses].sort((a, b) => {
-        const sortItem = sortModel[0];
-        if (!sortItem) return 0;
-
-        const aValue = a?.[sortItem.field as keyof typeof a];
-        const bValue = b?.[sortItem.field as keyof typeof b];
-
-        if (aValue === undefined && bValue === undefined) return 0;
-        if (aValue === undefined) return sortItem.sort === 'asc' ? 1 : -1;
-        if (bValue === undefined) return sortItem.sort === 'asc' ? -1 : 1;
-
-        if (typeof aValue === 'boolean' && typeof bValue === 'boolean') {
-            return sortItem.sort === 'asc'
-                ? (aValue === bValue ? 0 : aValue ? -1 : 1)
-                : (aValue === bValue ? 0 : aValue ? 1 : -1);
-        }
-
-        const aString = String(aValue || '');
-        const bString = String(bValue || '');
-
-        return sortItem.sort === 'asc'
-            ? aString.localeCompare(bString)
-            : bString.localeCompare(aString);
-    }) : [];
-
-    const currentCourses = sortedCourses.slice(startIndex, endIndex);
-
-    // Columns configuration
-    const columns: GridColDef<Course>[] = [
-        {
-            field: 'courseId',
-            headerName: 'ID',
-            width: 80,
-            valueGetter: (value, row) => row?.courseId ?? '',
-            renderHeader: () => {
-                const isActive = sortModel[0]?.field === 'courseId';
-                const direction = isActive ? sortModel[0]?.sort as 'asc' | 'desc' : undefined;
-
-                return (
-                    <TableSortLabel
-                        active={isActive}
-                        direction={direction}
-                        onClick={() => {
-                            setSortModel([{
-                                field: 'courseId',
-                                sort: isActive
-                                    ? sortModel[0]?.sort === 'asc' ? 'desc' : 'asc'
-                                    : 'asc'
-                            }]);
-                        }}
-                    >
-                        ID
-                    </TableSortLabel>
-                );
-            }
-        },
-        {
-            field: 'courseName',
-            headerName: 'Course Name',
-            flex: 1,
-            valueGetter: (value, row) => row?.courseName || '',
-            renderHeader: () => {
-                const isActive = sortModel[0]?.field === 'courseName';
-                const direction = isActive ? sortModel[0]?.sort as 'asc' | 'desc' : undefined;
-
-                return (
-                    <TableSortLabel
-                        active={isActive}
-                        direction={direction}
-                        onClick={() => {
-                            setSortModel([{
-                                field: 'courseName',
-                                sort: isActive
-                                    ? sortModel[0]?.sort === 'asc' ? 'desc' : 'asc'
-                                    : 'asc'
-                            }]);
-                        }}
-                    >
-                        Course Name
-                    </TableSortLabel>
-                );
-            }
-        },
-        {
-            field: 'courseCategoryName',
-            headerName: 'Category',
-            width: 150,
-            valueGetter: (value, row) => row?.courseCategoryName || '',
-        },
-        {
-            field: 'courseLevel',
-            headerName: 'Level',
-            width: 120,
-            valueGetter: (value, row) => row?.courseLevel || '',
-            renderCell: (params) => (
-                <Chip
-                    label={params.row?.courseLevel}
-                    color={
-                        params.row?.courseLevel === CourseLevel.Expert ? 'error' :
-                            params.row?.courseLevel === CourseLevel.Intermediate ? 'warning' : 'info'
-                    }
-                    size="small"
-                />
-            ),
-        },
-        {
-            field: 'status',
-            headerName: 'Status',
-            width: 100,
-            valueGetter: (value, row) => row?.status || false,
-            renderCell: (params) => (
-                <Chip
-                    label={params.row?.status ? 'Active' : 'Inactive'}
-                    color={params.row?.status ? 'success' : 'error'}
-                    size="small"
-                />
-            ),
-        },
-        {
-            field: 'courseOrder',
-            headerName: 'Order',
-            width: 80,
-            valueGetter: (value, row) => row?.courseOrder || 0,
-        },
-        {
-            field: 'actions',
-            headerName: 'Actions',
-            sortable: false,
-            width: 150,
-            renderCell: (params) => (
-                <Stack direction="row" spacing={0.5}>
-                    <IconButton
-                        size="small"
-                        color="info"
-                        component={Link}
-                        href={`/courses/${params.row?.courseId}`}
-                        disabled={!params.row?.courseId}
-                    >
-                        <Visibility fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                        size="small"
-                        color="primary"
-                        component={Link}
-                        href={`/courses/${params.row?.courseId}/edit`}
-                        disabled={!params.row?.courseId}
-                    >
-                        <Edit fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => onDeleteCourse(
-                            params.row.courseId,
-                            params.row.courseName
-                        )}
-                        disabled={!params.row?.courseId}
-                    >
-                        <Delete fontSize="small" />
-                    </IconButton>
-                </Stack>
-            )
-        }
-    ];
-
-    if (isLoading) return <Box sx={{ p: 3 }}>Loading courses...</Box>;
-    if (error) return <Box sx={{ p: 3, color: 'error.main' }}>Error: {error}</Box>;
 
     return (
-        <Box sx={{ p: isMobile ? 1 : 3 }}>
+        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
             {/* Header */}
-            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-                <Stack direction="row" alignItems="center" spacing={2}>
-                    <IconButton
-                        aria-label="back"
-                        size={isMobile ? 'small' : 'medium'}
-                        component={Link}
-                        href="/dashboard"
+            <Box
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 3,
+                }}
+            >
+                <Typography variant="h4">Courses</Typography>
+                <Link href="/courses/create">
+                    <Button variant="contained">Add Course</Button>
+                </Link>
+            </Box>
+
+            {/* Filters */}
+            <Paper sx={{ p: 3, mb: 3 }}>
+                <Stack direction="row" spacing={2} flexWrap="wrap">
+                    <TextField
+                        size="small"
+                        placeholder="Search by Course Name"
+                        value={localSearchTerm}
+                        onChange={(e) => setLocalSearchTerm(e.target.value)}
+                        onKeyDown={(e) =>
+                            e.key === 'Enter' && handleSearch(localSearchTerm)
+                        }
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <Search />
+                                </InputAdornment>
+                            ),
+                        }}
+                    />
+
+                    <Button
+                        variant="outlined"
+                        startIcon={<Search />}
+                        onClick={() => handleSearch(localSearchTerm)}
                     >
-                        <ArrowBack fontSize={isMobile ? 'small' : 'medium'} />
+                        Search
+                    </Button>
+
+                    {/* <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={activeOnly}
+                                onChange={handleToggleActive}
+                            />
+                        }
+                        label="Active Only"
+                    /> */}
+
+                    <Button
+                        variant="outlined"
+                        startIcon={<FilterList />}
+                        onClick={handleResetFilters}
+                    >
+                        Reset
+                    </Button>
+
+                    <IconButton onClick={refetch} color="primary">
+                        <Refresh />
                     </IconButton>
-                    <Typography variant={isMobile ? 'h5' : 'h4'} component="h1">
-                        Course Management
-                    </Typography>
                 </Stack>
+            </Paper>
 
-            </Stack>
+            {/* Error */}
+            {error && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                    {typeof error === 'string' ? error : 'Something went wrong'}
+                </Alert>
+            )}
 
-
-
-
-
-            {/* Desktop Card Grid */}
-            {!isMobile ? (
-                <Grid container spacing={2} sx={{ mb: 2 }}>
-
-                    {/* CREATE NEW CARD */}
-                    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}  >
-                        <Card
-                            elevation={3}
-                            sx={{
-                                height: 170,
-                                borderRadius: 2,
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                cursor: "pointer",
-                                "&:hover": { boxShadow: 6 }
-                            }}
-                            onClick={() => router.push("/courses/create")}
+            {/* Cards */}
+            {isLoading ? (
+                <Grid container spacing={2}>
+                    {Array.from({ length: 8 }).map((_, i) => (
+                        <Grid key={i} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+                            <Skeleton variant="rectangular" height={200} />
+                        </Grid>
+                    ))}
+                </Grid>
+            ) : courses.length === 0 ? (
+                <Alert severity="info">
+                    {searchTerm ? 'No courses found matching your search' : 'No courses found'}
+                </Alert>
+            ) : (
+                <Grid container spacing={2}>
+                    {courses.map((course) => (
+                        <Grid
+                            key={course.courseId}
+                            size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
                         >
-                            <Stack alignItems="center" spacing={1}>
-                                <Add fontSize="large" />
-                                <Typography fontWeight={600}>Create New</Typography>
-                            </Stack>
-                        </Card>
-                    </Grid>
-
-                    {/* COURSE CARDS */}
-                    {currentCourses.map(course => (
-                        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={course.courseId}>
                             <Card
                                 elevation={3}
                                 sx={{
-                                    height: 170,
+                                    height: 180,
                                     borderRadius: 2,
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    position: "relative",
-                                    "&:hover": { boxShadow: 6 }
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    position: 'relative',
+                                    '&:hover': { boxShadow: 6 },
                                 }}
                                 onClick={() => router.push(`/courses/${course.courseId}`)}
                             >
-
-                                {/* Top right chips */}
-                                <Box sx={{ position: "absolute", right: 10, top: 10 }}>
+                                <Box sx={{ position: 'absolute', right: 10, top: 10 }}>
                                     <Chip
                                         size="small"
                                         label={course.courseLevel}
@@ -356,8 +189,8 @@ const CourseList: React.FC = () => {
                                     />
                                     <Chip
                                         size="small"
-                                        label={course.status ? "Active" : "Inactive"}
-                                        color={course.status ? "success" : "error"}
+                                        label={course.status ? 'Active' : 'Inactive'}
+                                        color={course.status ? 'success' : 'error'}
                                     />
                                 </Box>
 
@@ -372,8 +205,8 @@ const CourseList: React.FC = () => {
                                 </CardContent>
 
                                 <CardActions
-                                    sx={{ mt: "auto", px: 2 }}
-                                    onClick={(e) => e.stopPropagation()} // prevent card click
+                                    sx={{ mt: 'auto', px: 2, pb: 2 }}
+                                    onClick={(e) => e.stopPropagation()}
                                 >
                                     <Button
                                         fullWidth
@@ -392,137 +225,31 @@ const CourseList: React.FC = () => {
                                         variant="outlined"
                                         color="error"
                                         startIcon={<Delete />}
-                                        onClick={() =>
-                                            onDeleteCourse(course.courseId, course.courseName)
-                                        }
+                                        disabled={isDeleting === course.courseId}
+                                        onClick={() => handleDeleteClick(course)}
                                     >
                                         Delete
                                     </Button>
                                 </CardActions>
-
                             </Card>
                         </Grid>
                     ))}
                 </Grid>
-            ) : (
-
-                /* Mobile Collapsible List */
-                <Box component={Paper} elevation={3} sx={{ mb: 2 }}>
-                    {currentCourses.map((course) => (
-                        <Box key={course.courseId}>
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    p: 2,
-                                    borderBottom: '1px solid',
-                                    borderColor: 'divider',
-                                    cursor: 'pointer',
-                                    '&:hover': { backgroundColor: 'action.hover' }
-                                }}
-                                onClick={() => toggleRowExpand(course.courseId)}
-                            >
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                    <Avatar sx={{ width: 40, height: 40, bgcolor: 'primary.main' }}>
-                                        {course.courseName?.charAt(0)}
-                                    </Avatar>
-                                    <Box>
-                                        <Typography fontWeight="bold">
-                                            {course.courseName}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            {course.courseCategoryName}
-                                        </Typography>
-                                    </Box>
-                                </Box>
-                                <IconButton size="small">
-                                    {expandedRows.includes(course.courseId.toString()) ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
-                                </IconButton>
-                            </Box>
-
-                            <Collapse in={expandedRows.includes(course.courseId.toString())}>
-                                <CardContent>
-                                    <Stack spacing={2}>
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary">Level</Typography>
-                                            <Chip
-                                                label={course.courseLevel}
-                                                color={
-                                                    course.courseLevel === CourseLevel.Expert ? 'error' :
-                                                        course.courseLevel === CourseLevel.Intermediate ? 'warning' : 'info'
-                                                }
-                                                size="small"
-                                            />
-                                        </Box>
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary">Status</Typography>
-                                            <Chip
-                                                label={course.status ? 'Active' : 'Inactive'}
-                                                color={course.status ? 'success' : 'error'}
-                                                size="small"
-                                            />
-                                        </Box>
-                                        <Box>
-                                            <Typography variant="caption" color="text.secondary">Order</Typography>
-                                            <Typography>{course.courseOrder}</Typography>
-                                        </Box>
-                                        <Stack direction="row" spacing={1}>
-                                            <Button
-                                                variant="outlined"
-                                                size="small"
-                                                startIcon={<Visibility />}
-                                                fullWidth
-                                                component={Link}
-                                                href={`/courses/${course.courseId}`}
-                                            >
-                                                View
-                                            </Button>
-                                            <Button
-                                                variant="outlined"
-                                                size="small"
-                                                startIcon={<Edit />}
-                                                color="primary"
-                                                fullWidth
-                                                component={Link}
-                                                href={`/courses/${course.courseId}/edit`}
-                                            >
-                                                Edit
-                                            </Button>
-                                            <Button
-                                                variant="outlined"
-                                                size="small"
-                                                startIcon={<Delete />}
-                                                color="error"
-                                                fullWidth
-                                                onClick={() => onDeleteCourse(course.courseId, course.courseName)}
-                                            >
-                                                Delete
-                                            </Button>
-                                        </Stack>
-                                    </Stack>
-                                </CardContent>
-                            </Collapse>
-                        </Box>
-                    ))}
-                </Box>
             )}
 
-            {/* Bottom pagination */}
+            {/* Pagination */}
             {totalPages > 1 && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-                    <Pagination
-                        count={totalPages}
-                        page={page}
-                        onChange={(_, newPage) => handlePageChange(newPage)}
-                        color="primary"
-                        shape="rounded"
-                        size={isMobile ? 'small' : 'medium'}
-                    />
-                </Box>
+                <TablePagination
+                    component="div"
+                    count={totalCount}
+                    page={page - 1}
+                    onPageChange={(_, newPage) => handlePageChange(newPage + 1)}
+                    rowsPerPage={pageSize}
+                    rowsPerPageOptions={[pageSize]}
+                />
             )}
-        </Box>
+        </Container>
     );
 };
 
-export default CourseList;
+export default CoursesPage;
