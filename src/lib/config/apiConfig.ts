@@ -58,17 +58,17 @@ const API_ENDPOINTS = {
     EXAM_MARKS: {
       GET_LIST_PAGINATED:
         process.env.NEXT_PUBLIC_EXAM_MARKS_PAGINATED_ENDPOINT ||
-        "/api/ExamMarks/paginated",
+        "/ExamMarks/paginated",
       GET_LIST:
-        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/api/ExamMarks",
+        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/ExamMarks",
       GET_BY_ID:
-        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/api/ExamMarks",
+        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/ExamMarks",
       POST_CREATE:
-        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/api/ExamMarks",
+        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/ExamMarks",
       PUT_UPDATE:
-        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/api/ExamMarks",
+        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/ExamMarks",
       DELETE:
-        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/api/ExamMarks",
+        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/ExamMarks",
     },
   ADMISSION: {
     GET_LIST_PAGINATED:
@@ -117,7 +117,7 @@ const API_ENDPOINTS = {
   COURSES: {
     GET_LIST_PAGINATED:
       process.env.NEXT_PUBLIC_COURSES_PAGINATED_ENDPOINT ||
-      "/api/Courses/paginated",
+      "/Courses/paginated",
     GET_LIST: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",
     GET_BY_ID: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",
     POST_CREATE: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",
@@ -254,6 +254,21 @@ const API_ENDPOINTS = {
     PUT_UPDATE: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
     DELETE: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
   },
+EXAMS: {
+  GET_LIST_PAGINATED:
+    "/Exams/paginated",
+  GET_LIST:
+    process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+  GET_BY_ID:
+    process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+  POST_CREATE:
+    process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+  PUT_UPDATE:
+    process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+  DELETE:
+    process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+}
+
 
 
   // Add other endpoint categories here as needed

@@ -6,6 +6,7 @@ import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import { createExamMark } from './examMarksThunks';
 import type { CreateExamMarkDto } from './examMarksTypes';
+import Swal from 'sweetalert2';
 
 export interface ExamMarkFormData {
   examId: string;
@@ -51,8 +52,11 @@ export default function useCreateExamMarkViewModel() {
       }
 
       const payload: CreateExamMarkDto = {
+        examMarkId: 0,
+        firmId: 0, // backend will override from token
         examId: Number(formData.examId),
         studentId: Number(formData.studentId),
+        grade: "", // backend calculates final grade
         markObtained: Number(formData.markObtained),
         status: formData.status,
       };
@@ -60,7 +64,18 @@ export default function useCreateExamMarkViewModel() {
       const result = await (dispatch as any)(createExamMark(payload)).unwrap();
 
       if (result.success) {
-        toast.success(result.message || 'Exam mark created successfully');
+        const successMessage =
+          result.message || 'Exam mark created successfully';
+
+        toast.success(successMessage);
+
+        await Swal.fire({
+          icon: 'success',
+          title: successMessage,
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
         router.push('/exam-marks');
         return;
       }
@@ -76,6 +91,13 @@ export default function useCreateExamMarkViewModel() {
 
       setError(message);
       toast.error(message);
+
+      await Swal.fire({
+        icon: 'error',
+        title: 'Failed to add exam marks',
+        text: message,
+        confirmButtonColor: '#d33',
+      });
     } finally {
       setIsSubmitting(false);
     }

@@ -9,8 +9,8 @@ import type { RootState, AppDispatch } from '@/lib/store';
 import { fetchExamMarkById, updateExamMark } from './examMarksThunks';
 
 export interface ExamMarkEditFormData {
-  examId: number | null;
-  studentId: number | null;
+  examId: string;
+  studentId: string;
   markObtained: string;
   status: boolean;
 }
@@ -25,8 +25,8 @@ export default function useEditExamMarkViewModel() {
   );
 
   const [formData, setFormData] = useState<ExamMarkEditFormData>({
-    examId: null,
-    studentId: null,
+    examId: '',
+    studentId: '',
     markObtained: '',
     status: true,
   });
@@ -43,8 +43,8 @@ export default function useEditExamMarkViewModel() {
   useEffect(() => {
     if (currentExamMark) {
       setFormData({
-        examId: currentExamMark.examId,
-        studentId: currentExamMark.studentId,
+        examId: currentExamMark.examId.toString(),
+        studentId: currentExamMark.studentId.toString(),
         markObtained: currentExamMark.markObtained.toString(),
         status: currentExamMark.status,
       });
@@ -70,18 +70,33 @@ export default function useEditExamMarkViewModel() {
 
     try {
       if (!id) throw new Error('Exam mark ID is required');
+      if (!formData.examId) throw new Error('Exam is required');
+      if (!formData.studentId) throw new Error('Student is required');
       if (!formData.markObtained) throw new Error('Marks are required');
 
       const result = await dispatch(
         updateExamMark({
           id: Number(id),
+          examId: Number(formData.examId),
+          studentId: Number(formData.studentId),
           markObtained: Number(formData.markObtained),
           status: formData.status,
         })
       ).unwrap();
 
       if (result.success) {
-        toast.success('Exam mark updated successfully');
+        const successMessage =
+          result.message || 'Exam mark updated successfully';
+
+        toast.success(successMessage);
+
+        await Swal.fire({
+          icon: 'success',
+          title: successMessage,
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
         router.push('/exam-marks');
       } else {
         throw new Error(result.error || 'Failed to update exam mark');

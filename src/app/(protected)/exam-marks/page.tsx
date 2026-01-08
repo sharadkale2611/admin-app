@@ -14,6 +14,8 @@ import {
   Button,
   TextField,
 } from "@mui/material";
+import { IconButton, Tooltip } from "@mui/material";
+import { Visibility, Edit, Delete } from "@mui/icons-material";
 import Link from "next/link";
 import { useExamMarksViewModel } from "@/lib/features/examMarks/useExamMarksViewModel";
 import { useExamMarksListSupport } from "@/lib/features/examMarks/useExamMarksListSupport";
@@ -73,7 +75,7 @@ const ExamMarksList: React.FC = () => {
             <InputLabel>Exam</InputLabel>
             <Select
               label="Exam"
-              value={examId ?? ""}
+              value={examId?.toString() ?? ""}
               onChange={(e) =>
                 handleExamChange(
                   e.target.value === "" ? null : Number(e.target.value)
@@ -95,7 +97,7 @@ const ExamMarksList: React.FC = () => {
             <InputLabel>Student</InputLabel>
             <Select
               label="Student"
-              value={studentId ?? ""}
+              value={studentId?.toString() ?? ""}
               onChange={(e) =>
                 handleStudentChange(
                   e.target.value === "" ? null : Number(e.target.value)
@@ -185,24 +187,34 @@ const ExamMarksList: React.FC = () => {
                         justifyContent="center"
                         alignItems="center"
                       >
-                        <Link href={`/exam-marks/${m.examMarkId}/edit`}>
-                          <Button variant="text" size="small">
-                            Edit
-                          </Button>
+                        <Link href={`/exam-marks/${m.examMarkId}`}>
+                          <Tooltip title="View">
+                            <IconButton size="small" color="primary">
+                              <Visibility fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                         </Link>
-                        <Button
-                          variant="text"
-                          color="error"
-                          size="small"
-                          onClick={() =>
-                            onDelete(
-                              m.examMarkId,
-                              `${m.examName} - ${m.studentName}`
-                            )
-                          }
-                        >
-                          Delete
-                        </Button>
+                        <Link href={`/exam-marks/${m.examMarkId}/edit`}>
+                          <Tooltip title="Edit">
+                            <IconButton size="small" color="primary">
+                              <Edit fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Link>
+                        <Tooltip title="Delete">
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() =>
+                              onDelete(
+                                m.examMarkId,
+                                `${m.examName} - ${m.studentName}`
+                              )
+                            }
+                          >
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
                       </Stack>
                     </td>
                   </tr>

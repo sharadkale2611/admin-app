@@ -32,6 +32,7 @@ import { studentBatchAssignmentReducer } from "@/lib/features/studentBatchAssign
 import batchStudyWorksReducer from "@/lib/features/BatchStudyWorks/batchStudyWorkSlice";
 import batchSchedulesReducer from "@/lib/features/batchSchedules/batchScheduleSlice";
 import noticeReducer from "@/lib/features/notice/noticeSlice";
+import examReducer from "@/lib/features/exam/examSlice";
 import examMarksReducer from "@/lib/features/examMarks/examMarksSlice";
 
 
@@ -54,6 +55,7 @@ const rootReducer = combineReducers({
     batchStudyWorks: batchStudyWorksReducer,
     batchSchedules: batchSchedulesReducer,
     notices: noticeReducer,
+     exam: examReducer,
     examMarks: examMarksReducer,
 
 });

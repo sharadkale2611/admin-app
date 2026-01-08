@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useAppDispatch } from "@/lib/hooks";
-import type { RootState, AppDispatch } from "@/lib/store";
+import type { RootState } from "@/lib/store";
 import { AnyAction, ThunkDispatch } from "@reduxjs/toolkit";
 import { fetchStudentList } from "@/lib/features/student/studentThunks";
-import { useSelector } from "react-redux";
+import { fetchAllExams } from "@/lib/features/exam/examThunks";
 
 interface SimpleExam {
   examId: number;
@@ -40,26 +40,20 @@ export const useExamMarksListSupport = () => {
             lastName: s.lastName,
           }))
         );
+
+        const examsRes = await dispatch(fetchAllExams()).unwrap();
+        setExams(
+          examsRes.map((ex) => ({
+            examId: ex.examId,
+            examName: ex.examName,
+          }))
+        );
       } catch (e) {
-        console.error("Failed to load students for exam marks", e);
+        console.error("Failed to load dropdown data for exam marks", e);
       }
     }
     load();
   }, [dispatch]);
-
-  // TODO: Replace with real Exams thunk when available
-  useEffect(() => {
-    async function loadExams() {
-      try {
-        // If you already have an Exams thunk, import and use here.
-        // For now, keep exams empty to avoid broken calls.
-        setExams([]);
-      } catch (e) {
-        console.error("Failed to load exams for exam marks", e);
-      }
-    }
-    loadExams();
-  }, []);
 
   return { exams, students };
 };

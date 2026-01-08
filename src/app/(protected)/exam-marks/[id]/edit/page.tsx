@@ -12,10 +12,15 @@ import {
   Alert,
   Switch,
   FormControlLabel,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { Save, Cancel } from '@mui/icons-material';
 import Link from 'next/link';
 import useEditExamMarkViewModel from '@/lib/features/examMarks/useEditExamMarkViewModel';
+import { useExamMarksListSupport } from '@/lib/features/examMarks/useExamMarksListSupport';
 
 export default function EditExamMark() {
   const {
@@ -27,6 +32,8 @@ export default function EditExamMark() {
     handleStatusChange,
     handleSubmit,
   } = useEditExamMarkViewModel();
+
+  const { exams, students } = useExamMarksListSupport();
 
   return (
     <Container maxWidth="sm" sx={{ mt: 3, mb: 4 }}>
@@ -43,7 +50,50 @@ export default function EditExamMark() {
       <Paper elevation={0} sx={{ p: 3, border: '1px solid #e0e0e0' }}>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Exam</InputLabel>
+                <Select
+                  label="Exam"
+                  name="examId"
+                  value={formData.examId}
+                  onChange={(e) => handleChange(e as any)}
+                  required
+                  disabled={isSubmitting}
+                >
+                  {exams.map((ex) => (
+                    <MenuItem key={ex.examId} value={ex.examId.toString()}>
+                      {ex.examName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Student</InputLabel>
+                <Select
+                  label="Student"
+                  name="studentId"
+                  value={formData.studentId}
+                  onChange={(e) => handleChange(e as any)}
+                  required
+                  disabled={isSubmitting}
+                >
+                  {students.map((st) => (
+                    <MenuItem
+                      key={st.studentId}
+                      value={st.studentId.toString()}
+                    >
+                      {st.firstName} {st.lastName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="Marks Obtained"
@@ -57,7 +107,7 @@ export default function EditExamMark() {
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <FormControlLabel
                 control={
                   <Switch
@@ -70,7 +120,7 @@ export default function EditExamMark() {
               />
             </Grid>
 
-            <Grid item xs={12} sx={{ mt: 2 }}>
+            <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <Link href="/exam-marks" passHref>
                   <Button

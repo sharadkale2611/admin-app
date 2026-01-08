@@ -87,39 +87,36 @@ export const createExamMark = createAsyncThunk<
   "examMarks/create",
   async (payload, { rejectWithValue }) => {
     try {
-      const response = await api.post<ApiResponse<ExamMark>>(
+      // api.post returns TransformedResponse: { success, message, data, error, errors, status, ... }
+      const response = await api.post<ExamMark>(
         API_ENDPOINTS.EXAM_MARKS.POST_CREATE,
         payload,
         { withCredentials: true }
       );
 
-      if (response.data?.success === false) {
+      // Backend duplicate case: { success: false, message: "Marks already recorded for this student", error: "Duplicate" }
+      if (response.success === false) {
         return rejectWithValue(
-          response.data?.message || response.data?.error || "Failed to create exam mark"
+          response.message || response.error || "Failed to create exam mark"
         );
       }
 
       return {
         success: true,
-        message: response.data?.message || "Exam mark created successfully",
+        message: response.message || "Exam mark created successfully",
         error: null,
         errors: null,
-        examMark: response.data?.data ?? null,
+        examMark: response.data ?? null,
       };
     } catch (error: any) {
-      const errRes = error.response?.data;
-
-      if (errRes?.errors) {
-        const all = Object.values(errRes.errors).flat();
+      // Error object is shaped by apiService interceptor
+      if (error?.errors) {
+        const all = Object.values(error.errors as Record<string, string[]>).flat();
         return rejectWithValue(all.join(", "));
       }
 
-      if (errRes?.message) {
-        return rejectWithValue(errRes.message);
-      }
-
-      if (errRes?.error) {
-        return rejectWithValue(errRes.error);
+      if (error?.message) {
+        return rejectWithValue(error.message);
       }
 
       return rejectWithValue("Server error");
@@ -143,7 +140,12 @@ export const updateExamMark = createAsyncThunk<
     try {
       const response = await api.put<ApiResponse<ExamMark | null>>(
         `${API_ENDPOINTS.EXAM_MARKS.PUT_UPDATE}/${payload.id}`,
-        { markObtained: payload.markObtained, status: payload.status },
+        {
+          examId: payload.examId,
+          studentId: payload.studentId,
+          markObtained: payload.markObtained,
+          status: payload.status,
+        },
         {
           withCredentials: true,
           headers: { "Content-Type": "application/json" },
@@ -165,6 +167,8 @@ export const updateExamMark = createAsyncThunk<
 
       const merged: ExamMark = {
         ...existing,
+        examId: payload.examId ?? existing.examId,
+        studentId: payload.studentId ?? existing.studentId,
         markObtained: payload.markObtained,
         status: payload.status,
       };

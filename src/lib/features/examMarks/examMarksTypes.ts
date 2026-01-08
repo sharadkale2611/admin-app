@@ -39,15 +39,19 @@ export interface ExamMarksState {
 }
 
 export interface CreateExamMarkDto {
-  firmId?: number; // set on backend from token, but keep for typing
+  examMarkId: number;
+  firmId: number;
   examId: number;
   studentId: number;
+  grade: string;
   markObtained: number;
   status: boolean;
 }
 
 export interface UpdateExamMarkDto {
   id: number;
+  examId?: number;
+  studentId?: number;
   markObtained: number;
   status: boolean;
 }

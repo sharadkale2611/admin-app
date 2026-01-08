@@ -49,7 +49,7 @@ export default function CreateExamMark() {
       <Paper elevation={0} sx={{ p: 3, border: '1px solid #e0e0e0' }}>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth size="small">
                 <InputLabel>Exam</InputLabel>
                 <Select
@@ -71,7 +71,7 @@ export default function CreateExamMark() {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth size="small">
                 <InputLabel>Student</InputLabel>
                 <Select
@@ -96,7 +96,7 @@ export default function CreateExamMark() {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Marks Obtained"
@@ -110,7 +110,7 @@ export default function CreateExamMark() {
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <FormControlLabel
                 control={
                   <Switch
@@ -123,7 +123,7 @@ export default function CreateExamMark() {
               />
             </Grid>
 
-            <Grid item xs={12} sx={{ mt: 2 }}>
+            <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <Link href="/exam-marks" passHref>
                   <Button

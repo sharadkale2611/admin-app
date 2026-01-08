@@ -114,6 +114,9 @@ const ProtectedLayout = ({ children }: layoutParams) => {
         // { text: "Courses Fees", icon: <BookSharp />, path: AppRoutes.FEES },
         { text: "Batches", icon: <BookSharp />, path: AppRoutes.BATCHES },
         { text: "Students", icon: <PeopleIcon />, path: AppRoutes.STUDENTS },
+        { text: "Exams", icon: <PeopleIcon />, path: AppRoutes.EXAMS },
+        { text: "Exam Marks", icon: <School />, path: AppRoutes.EXAM_MARKS },
+
 
 
         // { text: "ClassRooms", icon: <Class/>, path: AppRoutes.CLASSROOM },
