@@ -38,6 +38,20 @@ export const useStudentViewModel = () => {
         return () => clearTimeout(timer);
     }, [fetchStudentData, searchTerm]);
 
+    /* ===============================
+    DROPDOWN SUPPORT (NON-PAGINATED)
+ ================================ */
+
+    const ensureStudentsLoaded = useCallback(() => {
+        if (!safeStudents.length && !loading) {
+            dispatch(fetchStudents({
+            page,
+            searchTerm,
+            activeOnly
+        }));
+        }
+    }, [dispatch, safeStudents.length, loading]);
+
     // Action Handlers
     const handleSearch = useCallback((term: string) => {
         dispatch(setSearchTerm(term));
@@ -72,6 +86,9 @@ export const useStudentViewModel = () => {
         handleToggleActive,
         handleResetFilters,
         handlePageChange,
-        refetch: fetchStudentData
+        refetch: fetchStudentData,
+        /* Dropdown */
+        dropdownStudents: safeStudents,
+        ensureStudentsLoaded,
     };
 };

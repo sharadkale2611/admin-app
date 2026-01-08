@@ -7,7 +7,8 @@ import {
     PaginatedCourses,
     ApiResponse,
     FetchCoursesParams,
-    CourseLevel
+    CourseLevel,
+    CourseWithDetails
 } from './courseTypes';
 import API_ENDPOINTS from "@/lib/config/apiConfig";
 import api from "@/lib/services/apiService";
@@ -127,21 +128,23 @@ export const fetchCourses = createAsyncThunk<
 );
 
 export const fetchCourseById = createAsyncThunk<
-    Course,
+    CourseWithDetails,
     number,
     { dispatch: AppDispatch; state: RootState; rejectValue: string }
 >(
     'courses/fetchCourseById',
     async (courseId, { rejectWithValue }) => {
         try {
-            const response = await api.get<Course>(
-                `${API_ENDPOINTS.COURSES.GET_BY_ID}/${courseId}`,
+            const response = await api.get<CourseWithDetails>(
+                `${API_ENDPOINTS.COURSES.GET_BY_ID}/details/${courseId}`,
                 { withCredentials: true }
             );
 
             if (!response.data) {
                 return rejectWithValue('Course not found');
             }
+
+            console.log('Fetched course details:', response.data);
 
             return response.data;
 

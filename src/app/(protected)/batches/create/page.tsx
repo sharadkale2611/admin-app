@@ -23,14 +23,14 @@ export default function CreateBatchPage() {
   const { handleCreateBatch } = useCreateBatch();
 
   const [branches, setBranches] = useState([]);
-  const [courseModules, setCourseModules] = useState([]);
+  const [modules, setModules] = useState([]);
   const [classRooms, setClassRooms] = useState([]);
   const [trainers, setTrainers] = useState([]);
 
   const [form, setForm] = useState({
     batchCode: "",
     branchId: "",
-    courseModuleId: "",
+    moduleId: "",
     trainerId: "",
     classRoomId: "",
     startDate: "",
@@ -50,12 +50,12 @@ export default function CreateBatchPage() {
   // Load dropdown data
   const loadDropdowns = async () => {
     const b = await api.get(API_ENDPOINTS.BRANCHES.GET_LIST);
-    const cm = await api.get(API_ENDPOINTS.COURSE_MODULES.GET_LIST);
+    const m = await api.get(API_ENDPOINTS.MODULES.GET_LIST);
     const cr = await api.get(API_ENDPOINTS.CLASS_ROOMS.GET_LIST);
     const t = await api.get(API_ENDPOINTS.STAFF.GET_LIST);
 
     setBranches(b.data ?? []);
-    setCourseModules(cm.data ?? []);
+    setModules(m.data ?? []);
     setClassRooms(cr.data ?? []);
     setTrainers(t.data ?? []);
   };
@@ -70,7 +70,7 @@ const handleSubmit = async (e: any) => {
   const dto = {
     BatchCode: form.batchCode,
     BranchId: form.branchId ? Number(form.branchId) : null,
-    CourseModuleId: Number(form.courseModuleId),
+    ModuleId: Number(form.moduleId),
     TrainerId: Number(form.trainerId),
     ClassRoomId: Number(form.classRoomId),
 
@@ -141,15 +141,15 @@ const handleSubmit = async (e: any) => {
           {/* Course Module */}
           <TextField
             select
-            label="Course Module"
-            name="courseModuleId"
-            value={form.courseModuleId}
+            label="Module"
+            name="moduleId"
+            value={form.moduleId}
             onChange={handleChange}
             required
           >
-            {courseModules.map((m: any) => (
-              <MenuItem key={m.courseModuleId} value={m.courseModuleId}>
-                {m.courseName} — {m.moduleName}
+            {modules.map((m: any) => (
+              <MenuItem key={m.moduleId} value={m.moduleId}>
+                {m.moduleName}
               </MenuItem>
             ))}
           </TextField>
@@ -224,14 +224,14 @@ const handleSubmit = async (e: any) => {
           /> */}
 
           {/* Time */}
-          {/* <TextField
+          <TextField
             type="time"
             label="Start Time"
             name="startTime"
             InputLabelProps={{ shrink: true }}
             value={form.startTime}
             onChange={handleChange}
-          /> */}
+          />
 
           {/* Duration */}
           {/* <TextField

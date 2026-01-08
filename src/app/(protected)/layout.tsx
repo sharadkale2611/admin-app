@@ -24,6 +24,7 @@ import {
     Menu,
     MenuItem,
     Avatar,
+    
 } from "@mui/material";
 
 import {
@@ -38,7 +39,16 @@ import {
     BookSharp,
     BookmarkSharp,
     Class,
-    Layers
+    Layers,
+    School,
+    CurrencyRupee,
+    LocalOffer,
+    ViewModule,
+    MenuBook,
+    Groups,
+    AssignmentInd,
+    Assignment,
+    EventNote,
 } from "@mui/icons-material";
 
 import { useTheme } from "@mui/material/styles";
@@ -95,32 +105,39 @@ const ProtectedLayout = ({ children }: layoutParams) => {
 
     const firmAdminMenu = [
         { text: "Dashboard", icon: <DashboardIcon />, path: AppRoutes.DASHBOARD },
-        { text: "ClassRooms", icon: <Class/>, path: AppRoutes.CLASSROOM },
-        // { text: "Batch", icon: <Layers />, path: AppRoutes.BATCH },
-
         { text: "Staff", icon: <PeopleIcon />, path: AppRoutes.STAFF },
-        { text: "Students", icon: <PeopleIcon />, path: AppRoutes.STUDENTS },
-        { text: "Admissions", icon: <PeopleIcon />, path: AppRoutes.ADMISSIONS },
 
-        { text: "Courses Category", icon: <BookmarkSharp />, path: AppRoutes.COURSE_CATEGORY },
         { text: "Courses", icon: <BookSharp />, path: AppRoutes.COURSES },
-        { text: "Courses Fees", icon: <BookSharp />, path: AppRoutes.FEES },
-        { text: "Discounts", icon: <BookSharp />, path: AppRoutes.DISCOUNTS },
 
         { text: "Modules", icon: <BookSharp />, path: AppRoutes.MODULES },
-        { text: "Course Modules", icon: <BookSharp />, path: AppRoutes.COURSE_MODULES },
 
+        // { text: "Courses Fees", icon: <BookSharp />, path: AppRoutes.FEES },
         { text: "Batches", icon: <BookSharp />, path: AppRoutes.BATCHES },
-        { text: "Batch Assignments", icon: <BookSharp />, path: AppRoutes.STUDENT_BATCH_ASSIGNMENTS },
-       
-        { text: "Batch StudyWorks", icon: <BookSharp />, path: AppRoutes.BATCH_STUDYWORK},
+        { text: "Students", icon: <PeopleIcon />, path: AppRoutes.STUDENTS },
+        { text: "Exams", icon: <PeopleIcon />, path: AppRoutes.EXAMS },
 
-        { text: "Batch Schedules", icon: <BookSharp />, path: AppRoutes.BATCH_SCHEDULES},
+
+
+        // { text: "ClassRooms", icon: <Class/>, path: AppRoutes.CLASSROOM },
+        // { text: "Batch", icon: <Layers />, path: AppRoutes.BATCH },
+
+        // { text: "Admissions", icon: <PeopleIcon />, path: AppRoutes.ADMISSIONS },
+
+        // { text: "Courses Category", icon: <BookmarkSharp />, path: AppRoutes.COURSE_CATEGORY },
+        // { text: "Discounts", icon: <BookSharp />, path: AppRoutes.DISCOUNTS },
+
+        // { text: "Course Modules", icon: <BookSharp />, path: AppRoutes.COURSE_MODULES },
+
+        // { text: "Batch Assignments", icon: <BookSharp />, path: AppRoutes.STUDENT_BATCH_ASSIGNMENTS },
+       
+        // { text: "Batch StudyWorks", icon: <BookSharp />, path: AppRoutes.BATCH_STUDYWORK},
+
+        // { text: "Batch Schedules", icon: <BookSharp />, path: AppRoutes.BATCH_SCHEDULES},
 
 
         
 
-        { text: "Reports", icon: <BarChartIcon />, path: "/reports" },
+        // { text: "Reports", icon: <BarChartIcon />, path: "/reports" },
     ];
 
     const menuItems = user?.roles?.includes("Administrator")

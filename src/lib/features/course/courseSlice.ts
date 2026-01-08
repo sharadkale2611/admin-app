@@ -7,7 +7,7 @@ import {
     fetchCourseById,
     fetchCoursesListOptions
 } from './courseThunks';
-import { Course, CourseState, CourseLevel, PaginatedCourses } from "./courseTypes";
+import { Course, CourseState, CourseLevel, PaginatedCourses, CourseWithDetails } from "./courseTypes";
 
 const initialState: CourseState = {
     courses: [],
@@ -84,7 +84,7 @@ const courseSlice = createSlice({
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(fetchCourseById.fulfilled, (state, action: PayloadAction<Course>) => {
+            .addCase(fetchCourseById.fulfilled, (state, action: PayloadAction<CourseWithDetails>) => {
                 state.loading = false;
                 state.currentCourse = action.payload;
             })

@@ -12,6 +12,7 @@ import {
 import { CourseCategoryDto } from './courseCategoryTypes';
 import { clearCurrentCategory, clearError } from './courseCategorySlice';
 
+
 export const useCourseCategoryViewModel = () => {
     const dispatch = useAppDispatch();
     const {

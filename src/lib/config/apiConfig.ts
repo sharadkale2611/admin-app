@@ -102,7 +102,7 @@ const API_ENDPOINTS = {
   COURSES: {
     GET_LIST_PAGINATED:
       process.env.NEXT_PUBLIC_COURSES_PAGINATED_ENDPOINT ||
-      "/api/Courses/paginated",
+      "/Courses/paginated",
     GET_LIST: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",
     GET_BY_ID: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",
     POST_CREATE: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",
@@ -156,6 +156,7 @@ const API_ENDPOINTS = {
     PUT_UPDATE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
     DELETE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
   },
+
   STUDENT_BATCH_ASSIGNMENTS: {
     GET_LIST_PAGINATED:
       process.env.NEXT_PUBLIC_STUDENT_BATCH_ASSIGNMENTS_ENDPOINT ||
@@ -230,6 +231,29 @@ const API_ENDPOINTS = {
       process.env.NEXT_PUBLIC_BATCH_SCHEDULES_ENDPOINT ||
       "/BatchSchedules/create",
   },
+
+   NOTICES: {
+    GET_LIST: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
+    GET_BY_ID: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
+    POST_CREATE: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
+    PUT_UPDATE: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
+    DELETE: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
+  },
+EXAMS: {
+  GET_LIST_PAGINATED:
+    "/Exams/paginated",
+  GET_LIST:
+    process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+  GET_BY_ID:
+    process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+  POST_CREATE:
+    process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+  PUT_UPDATE:
+    process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+  DELETE:
+    process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+}
+
 
 
   // Add other endpoint categories here as needed
