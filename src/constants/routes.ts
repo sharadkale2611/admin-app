@@ -20,6 +20,7 @@ export const AppRoutes = {
 
     PROFILE: '/profile',
     STAFF: '/staff',
+    EXAM_MARKS: '/exam-marks',
     STUDENTS: '/students',
     ADMISSIONS: '/admissions',
     FIRMS: '/firms',

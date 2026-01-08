@@ -40,8 +40,8 @@ export const useCourseFeesEditViewModel = (id: string) => {
     const [submitSuccess, setSubmitSuccess] = useState(false);
 
     const totalFee =
-        (formData.feeAmount ?? 0) +
-        ((formData.feeAmount ?? 0) * (formData.gstPercentage ?? 0)) / 100;
+        (Number(formData.feeAmount) ?? 0) +
+        (Number(formData.feeAmount ?? 0) * (Number(formData.gstPercentage ?? 0))) / 100;
 
     // Fetch courses when hook mounts
     useEffect(() => {
@@ -100,9 +100,11 @@ export const useCourseFeesEditViewModel = (id: string) => {
     );
 
     const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData((prev) => ({
+        const { name, value } = e.target;
+
+        setFormData(prev => ({
             ...prev,
-            [e.target.name]: Number(e.target.value),
+            [name]: value === '' ? '' : Number(value)
         }));
     };
 

@@ -9,9 +9,9 @@ import Swal from 'sweetalert2';
 
 interface FormData {
     courseId: number;
-    totalInstallments: number;
-    feeAmount: number;
-    gstPercentage: number;
+    totalInstallments: number | '';
+    feeAmount: number | '';
+    gstPercentage: number | '';
     branchId?: number;
 }
 
@@ -64,7 +64,7 @@ export const useCreateCourseFeeViewModel = () => {
 
         setFormData(prev => ({
             ...prev,
-            [name]: value === '' ? 0 : Number(value)
+            [name]: value === '' ? '' : Number(value)  // ❌ Converting to Number
         }));
     };
 
@@ -74,28 +74,34 @@ export const useCreateCourseFeeViewModel = () => {
         setError('');
 
         try {
+            // Convert to numbers for validation
+            const courseId = Number(formData.courseId);
+            const feeAmount = Number(formData.feeAmount);
+            const totalInstallments = Number(formData.totalInstallments);
+            const gstPercentage = Number(formData.gstPercentage);
+
             // Validate required fields
-            if (formData.courseId <= 0) {
+            if (courseId <= 0) {
                 throw new Error('Please select a course');
             }
 
-            if (formData.feeAmount <= 0) {
+            if (feeAmount <= 0) {
                 throw new Error('Fee amount must be greater than 0');
             }
 
-            if (formData.totalInstallments < 1 || formData.totalInstallments > 12) {
+            if (totalInstallments < 1 || totalInstallments > 12) {
                 throw new Error('Total installments must be between 1 and 12');
             }
 
-            if (formData.gstPercentage < 0 || formData.gstPercentage > 100) {
+            if (gstPercentage < 0 || gstPercentage > 100) {
                 throw new Error('GST percentage must be between 0 and 100');
             }
 
             const courseFeeDto: CourseFeeDto = {
-                courseId: Number(formData.courseId),
-                totalInstallments: Number(formData.totalInstallments),
-                feeAmount: Number(formData.feeAmount),
-                gstPercentage: Number(formData.gstPercentage),
+                courseId,
+                totalInstallments,
+                feeAmount,
+                gstPercentage,
                 branchId: formData.branchId ? Number(formData.branchId) : undefined
             };
 
@@ -146,7 +152,7 @@ export const useCreateCourseFeeViewModel = () => {
     };
 
     // Calculate total fee
-    const totalFee = formData.feeAmount + (formData.feeAmount * formData.gstPercentage / 100);
+    const totalFee = Number(formData.feeAmount) + (Number(formData.feeAmount) * Number(formData.gstPercentage) / 100);
 
     return {
         formData,

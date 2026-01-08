@@ -17,9 +17,9 @@ export interface CourseFee {
     courseFeeId: number;
     courseId: number;
     courseName: string | null;
-    totalInstallments: number;
-    feeAmount: number;
-    gstPercentage: number;
+    feeAmount: number | '';
+    gstPercentage: number | '';
+    totalInstallments: number | '';
     totalFee: number;
     createdAt: string;
     updatedAt?: string | null;
@@ -202,7 +202,7 @@ export const createCourseFee = createAsyncThunk<
 );
 
 export const updateCourseFee = createAsyncThunk<
-    CourseFee| null | boolean,
+    CourseFee | null | boolean,
     CourseFeeDto,
     { dispatch: AppDispatch; state: RootState; rejectValue: string }
 >(

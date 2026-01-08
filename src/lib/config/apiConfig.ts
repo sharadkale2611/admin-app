@@ -55,6 +55,21 @@ const API_ENDPOINTS = {
     PUT_UPDATE: process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || "api/Students",
     DELETE: process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || "api/Students",
   },
+    EXAM_MARKS: {
+      GET_LIST_PAGINATED:
+        process.env.NEXT_PUBLIC_EXAM_MARKS_PAGINATED_ENDPOINT ||
+        "/api/ExamMarks/paginated",
+      GET_LIST:
+        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/api/ExamMarks",
+      GET_BY_ID:
+        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/api/ExamMarks",
+      POST_CREATE:
+        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/api/ExamMarks",
+      PUT_UPDATE:
+        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/api/ExamMarks",
+      DELETE:
+        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/api/ExamMarks",
+    },
   ADMISSION: {
     GET_LIST_PAGINATED:
       process.env.NEXT_PUBLIC_ENROLLMENTS_PAGINATED_ENDPOINT ||

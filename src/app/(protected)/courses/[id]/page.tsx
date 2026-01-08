@@ -254,6 +254,7 @@ export default function CourseDetails() {
         formData,
         totalFee,
         setFormData,
+        onNumberChange,
         isSubmitting,
         onCancel,
         onSubmit
@@ -276,15 +277,12 @@ export default function CourseDetails() {
                                 fullWidth
                                 label="Fee Amount (₹)"
                                 size="small"
-                                type="text"
+                                type="number"
+                                name="feeAmount"
                                 required
                                 value={formData?.feeAmount ?? ""}
-                                onChange={(e) =>
-                                    setFormData((prev: any) => ({
-                                        ...prev,
-                                        feeAmount: Number(e.target.value)
-                                    }))
-                                }
+                                onChange={onNumberChange}
+
                             />
                         </Grid>
 
@@ -293,15 +291,12 @@ export default function CourseDetails() {
                                 fullWidth
                                 label="GST Percentage (%)"
                                 size="small"
-                                type="text"
+                                type="number"
+                                name="gstPercentage"
                                 required
                                 value={formData?.gstPercentage ?? ""}
-                                onChange={(e) =>
-                                    setFormData((prev: any) => ({
-                                        ...prev,
-                                        gstPercentage: Number(e.target.value)
-                                    }))
-                                }
+                                onChange={onNumberChange}
+
                             />
                         </Grid>
 
@@ -311,14 +306,11 @@ export default function CourseDetails() {
                                 label="Total Installments"
                                 size="small"
                                 type="number"
+                                 name="totalInstallments"
                                 helperText="1–12 installments allowed"
                                 value={formData?.totalInstallments ?? ""}
-                                onChange={(e) =>
-                                    setFormData((prev: any) => ({
-                                        ...prev,
-                                        totalInstallments: Number(e.target.value)
-                                    }))
-                                }
+                                onChange={onNumberChange}
+
                             />
                         </Grid>
 
@@ -775,6 +767,7 @@ export default function CourseDetails() {
                                 setFormData={isEditMode ? editVM.setFormData : createVM.setFormData}
                                 totalFee={isEditMode ? editVM.totalFee : createVM.totalFee}
                                 isSubmitting={isEditMode ? editVM.isSubmitting : createVM.isSubmitting}
+                                onNumberChange={isEditMode ? editVM.handleNumberChange : createVM.handleNumberChange}
                                 onCancel={() => setIsEditingFees(false)}
                                 onSubmit={handleSaveFees}
                             />
