@@ -188,6 +188,7 @@ const API_ENDPOINTS = {
 
     POST_CREATE_BULK: "/StudentBatchAssignments/bulk",  
     
+    
     PUT_UPDATE:
       process.env.NEXT_PUBLIC_STUDENT_BATCH_ASSIGNMENTS_ENDPOINT ||
       "/StudentBatchAssignments",
@@ -267,6 +268,7 @@ EXAMS: {
     process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
   DELETE:
     process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+  GET_STUDENTS_BY_MODULE: "/Exams/students-by-module",
 }
 
 

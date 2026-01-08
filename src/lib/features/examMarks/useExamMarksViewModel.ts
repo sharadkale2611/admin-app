@@ -30,6 +30,9 @@ export const useExamMarksViewModel = () => {
   const safeItems = items || [];
 
   const fetchData = useCallback(() => {
+    // Do not load anything until at least one filter is selected
+    if (examId === null && studentId === null) return;
+
     dispatch(
       fetchExamMarksPaginated({
         page: currentPage,

@@ -201,6 +201,8 @@ const ExamMarksList: React.FC = () => {
     }
   };
 
+  const noFilterSelected = examId === null && studentId === null;
+
   return (
     <Box sx={{ p: 2 }}>
       <Box
@@ -303,7 +305,9 @@ const ExamMarksList: React.FC = () => {
           </Typography>
         )}
 
-        {sortedExamMarks.length === 0 && !isLoading ? (
+        {noFilterSelected ? (
+          <Typography>Please select Exam or Student.</Typography>
+        ) : sortedExamMarks.length === 0 && !isLoading ? (
           <Typography>No exam marks found.</Typography>
         ) : !isMobile ? (
           <Box sx={{ height: "100%", width: "100%" }}>
@@ -378,15 +382,17 @@ const ExamMarksList: React.FC = () => {
           </Paper>
         )}
 
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-          <Pagination
-            count={totalPages}
-            page={page}
-            onChange={(_, value) => handlePageChange(value)}
-            size="small"
-            color="primary"
-          />
-        </Box>
+        {!noFilterSelected && (
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(_, value) => handlePageChange(value)}
+              size="small"
+              color="primary"
+            />
+          </Box>
+        )}
       </Paper>
     </Box>
   );
