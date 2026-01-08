@@ -18,7 +18,6 @@ import {
   Collapse,
   TableSortLabel,
   Button,
-  Avatar,
   Chip,
 } from "@mui/material";
 
@@ -42,7 +41,7 @@ import Link from "next/link";
 
 import { useExamViewModel } from "@/lib/features/exam/useExamViewModel";
 import { Exam } from "@/lib/features/exam/examTypes";
-import { useDeleteExam } from "@/lib/features/exam/useDeleteExam"; 
+import { useDeleteExam } from "@/lib/features/exam/useDeleteExam";
 
 
 const ExamList: React.FC = () => {
@@ -50,7 +49,6 @@ const ExamList: React.FC = () => {
     theme.breakpoints.down("sm")
   );
 
-  // ⭐ Use Exam ViewModel
   const {
     exams,
     isLoading,
@@ -64,10 +62,14 @@ const ExamList: React.FC = () => {
     handleResetFilters,
     handlePageChange,
     refetch,
+
+    // ⭐ now received from hook
+    modules,
+    courses
   } = useExamViewModel();
 
-  // Local UI state
   const { handleDeleteExam } = useDeleteExam();
+
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [sortModel, setSortModel] = React.useState<GridSortModel>([
     { field: "examId", sort: "asc" },
@@ -93,11 +95,25 @@ const ExamList: React.FC = () => {
     );
   };
 
-  // Pagination slicing
+  // ⭐ Helper → Get Module Name
+  const getModuleName = (moduleId: number | null | undefined) => {
+    if (!moduleId) return "-";
+    const mod = modules?.find(m => m.moduleId === moduleId);
+    return mod?.moduleName || `Module #${moduleId}`;
+  };
+
+  // ⭐ Helper → Get Course Name
+  const getCourseName = (courseId: number | null | undefined) => {
+    if (!courseId) return "-";
+    const crs = courses?.find(c => c.courseId === courseId);
+    return crs?.courseName || `Course #${courseId}`;
+  };
+
+
+  // Pagination
   const startIndex = (page - 1) * rowsPerPage;
   const endIndex = startIndex + rowsPerPage;
 
-  // Sorting
   const sortedExams =
     exams.length > 0
       ? [...exams].sort((a, b) => {
@@ -122,7 +138,7 @@ const ExamList: React.FC = () => {
 
   const currentExams = sortedExams.slice(startIndex, endIndex);
 
-  // ⭐ Columns
+  // ⭐ Table Columns
   const columns: GridColDef<Exam>[] = [
     {
       field: "examId",
@@ -156,27 +172,40 @@ const ExamList: React.FC = () => {
         );
       },
     },
+
     {
       field: "examName",
       headerName: "Exam Name",
       flex: 1,
       valueGetter: (v, row) => row?.examName || "",
     },
+
     {
       field: "moduleId",
       headerName: "Module",
-      width: 120,
+      width: 200,
+      valueGetter: (v, row) => getModuleName(row?.moduleId),
     },
+
+    {
+      field: "courseId",
+      headerName: "Course",
+      width: 220,
+      valueGetter: (v, row) => getCourseName(row?.courseId),
+    },
+
     {
       field: "examTotalMarks",
       headerName: "Total Marks",
       width: 130,
     },
+
     {
       field: "examPassingMarks",
       headerName: "Passing Marks",
       width: 140,
     },
+
     {
       field: "isActive",
       headerName: "Status",
@@ -189,6 +218,7 @@ const ExamList: React.FC = () => {
         />
       ),
     },
+
     {
       field: "actions",
       headerName: "Actions",
@@ -213,38 +243,39 @@ const ExamList: React.FC = () => {
           </IconButton>
 
           <IconButton
-  color="error"
-  onClick={async () => {
-    const deleted = await handleDeleteExam(
-      params.row.examId,
-      params.row.examName
-    );
+            color="error"
+            onClick={async () => {
+              const deleted = await handleDeleteExam(
+                params.row.examId,
+                params.row.examName
+              );
 
-    if (deleted) {
-      refetch();   // refresh table after delete
-    }
-  }}
->
-  <Delete fontSize="small" />
-</IconButton>
+              if (deleted) {
+                refetch();
+              }
+            }}
+          >
+            <Delete fontSize="small" />
+          </IconButton>
         </Stack>
       ),
     },
   ];
 
+
   if (isLoading) return <Box sx={{ p: 3 }}>Loading exams...</Box>;
   if (error) return <Box sx={{ p: 3, color: "error.main" }}>Error: {error}</Box>;
 
+
   return (
     <Box sx={{ p: isMobile ? 1 : 3 }}>
-      {/* Header */}
       <Stack
         direction="row"
         alignItems="center"
         justifyContent="space-between"
         sx={{ mb: 3 }}
       >
-        <Stack direction="row" alignItems="center" spacing={2}>
+        <Stack direction="row" spacing={2} alignItems="center">
           <IconButton component={Link} href="/dashboard">
             <ArrowBack />
           </IconButton>
@@ -332,11 +363,16 @@ const ExamList: React.FC = () => {
                 )}
               </Box>
 
-              <Collapse
-                in={expandedRows.includes(exam.examId.toString())}
-              >
+              <Collapse in={expandedRows.includes(exam.examId.toString())}>
                 <CardContent>
-                  <Typography>Module: {exam.moduleId}</Typography>
+                  <Typography>
+                    Module: {getModuleName(exam.moduleId)}
+                  </Typography>
+
+                  <Typography>
+                    Course: {getCourseName(exam.courseId)}
+                  </Typography>
+
                   <Typography>Total: {exam.examTotalMarks}</Typography>
                   <Typography>Pass: {exam.examPassingMarks}</Typography>
 
@@ -345,10 +381,7 @@ const ExamList: React.FC = () => {
                       View
                     </Button>
 
-                    <Button
-                      component={Link}
-                      href={`/exams/${exam.examId}/edit`}
-                    >
+                    <Button component={Link} href={`/exams/${exam.examId}/edit`}>
                       Edit
                     </Button>
                   </Stack>

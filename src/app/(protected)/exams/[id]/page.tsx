@@ -13,12 +13,13 @@ import {
   Grid
 } from '@mui/material';
 
-
 import Link from 'next/link';
 import { ArrowBack, Edit } from '@mui/icons-material';
 import { useParams } from 'next/navigation';
+import { useSelector } from 'react-redux';
 
 import { useExamViewModel } from '@/lib/features/exam/useExamViewModel';
+import type { RootState } from '@/lib/store';
 
 export default function ViewExam() {
 
@@ -29,9 +30,25 @@ export default function ViewExam() {
 
   const { exams, isLoading, error } = useExamViewModel();
 
+  // ✅ Get course & module lists from store
+  const courses = useSelector(
+    (state: RootState) => state.courses.courses || []
+  );
+
+  const modules = useSelector(
+    (state: RootState) => state.modules.modules || []
+  );
+
   const exam = exams.find(e => e.examId === examId);
 
-  // ⏳ Loading skeleton
+  // ✅ Resolve names
+  const courseName =
+    courses.find(c => c.courseId === exam?.courseId)?.courseName || '—';
+
+  const moduleName =
+    modules.find(m => m.moduleId === exam?.moduleId)?.moduleName || '—';
+
+  // ⏳ Loading
   if (isLoading)
     return (
       <Container maxWidth="md" sx={{ mt: 3 }}>
@@ -40,7 +57,7 @@ export default function ViewExam() {
       </Container>
     );
 
-  // ❌ API error
+  // ❌ Error
   if (error)
     return (
       <Container maxWidth="md" sx={{ mt: 3 }}>
@@ -106,8 +123,8 @@ export default function ViewExam() {
           </Grid>
 
           <Grid size={{ xs: 6 }}>
-            <Typography color="text.secondary">Module ID</Typography>
-            <Typography>{exam.moduleId}</Typography>
+            <Typography color="text.secondary">Module</Typography>
+            <Typography>{moduleName}</Typography>
           </Grid>
 
           <Grid size={{ xs: 6 }}>
@@ -121,8 +138,8 @@ export default function ViewExam() {
           </Grid>
 
           <Grid size={{ xs: 6 }}>
-            <Typography color="text.secondary">Course ID</Typography>
-            <Typography>{exam.courseId ?? '—'}</Typography>
+            <Typography color="text.secondary">Course</Typography>
+            <Typography>{courseName}</Typography>
           </Grid>
 
         </Grid>

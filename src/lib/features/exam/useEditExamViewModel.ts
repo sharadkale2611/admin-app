@@ -1,14 +1,22 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
 import Swal from "sweetalert2";
+import { toast } from "react-toastify";
+import { SelectChangeEvent } from "@mui/material";
 
-import { RootState, AppDispatch } from "@/lib/store";
+import { useAppDispatch } from "@/lib/hooks";
+import type { RootState } from "@/lib/store";
+
+import { fetchCoursesListOptions } from "@/lib/features/course/courseThunks";
+import { fetchModules } from "@/lib/features/module/moduleThunks";
 import { fetchExamById, updateExam } from "./examThunks";
 
+/* ============================================================
+   Types
+============================================================ */
 export interface ExamFormData {
   examName: string;
   examDescription: string;
@@ -20,16 +28,40 @@ export interface ExamFormData {
   isActive: boolean;
 }
 
+/* ============================================================
+   View Model
+============================================================ */
 export default function useEditExamViewModel() {
-
   const router = useRouter();
   const { id } = useParams();
-  const dispatch: AppDispatch = useDispatch();
+  const dispatch = useAppDispatch();
+
+  /* ============================================================
+     Load dropdown data
+  ============================================================ */
+  useEffect(() => {
+    dispatch(fetchCoursesListOptions());
+    dispatch(fetchModules());
+  }, [dispatch]);
+
+  /* ============================================================
+     Selectors
+  ============================================================ */
+  const courses = useSelector(
+    (state: RootState) => state.courses.courses || []
+  );
+
+  const modules = useSelector(
+    (state: RootState) => state.modules.modules || []
+  );
 
   const { currentExam, loading, error: fetchError } = useSelector(
     (state: RootState) => state.exam
   );
 
+  /* ============================================================
+     Local state
+  ============================================================ */
   const [formData, setFormData] = useState<ExamFormData>({
     examName: "",
     examDescription: "",
@@ -44,21 +76,21 @@ export default function useEditExamViewModel() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 🔹 Load exam by id
- useEffect(() => {
+  /* ============================================================
+     Fetch exam by ID
+  ============================================================ */
+  useEffect(() => {
+    if (!id) return;
 
-  if (!id) return;
+    const examId = Array.isArray(id) ? Number(id[0]) : Number(id);
+    if (!isNaN(examId)) {
+      dispatch(fetchExamById(examId));
+    }
+  }, [dispatch, id]);
 
-  const examId =
-    Array.isArray(id) ? Number(id[0]) : Number(id);
-
-  if (!isNaN(examId)) {
-    dispatch(fetchExamById(examId));
-  }
-
-}, [dispatch, id]);
-
-  // 🔹 Populate form when exam loads
+  /* ============================================================
+     Populate form when exam loads
+  ============================================================ */
   useEffect(() => {
     if (currentExam) {
       setFormData({
@@ -74,9 +106,15 @@ export default function useEditExamViewModel() {
     }
   }, [currentExam]);
 
-
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
+  /* ============================================================
+     Handlers
+  ============================================================ */
+  const handleChange = (
+    e:
+      | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      | SelectChangeEvent<string>
+  ) => {
+    const { name, value } = e.target as HTMLInputElement;
 
     setFormData(prev => ({
       ...prev,
@@ -84,84 +122,79 @@ export default function useEditExamViewModel() {
     }));
   };
 
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { checked } = e.target;
-
+  const handleStatusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
       ...prev,
-      isActive: checked
+      isActive: e.target.checked
     }));
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsSubmitting(true);
-  setError(null);
+  /* ============================================================
+     Submit
+  ============================================================ */
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
 
-  try {
-    if (!id) throw new Error("Exam ID is missing");
+    try {
+      if (!id) throw new Error("Exam ID missing");
 
-    const examId =
-      Array.isArray(id) ? Number(id[0]) : Number(id);
+      const examId = Array.isArray(id) ? Number(id[0]) : Number(id);
 
-    if (isNaN(examId)) {
-      throw new Error("Invalid Exam ID");
+      const payload = {
+        id: examId,
+        examName: formData.examName,
+        examDescription: formData.examDescription,
+        examDurationHrs: Number(formData.examDurationHrs),
+        examTotalMarks: Number(formData.examTotalMarks),
+        examPassingMarks: Number(formData.examPassingMarks),
+        moduleId: Number(formData.moduleId),
+        courseId: formData.courseId
+          ? Number(formData.courseId)
+          : null,
+        isActive: formData.isActive
+      };
+
+      await dispatch(updateExam(payload)).unwrap();
+
+      await Swal.fire({
+        icon: "success",
+        title: "Exam Updated",
+        text: "Exam updated successfully.",
+        confirmButtonColor: "#3085d6",
+        timer: 2000
+      });
+
+      router.push("/exams");
+
+    } catch (err: any) {
+      const errorMessage =
+        err?.message ||
+        err?.error ||
+        "Failed to update exam";
+
+      setError(errorMessage);
+      toast.error(errorMessage);
+
+    } finally {
+      setIsSubmitting(false);
     }
+  };
 
-    if (!formData.examName || !formData.moduleId) {
-      throw new Error("Please fill required fields");
-    }
-
-    const payload = {
-      id: examId,
-      examName: formData.examName,
-      examDescription: formData.examDescription,
-      examDurationHrs: Number(formData.examDurationHrs),
-      examTotalMarks: Number(formData.examTotalMarks),
-      examPassingMarks: Number(formData.examPassingMarks),
-      moduleId: Number(formData.moduleId),
-      courseId: formData.courseId ? Number(formData.courseId) : null,
-      isActive: formData.isActive
-    };
-
-    await dispatch<any>(updateExam(payload)).unwrap();
-
-   toast.success("Exam updated successfully");
-
-// ⏳ give toast time to render before redirect
-await new Promise(res => setTimeout(res, 400));
-
-router.push("/exams");
-
-  } catch (err: any) {
-
-    const errorMessage =
-      err?.message ||
-      err?.error ||
-      "Failed to update exam";
-
-    setError(errorMessage);
-
-    Swal.fire({
-      icon: "error",
-      title: "Update Failed",
-      text: errorMessage,
-      confirmButtonColor: "#d33"
-    });
-
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
-
+  /* ============================================================
+     Expose
+  ============================================================ */
   return {
     formData,
+    courses,
+    modules,
     loading,
-    isSubmitting,
     error: error || fetchError,
+    isSubmitting,
+
     handleChange,
-    handleCheckboxChange,
+    handleStatusChange,
     handleSubmit
   };
 }

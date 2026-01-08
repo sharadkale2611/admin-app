@@ -10,9 +10,11 @@ import {
   Box,
   Grid,
   Alert,
-  FormControlLabel,
-  Checkbox,
-  Skeleton
+  Skeleton,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from "@mui/material";
 
 import { Save, Cancel } from "@mui/icons-material";
@@ -27,11 +29,12 @@ export default function EditExam() {
 
   const {
     formData,
+    courses,          // ✅ REQUIRED
+    modules,          // ✅ REQUIRED
     loading,
     isSubmitting,
     error,
     handleChange,
-    handleCheckboxChange,
     handleSubmit
   } = useEditExamViewModel();
 
@@ -39,7 +42,12 @@ export default function EditExam() {
     return (
       <Container maxWidth="md" sx={{ mt: 3, mb: 4 }}>
         <Skeleton variant="text" width={300} height={40} />
-        <Skeleton variant="rectangular" width="100%" height={400} sx={{ mt: 2 }} />
+        <Skeleton
+          variant="rectangular"
+          width="100%"
+          height={400}
+          sx={{ mt: 2 }}
+        />
       </Container>
     );
   }
@@ -62,11 +70,15 @@ export default function EditExam() {
           <Grid container spacing={2}>
 
             <Grid size={{ xs: 12 }}>
-              <Typography variant="subtitle1" sx={{ mb: 1, color: "text.secondary" }}>
+              <Typography
+                variant="subtitle1"
+                sx={{ mb: 1, color: "text.secondary" }}
+              >
                 Exam Details
               </Typography>
             </Grid>
 
+            {/* Exam Name */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
@@ -80,6 +92,7 @@ export default function EditExam() {
               />
             </Grid>
 
+            {/* Duration */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
@@ -93,6 +106,7 @@ export default function EditExam() {
               />
             </Grid>
 
+            {/* Description */}
             <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
@@ -107,6 +121,7 @@ export default function EditExam() {
               />
             </Grid>
 
+            {/* Total Marks */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
@@ -121,6 +136,7 @@ export default function EditExam() {
               />
             </Grid>
 
+            {/* Passing Marks */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
@@ -134,46 +150,54 @@ export default function EditExam() {
               />
             </Grid>
 
+            {/* Course Dropdown */}
             <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                fullWidth
-                label="Course ID"
-                name="courseId"
-                type="number"
-                value={formData.courseId}
-                onChange={handleChange}
-                size="small"
-                disabled={isSubmitting}
-              />
+              <FormControl fullWidth size="small">
+                <InputLabel>Course</InputLabel>
+                <Select
+                  name="courseId"
+                  value={formData.courseId}
+                  label="Course"
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                >
+                  {courses.map(course => (
+                    <MenuItem
+                      key={course.courseId}
+                      value={course.courseId}
+                    >
+                      {course.courseName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
 
+            {/* Module Dropdown */}
             <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                fullWidth
-                label="Module ID"
-                name="moduleId"
-                type="number"
-                value={formData.moduleId}
-                onChange={handleChange}
-                required
-                size="small"
-                disabled={isSubmitting}
-              />
+              <FormControl fullWidth size="small">
+                <InputLabel>Module</InputLabel>
+                <Select
+                  name="moduleId"
+                  value={formData.moduleId}
+                  label="Module"
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                  required
+                >
+                  {modules.map(module => (
+                    <MenuItem
+                      key={module.moduleId}
+                      value={module.moduleId}
+                    >
+                      {module.moduleName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
 
-            <Grid size={{ xs: 12 }}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={formData.isActive}
-                    onChange={handleCheckboxChange}
-                    disabled={isSubmitting}
-                  />
-                }
-                label="Active"
-              />
-            </Grid>
-
+            {/* Buttons */}
             <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
               <Box sx={{ display: "flex", gap: 2 }}>
                 <Link href="/exams" passHref>

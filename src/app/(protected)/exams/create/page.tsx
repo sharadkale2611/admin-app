@@ -11,7 +11,11 @@ import {
   Grid,
   Alert,
   FormControlLabel,
-  Switch
+  Switch,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from "@mui/material";
 
 import { Save, Cancel } from "@mui/icons-material";
@@ -25,6 +29,8 @@ export default function CreateExam() {
     formData,
     isSubmitting,
     error,
+    courses,
+    modules,
     handleChange,
     handleStatusChange,
     handleSubmit
@@ -98,6 +104,51 @@ export default function CreateExam() {
               />
             </Grid>
 
+            {/* Course Dropdown */}
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Course</InputLabel>
+                <Select
+                  name="courseId"
+                  label="Course"
+                  value={formData.courseId}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                >
+                  <MenuItem value="">-- Select Course --</MenuItem>
+
+                  {courses.map(course => (
+                    <MenuItem key={course.courseId} value={course.courseId}>
+                      {course.courseName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            {/* Module Dropdown */}
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Module</InputLabel>
+                <Select
+                  name="moduleId"
+                  label="Module"
+                  value={formData.moduleId}
+                  onChange={handleChange}
+                  required
+                  disabled={isSubmitting}
+                >
+                  <MenuItem value="">-- Select Module --</MenuItem>
+
+                  {modules.map(module => (
+                    <MenuItem key={module.moduleId} value={module.moduleId}>
+                      {module.moduleName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
             {/* Total Marks */}
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
@@ -127,36 +178,7 @@ export default function CreateExam() {
               />
             </Grid>
 
-            {/* Course ID */}
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                fullWidth
-                label="Course ID"
-                name="courseId"
-                type="number"
-                value={formData.courseId}
-                onChange={handleChange}
-                size="small"
-                disabled={isSubmitting}
-              />
-            </Grid>
-
-            {/* Module ID */}
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                fullWidth
-                label="Module ID"
-                name="moduleId"
-                type="number"
-                value={formData.moduleId}
-                onChange={handleChange}
-                required
-                size="small"
-                disabled={isSubmitting}
-              />
-            </Grid>
-
-            {/* ⭐ STATUS SWITCH — (same as Module UI) */}
+            {/* Status Switch */}
             <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
               <Typography variant="subtitle1" sx={{ color: "text.secondary" }}>
                 Status
