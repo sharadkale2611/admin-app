@@ -40,14 +40,14 @@ export const useCourseFeesEditViewModel = (id: string) => {
     const [submitSuccess, setSubmitSuccess] = useState(false);
 
     const totalFee =
-        (formData.feeAmount ?? 0) +
-        ((formData.feeAmount ?? 0) * (formData.gstPercentage ?? 0)) / 100;
+        (Number(formData.feeAmount) ?? 0) +
+        (Number(formData.feeAmount ?? 0) * (Number(formData.gstPercentage ?? 0))) / 100;
 
     // Fetch courses when hook mounts
     useEffect(() => {
         console.log('from useCourseFeesEditViewModel');
         console.log('from useCourseFeesEditViewModel');
-        
+
         dispatch(fetchCourses({ page: 1, searchTerm: '', status: null, courseLevel: null, categoryId: null }));
     }, [dispatch]);
 
@@ -68,25 +68,26 @@ export const useCourseFeesEditViewModel = (id: string) => {
             setSubmitError(null);
             try {
                 const dto: CourseFeeDto = {
-                    courseFeeId: data.courseFeeId,
-                    courseId: data.courseId,
-                    totalInstallments: data.totalInstallments,
-                    feeAmount: data.feeAmount,
-                    gstPercentage: data.gstPercentage,
-                    branchId: data.branchId ?? undefined,
+                    courseFeeId: Number(data.courseFeeId),
+                    courseId: Number(data.courseId),
+                    totalInstallments: Number(data.totalInstallments),
+                    feeAmount: Number(data.feeAmount),
+                    gstPercentage: Number(data.gstPercentage),
+                    branchId: data.branchId ? Number(data.branchId) : undefined,
                 };
 
                 const result = await dispatch(updateCourseFee(dto)).unwrap();
                 setSubmitSuccess(true);
-                
-            Swal.fire({
-                title: 'Success!',
-                text: 'Recrod updated successfully!',
-                icon: 'success',
-                timer: 2000,
-                showConfirmButton: false
-            }); 
-                router.push('/courses/' + data.courseId);               
+
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Recrod updated successfully!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                window.location.reload();
+                // router.push('/courses/' + data.courseId);               
                 return result;
             } catch (err: any) {
                 setSubmitError(err.message || 'Failed to update course fee');
@@ -99,9 +100,11 @@ export const useCourseFeesEditViewModel = (id: string) => {
     );
 
     const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData((prev) => ({
+        const { name, value } = e.target;
+
+        setFormData(prev => ({
             ...prev,
-            [e.target.name]: Number(e.target.value),
+            [name]: value === '' ? '' : Number(value)
         }));
     };
 
@@ -122,6 +125,7 @@ export const useCourseFeesEditViewModel = (id: string) => {
         coursesLoading,
         error,
         formData,
+        setFormData,
         totalFee,
         isSubmitting,
         submitError,

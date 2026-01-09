@@ -34,6 +34,8 @@ import batchSchedulesReducer from "@/lib/features/batchSchedules/batchScheduleSl
 import noticeReducer from "@/lib/features/notice/noticeSlice";
 import { studentPaymentReducer } from "@/lib/features/studentPayment/studentPaymentSlice";
 
+import examReducer from "@/lib/features/exam/examSlice";
+import examMarksReducer from "@/lib/features/examMarks/examMarksSlice";
 
 
 const rootReducer = combineReducers({
@@ -56,6 +58,8 @@ const rootReducer = combineReducers({
     batchSchedules: batchSchedulesReducer,
     notices: noticeReducer,
     studentPayments: studentPaymentReducer,
+    exam: examReducer,
+    examMarks: examMarksReducer,
 
 });
 

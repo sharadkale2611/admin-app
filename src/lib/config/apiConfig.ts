@@ -55,6 +55,21 @@ const API_ENDPOINTS = {
     PUT_UPDATE: process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || "api/Students",
     DELETE: process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || "api/Students",
   },
+    EXAM_MARKS: {
+      GET_LIST_PAGINATED:
+        process.env.NEXT_PUBLIC_EXAM_MARKS_PAGINATED_ENDPOINT ||
+        "/ExamMarks/paginated",
+      GET_LIST:
+        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/ExamMarks",
+      GET_BY_ID:
+        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/ExamMarks",
+      POST_CREATE:
+        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/ExamMarks",
+      PUT_UPDATE:
+        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/ExamMarks",
+      DELETE:
+        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/ExamMarks",
+    },
   ADMISSION: {
     GET_LIST_PAGINATED:
       process.env.NEXT_PUBLIC_ENROLLMENTS_PAGINATED_ENDPOINT ||
@@ -102,7 +117,7 @@ const API_ENDPOINTS = {
   COURSES: {
     GET_LIST_PAGINATED:
       process.env.NEXT_PUBLIC_COURSES_PAGINATED_ENDPOINT ||
-      "/api/Courses/paginated",
+      "/Courses/paginated",
     GET_LIST: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",
     GET_BY_ID: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",
     POST_CREATE: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",
@@ -174,6 +189,7 @@ const API_ENDPOINTS = {
 
     POST_CREATE_BULK: "/StudentBatchAssignments/bulk",  
     
+    
     PUT_UPDATE:
       process.env.NEXT_PUBLIC_STUDENT_BATCH_ASSIGNMENTS_ENDPOINT ||
       "/StudentBatchAssignments",
@@ -244,8 +260,22 @@ const API_ENDPOINTS = {
   STUDENT_PAYMENTS: {
     GET_BY_STUDENT_ID: "/StudentPayments/student-id",
     UPDATE_PAYMENT: "/StudentPayments/updatePayment"
-
-  }
+  },
+EXAMS: {
+    GET_LIST_PAGINATED:
+      "/Exams/paginated",
+    GET_LIST:
+      process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+    GET_BY_ID:
+      process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+    POST_CREATE:
+      process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+    PUT_UPDATE:
+      process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+    DELETE:
+      process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+    GET_STUDENTS_BY_MODULE: "/Exams/students-by-module",
+  }  
   // Add other endpoint categories here as needed
 };
 

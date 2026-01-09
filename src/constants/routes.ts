@@ -20,6 +20,7 @@ export const AppRoutes = {
 
     PROFILE: '/profile',
     STAFF: '/staff',
+    EXAM_MARKS: '/exam-marks',
     STUDENTS: '/students',
     ADMISSIONS: '/admissions',
     FIRMS: '/firms',
@@ -36,6 +37,8 @@ export const AppRoutes = {
     BATCH_STUDYWORK_ATTACHEMENTS:'/batchStudyWorkAttachements',
     BATCH_SCHEDULES:'/batch-schedules',
     NOTICES:'/notices',
+    EXAMS:'/exams',
+
     
 
 
