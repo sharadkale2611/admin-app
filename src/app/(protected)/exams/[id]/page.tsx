@@ -6,12 +6,10 @@ import {
   Paper,
   Typography,
   Box,
-  Chip,
   Button,
   Skeleton,
   Alert,
   Grid,
-  TextField,
 } from "@mui/material";
 
 import Link from "next/link";
@@ -23,14 +21,23 @@ import { useExamViewModel } from "@/lib/features/exam/useExamViewModel";
 import type { RootState } from "@/lib/store";
 import API_ENDPOINTS from "@/lib/config/apiConfig";
 import api from "@/lib/services/apiService";
+
 import {
   createExamMark,
   updateExamMark,
 } from "@/lib/features/examMarks/examMarksThunks";
+
 import type {
   CreateExamMarkDto,
   UpdateExamMarkDto,
 } from "@/lib/features/examMarks/examMarksTypes";
+
+/* ===== Components ===== */
+import { ExamDetailsCard } from "./components/ExamDetailsCard";
+import { ExamMarksViewList } from "./components/ExamMarksViewList";
+import { ExamMarksEditForm } from "./components/ExamMarksEditForm";
+
+/* ===== Types ===== */
 
 type ExamStudent = {
   studentId: number;
@@ -49,63 +56,62 @@ type ExamMarkSummary = {
 
 type ExamMarksForExamResponse = {
   items: ExamMarkSummary[];
-  totalCount: number;
-  pageSize: number;
-  currentPage: number;
-  totalPages: number;
 };
 
-export default function ViewExam() {
+/* ===== Page ===== */
+
+export default function ViewExamPage() {
   const { id } = useParams();
   const dispatch = useDispatch();
 
   const examId = Array.isArray(id) ? Number(id[0]) : Number(id);
-
   const { exams, isLoading, error } = useExamViewModel();
+  const exam = exams.find((e) => e.examId === examId);
 
-  const [students, setStudents] = useState<ExamStudent[]>([]);
-  const [studentsLoading, setStudentsLoading] = useState(false);
-  const [studentsError, setStudentsError] = useState<string | null>(null);
-  const [marks, setMarks] = useState<Record<number, string>>({});
-  const [existingMarks, setExistingMarks] = useState<
-    Record<number, { examMarkId: number; markObtained: number }>
-  >({});
-  const [submitLoading, setSubmitLoading] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
-  const [isEditingMarks, setIsEditingMarks] = useState(false);
-
-  // ✅ Get course & module lists from store
   const courses = useSelector(
     (state: RootState) => state.courses.courses || []
   );
-
   const modules = useSelector(
     (state: RootState) => state.modules.modules || []
   );
 
-  const exam = exams.find((e) => e.examId === examId);
+  const courseName =
+    courses.find((c) => c.courseId === exam?.courseId)?.courseName || "—";
+  const moduleName =
+    modules.find((m) => m.moduleId === exam?.moduleId)?.moduleName || "—";
+
+  const [students, setStudents] = useState<ExamStudent[]>([]);
+  const [studentsLoading, setStudentsLoading] = useState(false);
+  const [studentsError, setStudentsError] = useState<string | null>(null);
+
+  const [marks, setMarks] = useState<Record<number, string>>({});
+  const [existingMarks, setExistingMarks] = useState<
+    Record<number, { examMarkId: number; markObtained: number }>
+  >({});
+
+  const [isEditingMarks, setIsEditingMarks] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+
+  /* ===== Fetch Students ===== */
 
   useEffect(() => {
-    const fetchStudents = async () => {
-      if (!exam?.moduleId) return;
+    if (!exam?.moduleId) return;
 
+    const fetchStudents = async () => {
       try {
         setStudentsLoading(true);
         setStudentsError(null);
 
-        const response = await api.get<ExamStudent[]>(
+        const res = await api.get<ExamStudent[]>(
           `${API_ENDPOINTS.EXAMS.GET_STUDENTS_BY_MODULE}/${exam.moduleId}`,
           { withCredentials: true }
         );
 
-        const data = response.data ?? [];
-        setStudents(data);
+        setStudents(res.data ?? []);
       } catch (err: any) {
-        setStudentsError(
-          err.message || "Failed to load students for this exam"
-        );
-        setStudents([]);
+        setStudentsError(err.message || "Failed to load students");
       } finally {
         setStudentsLoading(false);
       }
@@ -114,29 +120,30 @@ export default function ViewExam() {
     fetchStudents();
   }, [exam?.moduleId]);
 
-  useEffect(() => {
-    const fetchExamMarks = async () => {
-      if (!exam?.examId) return;
+  /* ===== Fetch Existing Marks ===== */
 
+  useEffect(() => {
+    if (!exam?.examId) return;
+
+    const fetchMarks = async () => {
       try {
         const query = new URLSearchParams({
           pageNumber: "1",
           pageSize: "1000",
           examId: String(exam.examId),
-        }).toString();
+        });
 
-        const response = await api.get<ExamMarksForExamResponse>(
+        const res = await api.get<ExamMarksForExamResponse>(
           `${API_ENDPOINTS.EXAM_MARKS.GET_LIST_PAGINATED}?${query}`,
           { withCredentials: true }
         );
-
-        const items = response.data?.items ?? [];
 
         const map: Record<
           number,
           { examMarkId: number; markObtained: number }
         > = {};
-        items.forEach((m) => {
+
+        res.data?.items?.forEach((m) => {
           map[m.studentId] = {
             examMarkId: m.examMarkId,
             markObtained: m.markObtained,
@@ -145,29 +152,27 @@ export default function ViewExam() {
 
         setExistingMarks(map);
 
-        // Prefill marks for existing records without overwriting manual edits
         setMarks((prev) => {
           const next = { ...prev };
-          items.forEach((m) => {
-            if (next[m.studentId] === undefined || next[m.studentId] === "") {
+          res.data?.items?.forEach((m) => {
+            if (!next[m.studentId]) {
               next[m.studentId] = String(m.markObtained);
             }
           });
           return next;
         });
       } catch {
-        // If this fails, we simply won't prefill/edit existing marks
+        /* silent */
       }
     };
 
-    fetchExamMarks();
+    fetchMarks();
   }, [exam?.examId]);
 
+  /* ===== Handlers ===== */
+
   const handleMarkChange = (studentId: number, value: string) => {
-    setMarks((prev) => ({
-      ...prev,
-      [studentId]: value,
-    }));
+    setMarks((prev) => ({ ...prev, [studentId]: value }));
   };
 
   const handleSubmitMarks = async () => {
@@ -184,42 +189,36 @@ export default function ViewExam() {
           mark: marks[s.studentId],
           existing: existingMarks[s.studentId],
         }))
-        .filter((x) => x.mark !== undefined && x.mark !== "");
+        .filter((e) => e.mark !== undefined && e.mark !== "");
 
-      if (entries.length === 0) {
+      if (!entries.length) {
         throw new Error("Please enter marks for at least one student");
       }
 
-      // Synchronous validation before hitting API
-      const invalid = entries.filter((entry) => {
-        const numericMark = Number(entry.mark);
-        const hasValue = entry.mark !== "";
-        const maxMarks = exam.examTotalMarks;
-
-        if (!hasValue || Number.isNaN(numericMark)) return true;
-        if (numericMark < 0) return true;
-        if (numericMark > maxMarks) return true;
-        return false;
+      const hasInvalid = entries.some((e) => {
+        const val = Number(e.mark);
+        return isNaN(val) || val < 0 || val > exam.examTotalMarks;
       });
 
-      if (invalid.length > 0) {
+      if (hasInvalid) {
         throw new Error(
-          "Some marks are invalid. Please correct highlighted fields and try again."
+          `Please review the entered marks. Values must be between 0 and ${exam.examTotalMarks} for this exam.`
         );
       }
 
-      const results = await Promise.allSettled(
-        entries.map((entry) => {
-          const numericMark = Number(entry.mark);
-          if (entry.existing) {
+
+      await Promise.all(
+        entries.map((e) => {
+          const mark = Number(e.mark);
+
+          if (e.existing) {
             const payload: UpdateExamMarkDto = {
-              id: entry.existing.examMarkId,
+              id: e.existing.examMarkId,
               examId: exam.examId,
-              studentId: entry.studentId,
-              markObtained: numericMark,
+              studentId: e.studentId,
+              markObtained: mark,
               status: true,
             };
-
             return (dispatch as any)(updateExamMark(payload)).unwrap();
           }
 
@@ -227,270 +226,173 @@ export default function ViewExam() {
             examMarkId: 0,
             firmId: 0,
             examId: exam.examId,
-            studentId: entry.studentId,
+            studentId: e.studentId,
             grade: "",
-            markObtained: numericMark,
+            markObtained: mark,
             status: true,
           };
-
           return (dispatch as any)(createExamMark(payload)).unwrap();
         })
       );
 
-      const failed = results.filter((r) => r.status === "rejected");
+      // ✅ Update existingMarks locally so view updates instantly
+      setExistingMarks((prev) => {
+        const next = { ...prev };
 
-      if (failed.length === 0) {
-        setSubmitSuccess("Exam marks saved successfully"); 
-        window.location.reload();
-        setSubmitError(null);
-      }
-      else if (failed.length === entries.length) {
-        const errorMessages = failed.map((r) => (r as PromiseRejectedResult).reason).map((reason: any) => typeof reason === "string" ? reason : reason?.message || "")
-          .filter(Boolean);
+        entries.forEach((e) => {
+          const numericMark = Number(e.mark);
 
-        const uniqueMessages = Array.from(new Set(errorMessages));
+          if (e.existing) {
+            next[e.studentId] = {
+              examMarkId: e.existing.examMarkId,
+              markObtained: numericMark,
+            };
+          } else {
+            // Newly created mark (use temp id if API doesn't return one)
+            next[e.studentId] = {
+              examMarkId: Date.now(), // safe temporary id
+              markObtained: numericMark,
+            };
+          }
+        });
 
-        setSubmitError(
-          `Failed to save marks for all selected students. ${uniqueMessages.length ? uniqueMessages.join(" | ") : ""
-            }`.trim()
-        );
-      } else {
-        const successCount = entries.length - failed.length;
-        const errorMessages = failed
-          .map((r) => (r as PromiseRejectedResult).reason)
-          .map((reason: any) =>
-            typeof reason === "string" ? reason : reason?.message || ""
-          )
-          .filter(Boolean);
+        return next;
+      });
 
-        const uniqueMessages = Array.from(new Set(errorMessages));
+      setSubmitSuccess("Marks saved successfully");
+      setIsEditingMarks(false);
 
-        setSubmitSuccess(
-          `Saved marks for ${successCount} of ${entries.length} students.`
-        );
-        setSubmitError(
-          `Some marks failed to save. ${uniqueMessages.length ? uniqueMessages.join(" | ") : ""
-            }`.trim()
-        );
-      }
     } catch (err: any) {
-      const message =
-        typeof err === "string"
-          ? err
-          : err?.message || "Failed to save exam marks";
-      setSubmitError(message);
+      setSubmitError(err?.message || "Failed to save marks");
     } finally {
       setSubmitLoading(false);
     }
   };
 
-  // ✅ Resolve names
-  const courseName =
-    courses.find((c) => c.courseId === exam?.courseId)?.courseName || "—";
+  /* ===== UI States ===== */
 
-  const moduleName =
-    modules.find((m) => m.moduleId === exam?.moduleId)?.moduleName || "—";
-
-  // ⏳ Loading
-  if (isLoading)
+  if (isLoading) {
     return (
-      <Container maxWidth="md" sx={{ mt: 3 }}>
-        <Skeleton variant="text" width={300} height={40} />
-        <Skeleton variant="rectangular" width="100%" height={300} />
+      <Container maxWidth="lg" sx={{ mt: 3 }}>
+        <Skeleton height={40} />
+        <Skeleton height={300} />
       </Container>
     );
+  }
 
-  //  Error
-  if (error)
+  if (error) {
     return (
-      <Container maxWidth="md" sx={{ mt: 3 }}>
+      <Container maxWidth="lg" sx={{ mt: 3 }}>
         <Alert severity="error">{error}</Alert>
-        <Box mt={2}>
-          <Button component={Link} href="/exams" startIcon={<ArrowBack />}>
-            Back to Exams
-          </Button>
-        </Box>
       </Container>
     );
+  }
+
+  /* ===== Render ===== */
 
   return (
-    <Container maxWidth="md" sx={{ mt: 3, mb: 4 }}>
+    <Container maxWidth="lg" sx={{ mt: 3, mb: 5 }}>
       {/* Header */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+      <Box display="flex" justifyContent="space-between" mb={3}>
         <Button component={Link} href="/exams" startIcon={<ArrowBack />}>
           Back
         </Button>
 
-        <Button
+        {/* <Button
           variant="contained"
           startIcon={<Edit />}
           component={Link}
           href={`/exams/${exam?.examId}/edit`}
         >
           Edit Exam
-        </Button>
+        </Button> */}
       </Box>
 
-      {/* Card */}
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h5" fontWeight={600}>
-          {exam?.examName}
-        </Typography>
-
-        <Chip
-          label={exam?.isActive ? "Active" : "Inactive"}
-          color={exam?.isActive ? "success" : "error"}
-          sx={{ mt: 1 }}
-        />
-
-        <Grid container spacing={2} sx={{ mt: 2 }}>
-          <Grid size={{ xs: 12 }}>
-            <Typography color="text.secondary">Description</Typography>
-            <Typography>{exam?.examDescription || "—"}</Typography>
-          </Grid>
-
-          <Grid size={{ xs: 6 }}>
-            <Typography color="text.secondary">Duration (hrs)</Typography>
-            <Typography>{exam?.examDurationHrs}</Typography>
-          </Grid>
-
-          <Grid size={{ xs: 6 }}>
-            <Typography color="text.secondary">Module</Typography>
-            <Typography>{moduleName}</Typography>
-          </Grid>
-
-          <Grid size={{ xs: 6 }}>
-            <Typography color="text.secondary">Total Marks</Typography>
-            <Typography>{exam?.examTotalMarks}</Typography>
-          </Grid>
-
-          <Grid size={{ xs: 6 }}>
-            <Typography color="text.secondary">Passing Marks</Typography>
-            <Typography>{exam?.examPassingMarks}</Typography>
-          </Grid>
-
-          <Grid size={{ xs: 6 }}>
-            <Typography color="text.secondary">Course</Typography>
-            <Typography>{courseName}</Typography>
-          </Grid>
-        </Grid>
-      </Paper>
-
-      {/* Students for this exam's module */}
-      <Paper sx={{ p: 3, mt: 3 }}>
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Typography variant="h6" fontWeight={600} gutterBottom>
-            Students for this Module
-          </Typography>
-
-          <Box sx={{ flexGrow: 1 }} />
-
-          <Button
-            variant="outlined"
-            onClick={() => setIsEditingMarks((prev) => !prev)}
-            sx={{
-              color: isEditingMarks ? "#d32f2f" : "#f9a825",
-              borderColor: isEditingMarks ? "#d32f2f" : "#f9a825",
-              textTransform: "none",
-              fontWeight: 600,
-              "&:hover": {
-                backgroundColor: isEditingMarks
-                  ? "rgba(211, 47, 47, 0.08)"
-                  : "rgba(249, 168, 37, 0.08)",
-              },
-            }}
-          >
-            {isEditingMarks ? "Cancel" : "Edit Marks"}
-          </Button>
-        </Box>
-
-        {submitError && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {submitError}
-          </Alert>
-        )}
-
-        {submitSuccess && (
-          <Alert severity="success" sx={{ mb: 2 }}>
-            {submitSuccess}
-          </Alert>
-        )}
-
-        {studentsLoading && (
-          <Typography color="text.secondary">Loading students...</Typography>
-        )}
-
-        {studentsError && !studentsLoading && (
-          <Alert severity="error">{studentsError}</Alert>
-        )}
-
-        {!studentsLoading && !studentsError && students.length === 0 && (
-          <Typography color="text.secondary">
-            No students found for this module.
-          </Typography>
-        )}
-
-        {!studentsLoading &&
-          !studentsError &&
-          students.length > 0 &&
-          isEditingMarks && (
-            <Box mt={2}>
-              {students.map((s) => (
-                <Box
-                  key={`${s.enrollmentId}-${s.batchId}`}
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    py: 1,
-                    borderBottom: "1px solid",
-                    borderColor: "divider",
-                    gap: 2,
-                  }}
-                >
-                  <Box sx={{ flex: 1 }}>
-                    <Typography fontWeight={500}>{s.studentName}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Code: {s.studentCode}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Batch: {s.batchCode}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ width: 160 }}>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      type="number"
-                      label="Obtained Marks"
-                      value={marks[s.studentId] ?? ""}
-                      onChange={(e) =>
-                        handleMarkChange(s.studentId, e.target.value)
-                      }
-                      inputProps={{ min: 0, max: exam?.examTotalMarks }}
-                    />
-                    {existingMarks[s.studentId] && (
-                      <Typography variant="caption" color="text.secondary">
-                        Existing marks recorded – editing will update.
-                      </Typography>
-                    )}
-                  </Box>
-                </Box>
-              ))}
-
-              <Box mt={3} display="flex" justifyContent="flex-end">
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleSubmitMarks}
-                  disabled={submitLoading || students.length === 0}
-                >
-                  {submitLoading ? "Saving Marks..." : "Submit Marks"}
-                </Button>
-              </Box>
+      <Grid container spacing={3}>
+        {/* LEFT: Exam Details */}
+        <Grid size={{ xs: 12, lg: 4 }}>
+          {exam && (
+            <Box sx={{ position: "sticky", top: 88 }}>
+              <ExamDetailsCard
+                exam={exam}
+                courseName={courseName}
+                moduleName={moduleName}
+              />
             </Box>
           )}
-      </Paper>
+        </Grid>
+
+        {/* RIGHT: Marks Workspace */}
+        <Grid size={{ xs: 12, lg: 8 }}>
+          <Paper sx={{ p: 3 }}>
+            {/* Header */}
+            <Box display="flex" alignItems="center" mb={2}>
+              <Box>
+                <Typography variant="h6" fontWeight={600}>
+                  Student Marks
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  View or update marks for this exam
+                </Typography>
+              </Box>
+
+              <Box flexGrow={1} />
+
+              <Button
+                size="small"
+                variant={isEditingMarks ? "outlined" : "contained"}
+                onClick={() => setIsEditingMarks((p) => !p)}
+              >
+                {isEditingMarks ? "Cancel Editing" : "Edit Marks"}
+              </Button>
+            </Box>
+
+            {/* Alerts */}
+            {submitError && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {submitError}
+              </Alert>
+            )}
+
+            {submitSuccess && (
+              <Alert severity="success" sx={{ mb: 2 }}>
+                {submitSuccess}
+              </Alert>
+            )}
+
+            {/* Content */}
+            {studentsLoading && (
+              <Typography color="text.secondary">
+                Loading students...
+              </Typography>
+            )}
+
+            {studentsError && (
+              <Alert severity="error">{studentsError}</Alert>
+            )}
+
+            {!studentsLoading && !studentsError && !isEditingMarks && (
+              <ExamMarksViewList
+                students={students}
+                existingMarks={existingMarks}
+              />
+            )}
+
+            {!studentsLoading && !studentsError && isEditingMarks && exam && (
+              <ExamMarksEditForm
+                students={students}
+                marks={marks}
+                existingMarks={existingMarks}
+                examTotalMarks={exam.examTotalMarks}
+                submitLoading={submitLoading}
+                onMarkChange={handleMarkChange}
+                onSubmit={handleSubmitMarks}
+                onCancel={() => setIsEditingMarks(false)}
+              />
+            )}
+          </Paper>
+        </Grid>
+      </Grid>
     </Container>
   );
 }
