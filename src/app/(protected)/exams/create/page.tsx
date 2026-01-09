@@ -136,7 +136,7 @@ export default function CreateExam() {
                   value={formData.moduleId}
                   onChange={handleChange}
                   required
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !formData.courseId}
                 >
                   <MenuItem value="">-- Select Module --</MenuItem>
 

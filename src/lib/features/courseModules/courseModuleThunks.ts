@@ -175,3 +175,27 @@ export const fetchModulesDropdown = createAsyncThunk<
         return rejectWithValue(error?.message || "Failed to fetch modules for dropdown");
     }
 });
+
+// --------------------
+// Course-wise modules for dropdown (cascading)
+// --------------------
+
+export const fetchModulesByCourse = createAsyncThunk<
+    CourseModuleResponseDto[],
+    number,
+    { dispatch: AppDispatch; state: RootState; rejectValue: string }
+>("courseModules/fetchModulesByCourse", async (courseId, { rejectWithValue }) => {
+    try {
+        const response = await api.get<ApiWrapper<CourseModuleResponseDto[]>>(
+            `${API_ENDPOINTS.COURSE_MODULES.GET_BY_COURSE}/${courseId}`,
+            { withCredentials: true }
+        );
+
+        const data = mapResponse<CourseModuleResponseDto[]>(response);
+        if (!data) return rejectWithValue("No modules found for selected course");
+
+        return data;
+    } catch (error: any) {
+        return rejectWithValue(error?.message || "Failed to fetch modules by course");
+    }
+});

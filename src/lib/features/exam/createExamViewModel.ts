@@ -11,7 +11,7 @@ import { useAppDispatch } from "@/lib/hooks";
 import type { RootState } from "@/lib/store";
 
 import { fetchCoursesListOptions } from "@/lib/features/course/courseThunks";
-import { fetchModules } from "@/lib/features/module/moduleThunks";
+import { fetchModulesByCourse } from "@/lib/features/courseModules/courseModuleThunks";
 import { createExam } from "./examThunks";
 
 /* ============================================================
@@ -36,11 +36,10 @@ export default function useCreateExamViewModel() {
   const dispatch = useAppDispatch();
 
   /* ============================================================
-     Load dropdown data (once)
+      Load dropdown data (once)
   ============================================================ */
   useEffect(() => {
     dispatch(fetchCoursesListOptions());
-    dispatch(fetchModules());
   }, [dispatch]);
 
   /* ============================================================
@@ -50,9 +49,15 @@ export default function useCreateExamViewModel() {
     (state: RootState) => state.courses.courses || []
   );
 
-  const modules = useSelector(
-    (state: RootState) => state.modules.modules || []
+  // course-wise modules (cascading)
+  const courseModulesByCourse = useSelector(
+    (state: RootState) => state.courseModules.courseModulesByCourse || []
   );
+
+  const modules = courseModulesByCourse.map(cm => ({
+    moduleId: cm.moduleId,
+    moduleName: cm.moduleName ?? `Module #${cm.moduleId}`,
+  }));
 
   const firmId = useSelector(
     (state: RootState) => state.auth.user?.firmId
@@ -85,10 +90,26 @@ export default function useCreateExamViewModel() {
   ) => {
     const { name, value } = e.target as HTMLInputElement;
 
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [name]: value,
+      };
+
+      // When course changes, fetch modules for that course and reset moduleId
+      if (name === "courseId") {
+        if (value) {
+          const numericCourseId = Number(value);
+          if (!isNaN(numericCourseId)) {
+            dispatch(fetchModulesByCourse(numericCourseId));
+          }
+        }
+
+        updated.moduleId = "";
+      }
+
+      return updated;
+    });
   };
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
