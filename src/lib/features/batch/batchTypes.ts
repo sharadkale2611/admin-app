@@ -112,6 +112,13 @@ export interface StudentBatchState {
   error: ApiError | null;
 }
 
+export interface StudentBatchState {
+  studentBatches: Batch[];
+}
+
+export interface CourseBatchState {
+  courseBatches: Batch[];
+}
 
 
 // Generic API response wrapper from your backend

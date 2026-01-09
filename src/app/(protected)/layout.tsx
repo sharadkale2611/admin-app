@@ -150,7 +150,11 @@ const ProtectedLayout = ({ children }: layoutParams) => {
     if (!initialCheckDone) {
         return (
             <div className="flex justify-center items-center h-screen">
-                <LoadingSpinner text="Verifying session..." />
+                <LoadingSpinner
+                    size="lg"
+                    label="Verifying session"
+                    subLabel="Please wait a moment"
+                />
             </div>
         );
     }
@@ -158,7 +162,11 @@ const ProtectedLayout = ({ children }: layoutParams) => {
     if (!isAuthenticated) {
         return (
             <div className="flex justify-center items-center h-screen">
-                <LoadingSpinner text="Redirecting to login..." />
+                <LoadingSpinner
+                    size="lg"
+                    label="Redirecting to login..."
+                    subLabel="Please wait a moment"
+                />                
             </div>
         );
     }

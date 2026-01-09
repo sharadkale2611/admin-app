@@ -18,15 +18,22 @@ export const useCourseModuleViewModel = () => {
 
     const refetch = () => dispatch(fetchCourseModules());
 
-    const createCourseModuleAction = (data: CourseModuleDto) => dispatch(createCourseModule(data));
-    const updateCourseModuleAction = (payload: { id: number; data: CourseModuleDto }) =>
-        dispatch(updateCourseModule(payload));
-    const deleteCourseModuleAction = (id: number) => dispatch(deleteCourseModule(id));
-
+    const createCourseModuleAction = async (data: CourseModuleDto) => {
+        await dispatch(createCourseModule(data)).unwrap();
+    };
+    const updateCourseModuleAction = async (
+        payload: { id: number; data: CourseModuleDto }
+    ) => {
+        return await dispatch(updateCourseModule(payload)).unwrap();
+    };
+    const deleteCourseModuleAction = async (id: number) => {
+        await dispatch(deleteCourseModule(id)).unwrap();
+    };
     useEffect(() => {
-        if (!courseModules.length) {
+        // if (!courseModules.length) {
+        //     dispatch(fetchCourseModules());
+        // }
             dispatch(fetchCourseModules());
-        }
     }, [dispatch]);
 
     return {

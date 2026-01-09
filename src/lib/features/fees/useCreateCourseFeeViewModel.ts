@@ -37,9 +37,9 @@ export const useCreateCourseFeeViewModel = () => {
     );
 
     // Fetch courses on component mount
-    useEffect(() => {
-        dispatch(fetchCourses({}));
-    }, [dispatch]);
+    // useEffect(() => {
+    //     dispatch(fetchCourses({}));
+    // }, [dispatch]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -59,14 +59,21 @@ export const useCreateCourseFeeViewModel = () => {
         }));
     };
 
-    const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleNumberChange = (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
         const { name, value } = e.target;
 
-        setFormData(prev => ({
-            ...prev,
-            [name]: value === '' ? '' : Number(value)  // ❌ Converting to Number
-        }));
+        setFormData(prev => {
+            if (!prev) return prev;
+
+            return {
+                ...prev,
+                [name]: value === '' ? '' : Number(value),
+            };
+        });
     };
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

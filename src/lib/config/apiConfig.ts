@@ -171,6 +171,8 @@ const API_ENDPOINTS = {
     PUT_UPDATE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
     DELETE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
     GET_BY_STUDENT: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches/by-student",
+    GET_BY_COURSE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches/by-course",
+
   },
 
   STUDENT_BATCH_ASSIGNMENTS: {
