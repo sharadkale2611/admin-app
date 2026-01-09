@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Container,
   Paper,
@@ -11,20 +11,26 @@ import {
   Skeleton,
   Alert,
   Grid,
-  TextField
-} from '@mui/material';
+  TextField,
+} from "@mui/material";
 
-import Link from 'next/link';
-import { ArrowBack, Edit } from '@mui/icons-material';
-import { useParams } from 'next/navigation';
-import { useDispatch, useSelector } from 'react-redux';
+import Link from "next/link";
+import { ArrowBack, Edit } from "@mui/icons-material";
+import { useParams } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
 
-import { useExamViewModel } from '@/lib/features/exam/useExamViewModel';
-import type { RootState } from '@/lib/store';
-import API_ENDPOINTS from '@/lib/config/apiConfig';
-import api from '@/lib/services/apiService';
-import { createExamMark, updateExamMark } from '@/lib/features/examMarks/examMarksThunks';
-import type { CreateExamMarkDto, UpdateExamMarkDto } from '@/lib/features/examMarks/examMarksTypes';
+import { useExamViewModel } from "@/lib/features/exam/useExamViewModel";
+import type { RootState } from "@/lib/store";
+import API_ENDPOINTS from "@/lib/config/apiConfig";
+import api from "@/lib/services/apiService";
+import {
+  createExamMark,
+  updateExamMark,
+} from "@/lib/features/examMarks/examMarksThunks";
+import type {
+  CreateExamMarkDto,
+  UpdateExamMarkDto,
+} from "@/lib/features/examMarks/examMarksTypes";
 
 type ExamStudent = {
   studentId: number;
@@ -50,12 +56,10 @@ type ExamMarksForExamResponse = {
 };
 
 export default function ViewExam() {
-
   const { id } = useParams();
   const dispatch = useDispatch();
 
-  const examId =
-    Array.isArray(id) ? Number(id[0]) : Number(id);
+  const examId = Array.isArray(id) ? Number(id[0]) : Number(id);
 
   const { exams, isLoading, error } = useExamViewModel();
 
@@ -69,6 +73,7 @@ export default function ViewExam() {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+  const [isEditingMarks, setIsEditingMarks] = useState(false);
 
   // ✅ Get course & module lists from store
   const courses = useSelector(
@@ -79,7 +84,7 @@ export default function ViewExam() {
     (state: RootState) => state.modules.modules || []
   );
 
-  const exam = exams.find(e => e.examId === examId);
+  const exam = exams.find((e) => e.examId === examId);
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -97,7 +102,9 @@ export default function ViewExam() {
         const data = response.data ?? [];
         setStudents(data);
       } catch (err: any) {
-        setStudentsError(err.message || 'Failed to load students for this exam');
+        setStudentsError(
+          err.message || "Failed to load students for this exam"
+        );
         setStudents([]);
       } finally {
         setStudentsLoading(false);
@@ -113,8 +120,8 @@ export default function ViewExam() {
 
       try {
         const query = new URLSearchParams({
-          pageNumber: '1',
-          pageSize: '1000',
+          pageNumber: "1",
+          pageSize: "1000",
           examId: String(exam.examId),
         }).toString();
 
@@ -125,7 +132,10 @@ export default function ViewExam() {
 
         const items = response.data?.items ?? [];
 
-        const map: Record<number, { examMarkId: number; markObtained: number }> = {};
+        const map: Record<
+          number,
+          { examMarkId: number; markObtained: number }
+        > = {};
         items.forEach((m) => {
           map[m.studentId] = {
             examMarkId: m.examMarkId,
@@ -139,7 +149,7 @@ export default function ViewExam() {
         setMarks((prev) => {
           const next = { ...prev };
           items.forEach((m) => {
-            if (next[m.studentId] === undefined || next[m.studentId] === '') {
+            if (next[m.studentId] === undefined || next[m.studentId] === "") {
               next[m.studentId] = String(m.markObtained);
             }
           });
@@ -154,7 +164,7 @@ export default function ViewExam() {
   }, [exam?.examId]);
 
   const handleMarkChange = (studentId: number, value: string) => {
-    setMarks(prev => ({
+    setMarks((prev) => ({
       ...prev,
       [studentId]: value,
     }));
@@ -177,7 +187,7 @@ export default function ViewExam() {
         .filter((x) => x.mark !== undefined && x.mark !== "");
 
       if (entries.length === 0) {
-        throw new Error('Please enter marks for at least one student');
+        throw new Error("Please enter marks for at least one student");
       }
 
       // Synchronous validation before hitting API
@@ -193,7 +203,9 @@ export default function ViewExam() {
       });
 
       if (invalid.length > 0) {
-        throw new Error('Some marks are invalid. Please correct highlighted fields and try again.');
+        throw new Error(
+          "Some marks are invalid. Please correct highlighted fields and try again."
+        );
       }
 
       const results = await Promise.allSettled(
@@ -225,18 +237,16 @@ export default function ViewExam() {
         })
       );
 
-      const failed = results.filter((r) => r.status === 'rejected');
+      const failed = results.filter((r) => r.status === "rejected");
 
       if (failed.length === 0) {
-        setSubmitSuccess('Exam marks saved successfully');
+        setSubmitSuccess("Exam marks saved successfully");
         setSubmitError(null);
       } else if (failed.length === entries.length) {
         const errorMessages = failed
           .map((r) => (r as PromiseRejectedResult).reason)
           .map((reason: any) =>
-            typeof reason === 'string'
-              ? reason
-              : reason?.message || ''
+            typeof reason === "string" ? reason : reason?.message || ""
           )
           .filter(Boolean);
 
@@ -244,7 +254,7 @@ export default function ViewExam() {
 
         setSubmitError(
           `Failed to save marks for all selected students. ${
-            uniqueMessages.length ? uniqueMessages.join(' | ') : ''
+            uniqueMessages.length ? uniqueMessages.join(" | ") : ""
           }`.trim()
         );
       } else {
@@ -252,23 +262,26 @@ export default function ViewExam() {
         const errorMessages = failed
           .map((r) => (r as PromiseRejectedResult).reason)
           .map((reason: any) =>
-            typeof reason === 'string'
-              ? reason
-              : reason?.message || ''
+            typeof reason === "string" ? reason : reason?.message || ""
           )
           .filter(Boolean);
 
         const uniqueMessages = Array.from(new Set(errorMessages));
 
-        setSubmitSuccess(`Saved marks for ${successCount} of ${entries.length} students.`);
+        setSubmitSuccess(
+          `Saved marks for ${successCount} of ${entries.length} students.`
+        );
         setSubmitError(
           `Some marks failed to save. ${
-            uniqueMessages.length ? uniqueMessages.join(' | ') : ''
+            uniqueMessages.length ? uniqueMessages.join(" | ") : ""
           }`.trim()
         );
       }
     } catch (err: any) {
-      const message = typeof err === 'string' ? err : err?.message || 'Failed to save exam marks';
+      const message =
+        typeof err === "string"
+          ? err
+          : err?.message || "Failed to save exam marks";
       setSubmitError(message);
     } finally {
       setSubmitLoading(false);
@@ -277,10 +290,10 @@ export default function ViewExam() {
 
   // ✅ Resolve names
   const courseName =
-    courses.find(c => c.courseId === exam?.courseId)?.courseName || '—';
+    courses.find((c) => c.courseId === exam?.courseId)?.courseName || "—";
 
   const moduleName =
-    modules.find(m => m.moduleId === exam?.moduleId)?.moduleName || '—';
+    modules.find((m) => m.moduleId === exam?.moduleId)?.moduleName || "—";
 
   // ⏳ Loading
   if (isLoading)
@@ -306,9 +319,8 @@ export default function ViewExam() {
 
   return (
     <Container maxWidth="md" sx={{ mt: 3, mb: 4 }}>
-
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <Button component={Link} href="/exams" startIcon={<ArrowBack />}>
           Back
         </Button>
@@ -330,16 +342,15 @@ export default function ViewExam() {
         </Typography>
 
         <Chip
-          label={exam?.isActive ? 'Active' : 'Inactive'}
-          color={exam?.isActive ? 'success' : 'error'}
+          label={exam?.isActive ? "Active" : "Inactive"}
+          color={exam?.isActive ? "success" : "error"}
           sx={{ mt: 1 }}
         />
 
         <Grid container spacing={2} sx={{ mt: 2 }}>
-
           <Grid size={{ xs: 12 }}>
             <Typography color="text.secondary">Description</Typography>
-            <Typography>{exam?.examDescription || '—'}</Typography>
+            <Typography>{exam?.examDescription || "—"}</Typography>
           </Grid>
 
           <Grid size={{ xs: 6 }}>
@@ -366,15 +377,36 @@ export default function ViewExam() {
             <Typography color="text.secondary">Course</Typography>
             <Typography>{courseName}</Typography>
           </Grid>
-
         </Grid>
       </Paper>
 
       {/* Students for this exam's module */}
       <Paper sx={{ p: 3, mt: 3 }}>
-        <Typography variant="h6" fontWeight={600} gutterBottom>
-          Students for this Module
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <Typography variant="h6" fontWeight={600} gutterBottom>
+            Students for this Module
+          </Typography>
+
+          <Box sx={{ flexGrow: 1 }} />
+
+          <Button
+            variant="outlined"
+            onClick={() => setIsEditingMarks((prev) => !prev)}
+            sx={{
+              color: isEditingMarks ? "#d32f2f" : "#f9a825",
+              borderColor: isEditingMarks ? "#d32f2f" : "#f9a825",
+              textTransform: "none",
+              fontWeight: 600,
+              "&:hover": {
+                backgroundColor: isEditingMarks
+                  ? "rgba(211, 47, 47, 0.08)"
+                  : "rgba(249, 168, 37, 0.08)",
+              },
+            }}
+          >
+            {isEditingMarks ? "Cancel" : "Edit Marks"}
+          </Button>
+        </Box>
 
         {submitError && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -397,65 +429,72 @@ export default function ViewExam() {
         )}
 
         {!studentsLoading && !studentsError && students.length === 0 && (
-          <Typography color="text.secondary">No students found for this module.</Typography>
+          <Typography color="text.secondary">
+            No students found for this module.
+          </Typography>
         )}
 
-        {!studentsLoading && !studentsError && students.length > 0 && (
-          <Box mt={2}>
-            {students.map((s) => (
-              <Box
-                key={`${s.enrollmentId}-${s.batchId}`}
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  py: 1,
-                  borderBottom: '1px solid',
-                  borderColor: 'divider',
-                  gap: 2,
-                }}
-              >
-                <Box sx={{ flex: 1 }}>
-                  <Typography fontWeight={500}>{s.studentName}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Code: {s.studentCode}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Batch: {s.batchCode}
-                  </Typography>
-                </Box>
-                <Box sx={{ width: 160 }}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    type="number"
-                    label="Obtained Marks"
-                    value={marks[s.studentId] ?? ''}
-                    onChange={(e) => handleMarkChange(s.studentId, e.target.value)}
-                    inputProps={{ min: 0, max: exam?.examTotalMarks }}
-                  />
-                  {existingMarks[s.studentId] && (
-                    <Typography variant="caption" color="text.secondary">
-                      Existing marks recorded – editing will update.
+        {!studentsLoading &&
+          !studentsError &&
+          students.length > 0 &&
+          isEditingMarks && (
+            <Box mt={2}>
+              {students.map((s) => (
+                <Box
+                  key={`${s.enrollmentId}-${s.batchId}`}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    py: 1,
+                    borderBottom: "1px solid",
+                    borderColor: "divider",
+                    gap: 2,
+                  }}
+                >
+                  <Box sx={{ flex: 1 }}>
+                    <Typography fontWeight={500}>{s.studentName}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Code: {s.studentCode}
                     </Typography>
-                  )}
+                    <Typography variant="body2" color="text.secondary">
+                      Batch: {s.batchCode}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ width: 160 }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      type="number"
+                      label="Obtained Marks"
+                      value={marks[s.studentId] ?? ""}
+                      onChange={(e) =>
+                        handleMarkChange(s.studentId, e.target.value)
+                      }
+                      inputProps={{ min: 0, max: exam?.examTotalMarks }}
+                    />
+                    {existingMarks[s.studentId] && (
+                      <Typography variant="caption" color="text.secondary">
+                        Existing marks recorded – editing will update.
+                      </Typography>
+                    )}
+                  </Box>
                 </Box>
-              </Box>
-            ))}
+              ))}
 
-            <Box mt={3} display="flex" justifyContent="flex-end">
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSubmitMarks}
-                disabled={submitLoading || students.length === 0}
-              >
-                {submitLoading ? 'Saving Marks...' : 'Submit Marks'}
-              </Button>
+              <Box mt={3} display="flex" justifyContent="flex-end">
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleSubmitMarks}
+                  disabled={submitLoading || students.length === 0}
+                >
+                  {submitLoading ? "Saving Marks..." : "Submit Marks"}
+                </Button>
+              </Box>
             </Box>
-          </Box>
-        )}
-        </Paper>
-      </Container>
-    );
-  }
+          )}
+      </Paper>
+    </Container>
+  );
+}
