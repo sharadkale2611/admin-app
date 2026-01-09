@@ -196,7 +196,8 @@ export default function useCreateAdmissionViewModel() {
 
             if (result.success) {
                 toast.success(result.message || "Admission created successfully");
-                router.push("/admissions");
+                router.push(`/students/${formData.studentId}`);
+                // router.push("/admissions");
             } else {
                 throw result.error || "Failed to create admission";
             }

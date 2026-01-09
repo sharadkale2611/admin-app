@@ -366,6 +366,7 @@ export default function CourseDetails() {
     };
 
     const [modules, setModules] = React.useState<ModuleItem[]>([]);
+    const [selectedModuleIds, setSelectedModuleIds] = useState<number[]>([]);
 
     React.useEffect(() => {
         if (course?.modules?.length) {
@@ -375,12 +376,16 @@ export default function CourseDetails() {
                     name: m.moduleName
                 }))
             );
-
+            console.log("Modules set from course:", course.modules);
             setSelectedModuleIds(course.modules.map(m => m.moduleId));
         }
     }, [course]);
 
-    const [selectedModuleIds, setSelectedModuleIds] = useState<number[]>([]);
+
+
+    useEffect(() => {
+        console.log("selectedModuleIds :", selectedModuleIds);
+    }, [selectedModuleIds]);
 
     const courseAssignedModules =
         courseModules
@@ -389,6 +394,7 @@ export default function CourseDetails() {
 
 
     useEffect(() => {
+        console.log('first call: ', courseAssignedModules);
         setSelectedModuleIds(courseAssignedModules);
     }, [courseAssignedModules.length]);
 
@@ -401,6 +407,8 @@ export default function CourseDetails() {
     const [isSaving, setIsSaving] = React.useState(false);
 
     const handleModuleToggle = (id: number) => {
+        console.log('next call: ', id);
+
         setSelectedModuleIds(prev =>
             prev.includes(id)
                 ? prev.filter(x => x !== id)
@@ -487,7 +495,7 @@ export default function CourseDetails() {
                 { id: res.module.moduleId, name: res.module.moduleName }
             ]);
 
-
+            console.log("New module created with ID:", res.module.moduleId);
             setSelectedModuleIds(prev => [...prev, res.module.moduleId]);
 
             // RESET UI

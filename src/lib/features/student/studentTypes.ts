@@ -17,6 +17,11 @@ export interface Student {
     firmName?: string;
 }
 
+export interface CreatedStudent {
+    studentId: number;
+    studentCode: string;
+    userName: string;
+}
 export interface PaginatedStudent {
     items: Student[];
     totalCount: number;
@@ -63,6 +68,14 @@ export interface ApiResponse<T> {
     error?: string | null;
     errors?: any | null;
 }
+
+export interface CreateStudentResponse {
+    studentId: number;
+    studentCode: string;
+    userName: string;
+    // inviteSent: boolean;
+}
+
 
 export interface FetchStudentParams {
     page?: number;

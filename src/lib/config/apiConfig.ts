@@ -155,6 +155,7 @@ const API_ENDPOINTS = {
     POST_CREATE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
     PUT_UPDATE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
     DELETE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
+    GET_BY_STUDENT: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches/by-student",
   },
 
   STUDENT_BATCH_ASSIGNMENTS: {
@@ -239,8 +240,12 @@ const API_ENDPOINTS = {
     PUT_UPDATE: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
     DELETE: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
   },
+  
+  STUDENT_PAYMENTS: {
+    GET_BY_STUDENT_ID: "/StudentPayments/student-id",
+    UPDATE_PAYMENT: "/StudentPayments/updatePayment"
 
-
+  }
   // Add other endpoint categories here as needed
 };
 

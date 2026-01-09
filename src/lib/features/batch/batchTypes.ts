@@ -27,9 +27,11 @@ export interface Batch {
 
   totalEnrolls: number | null;
 
+  studentEnrollmentId: number;
+
   isActive: boolean;
   isDeleted: boolean;
-
+  isAssigned: boolean;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -104,14 +106,12 @@ export interface UpdateBatchDto {
   isActive: boolean;
 }
 
+export interface StudentBatchState {
+  studentBatches: Batch[];
+  loading: boolean;
+  error: ApiError | null;
+}
 
-// export interface UpdateBatchResponse {
-//   success: boolean;
-//   message: string;
-//   data: any;
-//   error: string | null;
-//   errors: Record<string, string[]> | null;
-// }
 
 
 // Generic API response wrapper from your backend

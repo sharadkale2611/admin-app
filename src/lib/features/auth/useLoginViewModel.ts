@@ -33,13 +33,14 @@ export const useLoginViewModel = () => {
         setValidationErrors([]);
 
         try {
-            // Use unwrap() to properly handle the promise
-            const result = await dispatch(login(values)).unwrap();
-            console.log('im in try');
-            
+            await dispatch(login(values)).unwrap();
+
+            // ✅ redirect after successful login
+            const redirectTo = searchParams.get('redirect') || '/dashboard';
+            router.replace(redirectTo);
+
         } catch (err: unknown) {
             const error = err as ThunkRejectValue;
-            console.log('im in catch');
 
             if (error?.fieldErrors) {
                 const errorMessages = Object.values(error.fieldErrors)
@@ -56,6 +57,7 @@ export const useLoginViewModel = () => {
             setLoading(false);
         }
     };
+
 
     return {
         handleSubmit,

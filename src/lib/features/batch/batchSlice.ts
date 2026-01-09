@@ -1,33 +1,41 @@
 // src/lib/features/batch/batchSlice.ts
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Batch, BatchState } from "./batchTypes";
+import { Batch, BatchState, StudentBatchState } from "./batchTypes";
 import {
   fetchBatches,
   fetchBatchById,
   deleteBatch,
   createBatch,
   updateBatch,
+  fetchBatchesByStudentId,
 } from "./batchThunks";
 import type { ApiError } from "./batchThunks";
 
-const initialState: BatchState = {
+const initialState: BatchState & StudentBatchState = {
+  // --------------------
+  // ADMIN / PAGINATED
+  // --------------------
   batches: [],
   currentBatch: null,
 
-  // PAGINATION STATE
   totalCount: 0,
   pageSize: 10,
-  page: 1,               // <-- USE THIS AS CURRENT PAGE
+  page: 1,
   totalPages: 0,
 
   loading: false,
   error: null,
 
-  // FILTERS
   searchTerm: "",
   activeOnly: true,
+
+  // --------------------
+  // STUDENT CONTEXT
+  // --------------------
+  studentBatches: [],   // ✅ REQUIRED
 };
+
 
 const batchSlice = createSlice({
   name: "batches",
@@ -168,7 +176,27 @@ const batchSlice = createSlice({
         state.error =
           (action.payload as ApiError) ??
           { error: "Failed to delete batch", errors: null };
+      })
+      // -------------------------------------------------
+      // 🔹 FETCH BATCHES BY STUDENT ID
+      // -------------------------------------------------
+      .addCase(fetchBatchesByStudentId.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+
+      .addCase(fetchBatchesByStudentId.fulfilled, (state, action) => {
+        state.loading = false;
+        state.studentBatches = action.payload;
+      })
+
+      .addCase(fetchBatchesByStudentId.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          (action.payload as ApiError) ??
+          { error: "Failed to fetch student batches", errors: null };
       });
+
   },
 });
 
