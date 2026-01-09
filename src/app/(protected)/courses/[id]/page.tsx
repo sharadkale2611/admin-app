@@ -306,7 +306,7 @@ export default function CourseDetails() {
                                 label="Total Installments"
                                 size="small"
                                 type="number"
-                                 name="totalInstallments"
+                                name="totalInstallments"
                                 helperText="1–12 installments allowed"
                                 value={formData?.totalInstallments ?? ""}
                                 onChange={onNumberChange}
