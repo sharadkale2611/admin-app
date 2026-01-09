@@ -240,22 +240,19 @@ export default function ViewExam() {
       const failed = results.filter((r) => r.status === "rejected");
 
       if (failed.length === 0) {
-        setSubmitSuccess("Exam marks saved successfully");
+        setSubmitSuccess("Exam marks saved successfully"); 
+        window.location.reload();
         setSubmitError(null);
-      } else if (failed.length === entries.length) {
-        const errorMessages = failed
-          .map((r) => (r as PromiseRejectedResult).reason)
-          .map((reason: any) =>
-            typeof reason === "string" ? reason : reason?.message || ""
-          )
+      }
+      else if (failed.length === entries.length) {
+        const errorMessages = failed.map((r) => (r as PromiseRejectedResult).reason).map((reason: any) => typeof reason === "string" ? reason : reason?.message || "")
           .filter(Boolean);
 
         const uniqueMessages = Array.from(new Set(errorMessages));
 
         setSubmitError(
-          `Failed to save marks for all selected students. ${
-            uniqueMessages.length ? uniqueMessages.join(" | ") : ""
-          }`.trim()
+          `Failed to save marks for all selected students. ${uniqueMessages.length ? uniqueMessages.join(" | ") : ""
+            }`.trim()
         );
       } else {
         const successCount = entries.length - failed.length;
@@ -272,9 +269,8 @@ export default function ViewExam() {
           `Saved marks for ${successCount} of ${entries.length} students.`
         );
         setSubmitError(
-          `Some marks failed to save. ${
-            uniqueMessages.length ? uniqueMessages.join(" | ") : ""
-          }`.trim()
+          `Some marks failed to save. ${uniqueMessages.length ? uniqueMessages.join(" | ") : ""
+            }`.trim()
         );
       }
     } catch (err: any) {
