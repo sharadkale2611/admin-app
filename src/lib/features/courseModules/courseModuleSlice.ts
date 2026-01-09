@@ -7,7 +7,8 @@ import {
     updateCourseModule,
     deleteCourseModule,
     fetchCoursesDropdown,
-    fetchModulesDropdown
+    fetchModulesDropdown,
+    fetchModulesByCourse,
 } from "./courseModuleThunks";
 import { Course } from "../course/courseTypes";
 import { ModuleResponseDto } from "../module/moduleTypes";
@@ -16,6 +17,7 @@ interface CourseModuleState {
     courseModules: CourseModuleResponseDto[];
     coursesDropdown: Course[];
     modulesDropdown: ModuleResponseDto[];
+    courseModulesByCourse: CourseModuleResponseDto[];
     loading: boolean;
     dropdownLoading: boolean;
     error: string | null;
@@ -26,6 +28,7 @@ const initialState: CourseModuleState = {
     courseModules: [],
     coursesDropdown: [],
     modulesDropdown: [],
+    courseModulesByCourse: [],
     loading: false,
     dropdownLoading: false,
     error: null,
@@ -142,6 +145,26 @@ const courseModuleSlice = createSlice({
         builder.addCase(fetchModulesDropdown.rejected, (state, action) => {
             state.dropdownLoading = false;
             state.error = action.payload || "Failed to fetch modules for dropdown";
+        });
+
+        // -----------------------
+        // FETCH MODULES BY COURSE (for cascading dropdowns)
+        // -----------------------
+        builder.addCase(fetchModulesByCourse.pending, (state) => {
+            state.dropdownLoading = true;
+            state.error = null;
+        });
+        builder.addCase(
+            fetchModulesByCourse.fulfilled,
+            (state, action: PayloadAction<CourseModuleResponseDto[]>) => {
+                state.dropdownLoading = false;
+                state.courseModulesByCourse = action.payload;
+            }
+        );
+        builder.addCase(fetchModulesByCourse.rejected, (state, action) => {
+            state.dropdownLoading = false;
+            state.error = action.payload || "Failed to fetch modules for selected course";
+            state.courseModulesByCourse = [];
         });
     },
 });

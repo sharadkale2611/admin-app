@@ -162,6 +162,10 @@ const API_ENDPOINTS = {
     PUT_UPDATE:
       process.env.NEXT_PUBLIC_COURSE_MODULES_ENDPOINT || "/CourseModules",
     DELETE: process.env.NEXT_PUBLIC_COURSE_MODULES_ENDPOINT || "/CourseModules",
+    // Returns CourseModuleResponseDto[] for a given course
+    GET_BY_COURSE:
+      (process.env.NEXT_PUBLIC_COURSE_MODULES_ENDPOINT || "/CourseModules") +
+      "/course",
   },
   BATCHES: {
     GET_LIST_PAGINATED: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches/paginated",

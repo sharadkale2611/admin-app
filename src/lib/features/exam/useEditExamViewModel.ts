@@ -11,7 +11,7 @@ import { useAppDispatch } from "@/lib/hooks";
 import type { RootState } from "@/lib/store";
 
 import { fetchCoursesListOptions } from "@/lib/features/course/courseThunks";
-import { fetchModules } from "@/lib/features/module/moduleThunks";
+import { fetchModulesByCourse } from "@/lib/features/courseModules/courseModuleThunks";
 import { fetchExamById, updateExam } from "./examThunks";
 
 /* ============================================================
@@ -41,7 +41,6 @@ export default function useEditExamViewModel() {
   ============================================================ */
   useEffect(() => {
     dispatch(fetchCoursesListOptions());
-    dispatch(fetchModules());
   }, [dispatch]);
 
   /* ============================================================
@@ -51,9 +50,14 @@ export default function useEditExamViewModel() {
     (state: RootState) => state.courses.courses || []
   );
 
-  const modules = useSelector(
-    (state: RootState) => state.modules.modules || []
+  const courseModulesByCourse = useSelector(
+    (state: RootState) => state.courseModules.courseModulesByCourse || []
   );
+
+  const modules = courseModulesByCourse.map(cm => ({
+    moduleId: cm.moduleId,
+    moduleName: cm.moduleName ?? `Module #${cm.moduleId}`,
+  }));
 
   const { currentExam, loading, error: fetchError } = useSelector(
     (state: RootState) => state.exam
@@ -103,23 +107,45 @@ export default function useEditExamViewModel() {
         courseId: String(currentExam.courseId ?? ""),
         isActive: currentExam.isActive ?? true
       });
+
+      // Preload modules for the exam's course so module dropdown is in sync
+      if (currentExam.courseId) {
+        dispatch(fetchModulesByCourse(currentExam.courseId));
+      }
     }
   }, [currentExam]);
 
   /* ============================================================
      Handlers
   ============================================================ */
+
   const handleChange = (
     e:
       | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-      | SelectChangeEvent<string>
+      | SelectChangeEvent
   ) => {
-    const { name, value } = e.target as HTMLInputElement;
+    const { name, value } = e.target;
 
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [name as keyof typeof prev]: value,
+      };
+
+      // 🔹 When course changes
+      if (name === "courseId") {
+        const courseId = Number(value);
+
+        if (!isNaN(courseId) && courseId > 0) {
+          dispatch(fetchModulesByCourse(courseId));
+        }
+
+        // 🔹 Reset module when course changes
+        updated.moduleId = "";
+      }
+
+      return updated;
+    });
   };
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
