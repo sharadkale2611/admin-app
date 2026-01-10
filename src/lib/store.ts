@@ -36,6 +36,7 @@ import { studentPaymentReducer } from "@/lib/features/studentPayment/studentPaym
 
 import examReducer from "@/lib/features/exam/examSlice";
 import examMarksReducer from "@/lib/features/examMarks/examMarksSlice";
+import attendanceSessionReducer from '@/lib/features/attendance/attendanceSessionSlice';
 
 
 const rootReducer = combineReducers({
@@ -60,6 +61,7 @@ const rootReducer = combineReducers({
     studentPayments: studentPaymentReducer,
     exam: examReducer,
     examMarks: examMarksReducer,
+    attendanceSession: attendanceSessionReducer,
 
 });
 
