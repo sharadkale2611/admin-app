@@ -45,6 +45,7 @@ const API_ENDPOINTS = {
     POST_CREATE: process.env.NEXT_PUBLIC_STAFFS_ENDPOINT || "api/staffs",
     PUT_UPDATE: process.env.NEXT_PUBLIC_STAFFS_ENDPOINT || "api/staffs",
     DELETE: process.env.NEXT_PUBLIC_STAFFS_ENDPOINT || "api/staffs",
+    GET_BY_COURSE: process.env.NEXT_PUBLIC_TRAINERS_BY_COURSE_ENDPOINT || "Staffs/trainers/by-course",
   },
   STUDENT: {
     GET_LIST_PAGINATED:
