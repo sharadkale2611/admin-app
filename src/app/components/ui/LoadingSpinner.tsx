@@ -1,55 +1,96 @@
 'use client';
 
+import { Box, CircularProgress, Typography, useTheme } from '@mui/material';
+
 interface LoadingSpinnerProps {
     size?: 'sm' | 'md' | 'lg';
-    color?: 'primary' | 'secondary' | 'white';
-    className?: string;
-    text?: string;
-    textClassName?: string;
+    color?: 'primary' | 'secondary' | 'inherit';
+    label?: string;
+    subLabel?: string;
+    center?: boolean;
 }
 
 export default function LoadingSpinner({
     size = 'md',
     color = 'primary',
-    className = '',
-    text,
-    textClassName = '',
+    label,
+    subLabel,
+    center = true,
 }: LoadingSpinnerProps) {
-    // Size classes
-    const getSizeClasses = () => {
-        switch (size) {
-            case 'sm': return 'h-4 w-4 border-2';
-            case 'md': return 'h-8 w-8 border-4';
-            case 'lg': return 'h-12 w-12 border-4';
-            default: return 'h-8 w-8 border-4';
-        }
-    };
+    const theme = useTheme();
 
-    // Color classes
-    const getColorClasses = () => {
-        switch (color) {
-            case 'primary':
-                return 'border-t-blue-600 border-r-blue-600 border-b-transparent border-l-transparent';
-            case 'secondary':
-                return 'border-t-green-500 border-r-green-500 border-b-transparent border-l-transparent';
-            case 'white':
-                return 'border-t-white border-r-white border-b-transparent border-l-transparent';
-            default:
-                return 'border-t-blue-600 border-r-blue-600 border-b-transparent border-l-transparent';
-        }
+    const sizeMap = {
+        sm: 20,
+        md: 36,
+        lg: 56,
     };
 
     return (
-        <div className={`flex flex-col items-center justify-center gap-2 ${className}`}>
-            <div
-                className={`animate-spin rounded-full ${getSizeClasses()} ${getColorClasses()}`}
-                style={{ animationDuration: '0.75s' }}
-            />
-            {text && (
-                <p className={`text-sm text-gray-500 ${textClassName}`}>
-                    {text}
-                </p>
+        <Box
+            role="status"
+            aria-live="polite"
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: center ? 'center' : 'flex-start',
+                justifyContent: center ? 'center' : 'flex-start',
+                gap: 1.5,
+            }}
+        >
+            {/* Spinner */}
+            <Box sx={{ position: 'relative' }}>
+                {/* Soft background ring */}
+                <CircularProgress
+                    variant="determinate"
+                    value={100}
+                    size={sizeMap[size]}
+                    thickness={4}
+                    sx={{
+                        color: theme.palette.action.disabledBackground,
+                    }}
+                />
+
+                {/* Active spinner */}
+                <CircularProgress
+                    size={sizeMap[size]}
+                    thickness={4}
+                    color={color}
+                    sx={{
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        animationDuration: '0.9s',
+                    }}
+                />
+            </Box>
+
+            {/* Text */}
+            {(label || subLabel) && (
+                <Box textAlign={center ? 'center' : 'left'}>
+                    {label && (
+                        <Typography
+                            variant="body2"
+                            fontWeight={500}
+                            color="text.primary"
+                        >
+                            {label}
+                        </Typography>
+                    )}
+                    {subLabel && (
+                        <Typography
+                            variant="caption"
+                            color="text.secondary"
+                        >
+                            {subLabel}
+                        </Typography>
+                    )}
+                </Box>
             )}
-        </div>
+
+            {/* Screen reader fallback */}
+            <Typography component="span" sx={{ display: 'none' }}>
+                Loading
+            </Typography>
+        </Box>
     );
 }

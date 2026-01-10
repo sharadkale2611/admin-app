@@ -6,6 +6,7 @@ import {
     updateCourseFee,
     deleteCourseFee,
     CourseFee,
+    fetchCourseFeesByFirm,
 } from './feesThunks';
 
 interface CourseFeeState {
@@ -16,6 +17,7 @@ interface CourseFeeState {
     filters: {
         courseId?: number;
     };
+    loadedCourseId: number | null;
 }
 
 const initialState: CourseFeeState = {
@@ -25,7 +27,8 @@ const initialState: CourseFeeState = {
     error: null,
     filters: {
         courseId: undefined
-    }
+    },
+    loadedCourseId: null,
 };
 
 const feesSlice = createSlice({
@@ -52,14 +55,35 @@ const feesSlice = createSlice({
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(fetchCourseFees.fulfilled, (state, action: PayloadAction<CourseFee[]>) => {
+            .addCase(fetchCourseFees.fulfilled, (state, action) => {
                 state.loading = false;
                 state.courseFees = action.payload;
+
+                const courseId = action.meta.arg?.courseId ?? null;
+                state.loadedCourseId = courseId;
             })
             .addCase(fetchCourseFees.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload as string || "Failed to fetch course fees";
+                state.error = action.payload as string;
             })
+
+            .addCase(fetchCourseFeesByFirm.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchCourseFeesByFirm.fulfilled, (state, action) => {
+                state.loading = false;
+                state.courseFees = action.payload;
+
+                // ❗ this data is NOT course-specific
+                state.loadedCourseId = null;
+            })
+            .addCase(fetchCourseFeesByFirm.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string || "Failed to fetch fees by firm";
+            })
+
+
             // Fetch Course Fee by ID
             .addCase(fetchCourseFeeById.pending, (state) => {
                 state.loading = true;
@@ -79,13 +103,13 @@ const feesSlice = createSlice({
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(createCourseFee.fulfilled, (state, action: PayloadAction<CourseFee>) => {
+            .addCase(createCourseFee.fulfilled, (state, action) => {
                 state.loading = false;
-                // Add the new course fee to the list
                 state.courseFees.unshift(action.payload);
-
-                // Also set it as the current course fee
                 state.currentCourseFee = action.payload;
+
+                // 🔒 still same course
+                state.loadedCourseId = action.payload.courseId;
             })
             .addCase(createCourseFee.rejected, (state, action) => {
                 state.loading = false;
@@ -96,21 +120,25 @@ const feesSlice = createSlice({
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(updateCourseFee.fulfilled, (state, action: PayloadAction<CourseFee>) => {
+            .addCase(updateCourseFee.fulfilled, (state, action) => {
                 state.loading = false;
 
-                // Update in list
+                if (!action.payload || action.payload === true) return;
+
+                const updatedFee = action.payload;
+
                 const index = state.courseFees.findIndex(
-                    cf => cf.courseFeeId === action.payload.courseFeeId
+                    cf => cf.courseFeeId === updatedFee.courseFeeId
                 );
+
                 if (index !== -1) {
-                    state.courseFees[index] = action.payload;
+                    state.courseFees[index] = updatedFee;
                 }
 
-                // Update currentCourseFee if it's the same one
-                if (state.currentCourseFee && state.currentCourseFee.courseFeeId === action.payload.courseFeeId) {
-                    state.currentCourseFee = action.payload;
-                }
+                state.currentCourseFee = updatedFee;
+
+                // 🔒 preserve cache key
+                state.loadedCourseId = updatedFee.courseId;
             })
             .addCase(updateCourseFee.rejected, (state, action) => {
                 state.loading = false;
@@ -123,18 +151,20 @@ const feesSlice = createSlice({
             })
             .addCase(deleteCourseFee.fulfilled, (state, action: PayloadAction<number>) => {
                 state.loading = false;
-                // Remove the deleted course fee from the list
-                state.courseFees = state.courseFees.filter(cf => cf.courseFeeId !== action.payload);
 
-                // Clear current course fee if it was the deleted one
-                if (state.currentCourseFee && state.currentCourseFee.courseFeeId === action.payload) {
+                state.courseFees = state.courseFees.filter(
+                    cf => cf.courseFeeId !== action.payload
+                );
+
+                if (state.currentCourseFee?.courseFeeId === action.payload) {
                     state.currentCourseFee = null;
                 }
-            })
-            .addCase(deleteCourseFee.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload as string || "Failed to delete course fee";
+
+                if (state.courseFees.length === 0) {
+                    state.loadedCourseId = null;
+                }
             });
+
     }
 });
 

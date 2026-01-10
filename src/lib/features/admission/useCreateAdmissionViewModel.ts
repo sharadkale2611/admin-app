@@ -12,7 +12,7 @@ import { fetchDiscountCodes } from '../discountCode/discountCodeThunks';
 export interface Installment {
     installmentCount: number;
     amount: number;
-    date: string; // formatted YYYY-MM-DD
+    date: string;
 }
 
 export interface AdmissionFormData {
@@ -30,15 +30,17 @@ export interface AdmissionFormData {
     lastTransactionId: string | null;
     courseFeeId: number | null;
     installmentCount: number;
-    installments: Installment[]; // ✅ add this
-
+    installments: Installment[];
 }
 
 export default function useCreateAdmissionViewModel() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const dispatch = useDispatch<AppDispatch>();
-    const [discounts, setDiscounts] = useState<{ code: string; discountType: string; discountValue: number }[]>([]);
+
+    const [discounts, setDiscounts] = useState<
+        { code: string; discountType: string; discountValue: number }[]
+    >([]);
 
     const [formData, setFormData] = useState<AdmissionFormData>({
         studentId: null,
@@ -55,84 +57,83 @@ export default function useCreateAdmissionViewModel() {
         lastTransactionId: null,
         courseFeeId: null,
         installmentCount: 1,
-        installments: [] // ✅ initialize installments array
+        installments: []
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<ApiError | null>(null);
 
-    // Pre-fill studentId and courseId from query params
+    // Prefill student & course from query params
     useEffect(() => {
-        const studentIdParam = searchParams.get('studentId');
-        const courseIdParam = searchParams.get('courseId');
+        const studentIdParam = searchParams.get("studentId");
+        const courseIdParam = searchParams.get("courseId");
 
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
             studentId: studentIdParam ? Number(studentIdParam) : prev.studentId,
-            courseId: courseIdParam ? Number(courseIdParam) : prev.courseId
+            courseId: courseIdParam ? Number(courseIdParam) : prev.courseId,
         }));
     }, [searchParams]);
 
+    // Load discounts
     useEffect(() => {
         async function getDiscounts() {
             try {
                 const result = await dispatch(fetchDiscountCodes()).unwrap();
                 setDiscounts(result);
             } catch (err) {
-                console.error('Failed to fetch discounts', err);
+                console.error("Failed to fetch discounts", err);
             }
         }
         getDiscounts();
     }, [dispatch]);
 
-    // ✅ Handle discount change
+    // Handle discount changes
     const handleDiscountChange = (code: string) => {
-        const selected = discounts.find(d => d.code === code);
+        const selected = discounts.find((d) => d.code === code);
         if (!selected) return;
 
-        const discountAmount = selected.discountType === 'Percentage'
-            ? (formData.totalAmount ?? 0) * selected.discountValue / 100
-            : selected.discountValue;
+        const discountAmount =
+            selected.discountType === "Percentage"
+                ? ((formData.totalAmount ?? 0) * selected.discountValue) / 100
+                : selected.discountValue;
 
         const finalAmount = (formData.totalAmount ?? 0) - discountAmount;
 
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
             discountCode: selected.code,
             discountAmount,
-            finalAmount
+            finalAmount,
         }));
     };
 
-    // ✅ Handle input change (with paidAmount validation + auto paymentStatus)
+    // General form input handling
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
 
         let updatedValue: any =
-            name === 'studentId' ||
-                name === 'courseId' ||
-                name === 'totalAmount' ||
-                name === 'paidAmount'
-                ? value === '' ? null : Number(value)
+            ["studentId", "courseId", "totalAmount", "paidAmount"].includes(name)
+                ? value === "" ? null : Number(value)
                 : value;
 
-        setFormData(prev => {
+        setFormData((prev) => {
             let updated = { ...prev, [name]: updatedValue };
 
-            if (name === 'paidAmount' && updated.finalAmount !== null) {
+            // Auto-payment status logic
+            if (name === "paidAmount" && updated.finalAmount !== null) {
                 if (updatedValue < 100) {
-                    toast.error('Paid amount must be at least 100');
+                    toast.error("Paid amount must be at least 100");
                 } else if (updatedValue > updated.finalAmount) {
-                    toast.error('Paid amount cannot exceed Final Amount');
+                    toast.error("Paid amount cannot exceed Final Amount");
                 }
 
-                // Auto-set payment status
                 if (updatedValue === updated.finalAmount) {
                     updated.paymentStatus = PaymentStatus.Paid;
                 } else if (updatedValue >= 100 && updatedValue < updated.finalAmount) {
                     updated.paymentStatus = PaymentStatus.PartiallyPaid;
                 } else {
-                    updated.paymentStatus = '';
+                    updated.paymentStatus = "";
                 }
             }
 
@@ -140,42 +141,38 @@ export default function useCreateAdmissionViewModel() {
         });
     };
 
+    // Handle select fields
     const handleSelectChange = (e: { target: { name: string; value: any } }) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
-            [name]:
-                name === 'enrollmentType'
-                    ? (value as EnrollmentType)
-                    : value
+            [name]: name === "enrollmentType" ? (value as EnrollmentType) : value,
         }));
     };
 
+    // Submit handler
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
         setError(null);
-
+        console.log('Submitting form with data:', formData);
         try {
+            // VALIDATION FIXED (no falsy-number issues)
             if (
-                !formData.studentId ||
-                !formData.courseId ||
+                formData.studentId === null ||
+                formData.courseId === null ||
                 !formData.enrollmentType ||
                 !formData.enrollmentDate ||
-                !formData.totalAmount ||
-                !formData.finalAmount ||
-                !formData.paidAmount
+                formData.totalAmount === null ||
+                formData.finalAmount === null ||
+                formData.paidAmount === null
             ) {
-                throw 'Please fill in all required fields';
+                throw "Please fill in all required fields";
             }
 
-            if (formData.paidAmount < 100) {
-                throw 'Paid Amount must be at least 100';
-            }
-
-            if (formData.paidAmount > formData.finalAmount) {
-                throw 'Paid Amount cannot exceed Final Amount';
-            }
+            if (formData.paidAmount < 100) throw "Paid Amount must be at least 100";
+            if (formData.paidAmount > formData.finalAmount)
+                throw "Paid Amount cannot exceed Final Amount";
 
             const dto: CreateAdmissionDto = {
                 studentId: formData.studentId!,
@@ -185,27 +182,33 @@ export default function useCreateAdmissionViewModel() {
                 paymentStatus: formData.paymentStatus as PaymentStatus,
                 totalAmount: formData.totalAmount!,
                 paidAmount: formData.paidAmount!,
-                discountCode: formData.discountCode || '',
+                discountCode: formData.discountCode || "",
                 discountAmount: formData.discountAmount || 0,
                 finalAmount: formData.finalAmount!,
-                remarks: formData.remarks || '',
-                lastTransactionId: formData.lastTransactionId || '',
+                remarks: formData.remarks || "",
+                lastTransactionId: formData.lastTransactionId || "",
                 courseFeeId: formData.courseFeeId || null,
-                installmentCount: formData.installmentCount || 1,
-                installments: formData.installments || [] 
+                installmentCount: formData.installmentCount,
+                installments: formData.installments,
             };
 
             const result = await dispatch(createAdmission(dto)).unwrap();
 
             if (result.success) {
-                toast.success(result.message || 'Admission created successfully');
-                router.push('/admissions');
+                toast.success(result.message || "Admission created successfully");
+                router.push(`/students/${formData.studentId}`);
+                // router.push("/admissions");
             } else {
-                throw result.error || 'Failed to create admission';
+                throw result.error || "Failed to create admission";
             }
         } catch (err: any) {
-            setError({ error: err.message || err, errors: null });
-            toast.error(err.message || err);
+            const msg = typeof err === "string"
+            ? err
+            : err?.message ?? JSON.stringify(err);
+
+            setError({ error: msg, errors: null });
+            toast.error(msg);
+
         } finally {
             setIsSubmitting(false);
         }
@@ -220,6 +223,6 @@ export default function useCreateAdmissionViewModel() {
         handleChange,
         handleSelectChange,
         handleDiscountChange,
-        handleSubmit
+        handleSubmit,
     };
 }

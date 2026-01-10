@@ -4,9 +4,10 @@ import {
     fetchCourses,
     updateCourse,
     deleteCourse,
-    fetchCourseById
+    fetchCourseById,
+    fetchCoursesListOptions
 } from './courseThunks';
-import { Course, CourseState, CourseLevel, PaginatedCourses } from "./courseTypes";
+import { Course, CourseState, CourseLevel, PaginatedCourses, CourseWithDetails } from "./courseTypes";
 
 const initialState: CourseState = {
     courses: [],
@@ -83,7 +84,7 @@ const courseSlice = createSlice({
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(fetchCourseById.fulfilled, (state, action: PayloadAction<Course>) => {
+            .addCase(fetchCourseById.fulfilled, (state, action: PayloadAction<CourseWithDetails>) => {
                 state.loading = false;
                 state.currentCourse = action.payload;
             })
@@ -148,7 +149,20 @@ const courseSlice = createSlice({
             .addCase(deleteCourse.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string || "Failed to delete course";
-            });
+            })
+            .addCase(fetchCoursesListOptions.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchCoursesListOptions.fulfilled, (state, action: PayloadAction<Course[]>) => {
+                state.loading = false;
+                state.courses = action.payload; // ✅ update courses array
+            })
+            .addCase(fetchCoursesListOptions.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload ?? "Failed to fetch courses";
+            })           
+            ;
     }
 });
 

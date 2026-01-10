@@ -17,13 +17,27 @@ import { sessionMiddleware, sessionMonitorMiddleware } from '@/lib/features/sess
 import { configureStore, combineReducers, ThunkDispatch, AnyAction } from '@reduxjs/toolkit';
 import { initializeAuthInterceptor } from '@/lib/services/apiService';
 import { firmReducer } from './features/firm/firmSlice';
-import { staffReducer } from './features/staff/staffSlice'; 
+import  staffReducer  from './features/staff/staffSlice'; 
 import { courseCategoryReducer } from './features/courseCategory/courseCategorySlice';
 import { courseReducer} from './features/course/courseSlice'
 import { studentReducer } from './features/student/studentSlice';
 import { admissionReducer } from './features/admission/admissionSlice'
 import { courseFeeReducer } from './features/fees/feesSlice';
 import { discountCodeReducer } from './features/discountCode/discountCodeSlice';
+import { classRoomReducer } from "@/lib/features/classRoom/classRoomSlice";
+import { moduleReducer } from "@/lib/features/module/moduleSlice";
+import { courseModuleReducer } from "@/lib/features/courseModules/courseModuleSlice";
+import batchReducer from "@/lib/features/batch/batchSlice";
+import { studentBatchAssignmentReducer } from "@/lib/features/studentBatchAssignment/studentBatchAssignmentSlice";
+import batchStudyWorksReducer from "@/lib/features/BatchStudyWorks/batchStudyWorkSlice";
+import batchSchedulesReducer from "@/lib/features/batchSchedules/batchScheduleSlice";
+import noticeReducer from "@/lib/features/notice/noticeSlice";
+import { studentPaymentReducer } from "@/lib/features/studentPayment/studentPaymentSlice";
+
+import examReducer from "@/lib/features/exam/examSlice";
+import examMarksReducer from "@/lib/features/examMarks/examMarksSlice";
+import attendanceSessionReducer from '@/lib/features/attendance/attendanceSessionSlice';
+
 
 const rootReducer = combineReducers({
     auth: authReducer,
@@ -35,7 +49,20 @@ const rootReducer = combineReducers({
     courseFees: courseFeeReducer,
     students: studentReducer,
     admissions: admissionReducer,
-    discountCodes: discountCodeReducer
+    discountCodes: discountCodeReducer,
+    classRooms: classRoomReducer,
+    modules: moduleReducer,
+    courseModules: courseModuleReducer,
+    batches:batchReducer,
+    studentBatchAssignments: studentBatchAssignmentReducer,
+    batchStudyWorks: batchStudyWorksReducer,
+    batchSchedules: batchSchedulesReducer,
+    notices: noticeReducer,
+    studentPayments: studentPaymentReducer,
+    exam: examReducer,
+    examMarks: examMarksReducer,
+    attendanceSession: attendanceSessionReducer,
+
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

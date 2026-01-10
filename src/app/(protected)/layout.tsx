@@ -1,9 +1,11 @@
 'use client';
+
 import { useAppSelector } from '@/lib/hooks';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { AppRoutes } from '@/constants/routes';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
+
 import {
     AppBar,
     Toolbar,
@@ -11,7 +13,6 @@ import {
     Typography,
     Drawer,
     List,
-    ListItem,
     ListItemIcon,
     ListItemText,
     Divider,
@@ -22,90 +23,103 @@ import {
     Menu,
     MenuItem,
     Avatar,
+    ListItemButton,
 } from "@mui/material";
+
 import {
     Menu as MenuIcon,
     Notifications as NotificationsIcon,
     Mail as MailIcon,
     Settings as SettingsIcon,
     Dashboard as DashboardIcon,
+    Business as BusinessIcon,
     People as PeopleIcon,
-    ShoppingCart as ShoppingCartIcon,
-    BarChart as BarChartIcon,
-    Business,
-    BookSharp,
-    BookmarkSharp,
+    School as SchoolIcon,
+    MenuBook as MenuBookIcon,
+    ViewModule as ViewModuleIcon,
+    Groups as GroupsIcon,
+    Assignment as AssignmentIcon,
+    AssignmentInd as AssignmentIndIcon,
+    EventNote as EventNoteIcon,
 } from "@mui/icons-material";
+
 import { useTheme } from "@mui/material/styles";
 import { useLogout } from '@/lib/features/auth/useLogout';
 
 const drawerWidth = 240;
 
-interface layoutParams {
-    children: React.ReactNode
+interface LayoutParams {
+    children: React.ReactNode;
 }
 
-const ProtectedLayout = ({ children }: layoutParams) => {
-    // All hooks must be called unconditionally at the top
+const ProtectedLayout = ({ children }: LayoutParams) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
     const router = useRouter();
     const pathname = usePathname();
-    const { isAuthenticated, initialCheckDone } = useAppSelector(state => state.auth);
+
+    const { isAuthenticated, initialCheckDone, user } = useAppSelector(
+        (state) => state.auth
+    );
+
     const { logout } = useLogout();
 
-    // State hooks
     const [open, setOpen] = useState(!isMobile);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [isMounted, setIsMounted] = useState(false);
 
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
+    useEffect(() => setIsMounted(true), []);
 
     useEffect(() => {
         if (isMounted && initialCheckDone && !isAuthenticated) {
-            if (!pathname.startsWith(AppRoutes.LOGIN)) {
-                const redirectUrl = `${AppRoutes.LOGIN}?redirect=${encodeURIComponent(pathname)}`;
-                router.push(redirectUrl);
-            }
+            router.push(`${AppRoutes.LOGIN}?redirect=${encodeURIComponent(pathname)}`);
         }
     }, [isMounted, initialCheckDone, isAuthenticated, pathname, router]);
 
-    // Handlers
-    const handleDrawerToggle = () => {
-        setOpen(!open);
-    };
+    const handleDrawerToggle = () => setOpen(!open);
 
     const handleUserMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
     };
 
-    const handleUserMenuClose = () => {
+    const handleLogout = () => {
         setAnchorEl(null);
         logout();
-
     };
 
-    // Conditional rendering after all hooks
-    if (!isMounted) {
-        return null;
-    }
+    /* -------------------- MENUS -------------------- */
 
-    if (!initialCheckDone) {
+    const adminMenu = [
+        { text: "Dashboard", icon: <DashboardIcon />, path: AppRoutes.DASHBOARD },
+        { text: "Firms", icon: <BusinessIcon />, path: AppRoutes.FIRMS },
+    ];
+
+    const firmAdminMenu = [
+        { text: "Dashboard", icon: <DashboardIcon />, path: AppRoutes.DASHBOARD },
+        { text: "Staff", icon: <AssignmentIndIcon />, path: AppRoutes.STAFF },
+        { text: "Courses", icon: <MenuBookIcon />, path: AppRoutes.COURSES },
+        { text: "Modules", icon: <ViewModuleIcon />, path: AppRoutes.MODULES },
+        { text: "Batches", icon: <GroupsIcon />, path: AppRoutes.BATCHES },
+        { text: "Students", icon: <PeopleIcon />, path: AppRoutes.STUDENTS },
+        { text: "Exams", icon: <AssignmentIcon />, path: AppRoutes.EXAMS },
+        { text: "Exam Marks", icon: <SchoolIcon />, path: AppRoutes.EXAM_MARKS },
+        { text: "Attendance", icon: <EventNoteIcon />, path: AppRoutes.ATTENDANCE },
+    ];
+
+    const menuItems = user?.roles?.includes("Administrator")
+        ? adminMenu
+        : firmAdminMenu;
+
+    if (!isMounted) return null;
+
+    if (!initialCheckDone || !isAuthenticated) {
         return (
             <div className="flex justify-center items-center h-screen">
-                <LoadingSpinner text="Verifying session..." />
-            </div>
-        );
-    }
-
-    if (!isAuthenticated) {
-        console.log('isAuthenticated', isAuthenticated);
-        
-        return (
-            <div className="flex justify-center items-center h-screen">
-                <LoadingSpinner text="Redirecting to login..." />
+                <LoadingSpinner
+                    size="lg"
+                    label="Preparing your workspace"
+                    subLabel="Please wait a moment"
+                />
             </div>
         );
     }
@@ -113,149 +127,139 @@ const ProtectedLayout = ({ children }: layoutParams) => {
     return (
         <Box sx={{ display: "flex" }}>
             <CssBaseline />
-            {/* Top Navigation Bar */}
 
-            <style jsx global>{`
-    @media print {
-      .MuiDrawer-root {
-        display: none !important;
-      }
-      .MuiAppBar-root {
-        display: none !important;
-      }
-      main {
-        width: 100% !important;
-        padding: 0 !important;
-      }
-    }
-  `}</style>
-
-
+            {/* -------------------- TOP BAR -------------------- */}
             <AppBar
                 position="fixed"
                 sx={{
                     zIndex: (theme) => theme.zIndex.drawer + 1,
                     backgroundColor: "background.paper",
                     color: "text.primary",
-                    boxShadow: "none",
                     borderBottom: "1px solid",
                     borderColor: "divider",
+                    boxShadow: "none",
                 }}
             >
                 <Toolbar>
-                    {/* Logo and Sidebar Toggle */}
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                        <IconButton
-                            color="inherit"
-                            aria-label="open drawer"
-                            edge="start"
-                            onClick={handleDrawerToggle}
-                            sx={{ mr: 2 }}
-                        >
-                            <MenuIcon />
-                        </IconButton>
-                        <Typography variant="h6" noWrap component="div">
-                            Admin Panel
-                        </Typography>
-                    </Box>
+                    <IconButton edge="start" onClick={handleDrawerToggle} sx={{ mr: 2 }}>
+                        <MenuIcon />
+                    </IconButton>
 
-                    {/* Spacer to push icons to right */}
+                    <Typography variant="h6">Admin Panel</Typography>
+
                     <Box sx={{ flexGrow: 1 }} />
 
-                    {/* Right-side Icons */}
-                    <Box sx={{ display: "flex", gap: 1 }}>
-                        <IconButton color="inherit">
-                            <Badge badgeContent={4} color="error">
-                                <MailIcon />
-                            </Badge>
-                        </IconButton>
-                        <IconButton color="inherit">
-                            <Badge badgeContent={3} color="error">
-                                <NotificationsIcon />
-                            </Badge>
-                        </IconButton>
-                        <IconButton color="inherit">
-                            <SettingsIcon />
-                        </IconButton>
+                    <IconButton>
+                        <Badge badgeContent={4} color="error">
+                            <MailIcon />
+                        </Badge>
+                    </IconButton>
 
-                        {/* User Dropdown */}
-                        <IconButton onClick={handleUserMenuOpen} sx={{ p: 0, ml: 1 }}>
-                            <Avatar alt="User" src="/avatar3.png" />
-                        </IconButton>
-                        <Menu
-                            anchorEl={anchorEl}
-                            open={Boolean(anchorEl)}
-                            onClose={() => setAnchorEl(null)}
-                        >
-                            <MenuItem onClick={() => { setAnchorEl(null); router.push(AppRoutes.PROFILE) }}>Profile</MenuItem>
-                            <MenuItem onClick={() => setAnchorEl(null)}>Settings</MenuItem>
-                            <Divider />
-                            <MenuItem onClick={handleUserMenuClose}>Logout</MenuItem>
-                        </Menu>
-                    </Box>
+                    <IconButton>
+                        <Badge badgeContent={3} color="error">
+                            <NotificationsIcon />
+                        </Badge>
+                    </IconButton>
+
+                    <IconButton>
+                        <SettingsIcon />
+                    </IconButton>
+
+                    <IconButton onClick={handleUserMenuOpen} sx={{ ml: 1 }}>
+                        <Avatar />
+                    </IconButton>
+
+                    <Menu
+                        anchorEl={anchorEl}
+                        open={Boolean(anchorEl)}
+                        onClose={() => setAnchorEl(null)}
+                    >
+                        <MenuItem onClick={() => router.push(AppRoutes.PROFILE)}>
+                            Profile
+                        </MenuItem>
+                        <MenuItem>Settings</MenuItem>
+                        <Divider />
+                        <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                    </Menu>
                 </Toolbar>
             </AppBar>
 
-            {/* Sidebar */}
+            {/* -------------------- SIDEBAR -------------------- */}
             <Drawer
                 variant={isMobile ? "temporary" : "permanent"}
                 open={open}
                 onClose={handleDrawerToggle}
                 sx={{
                     width: open ? drawerWidth : theme.spacing(7),
-                    flexShrink: 0,
-                    whiteSpace: "nowrap",
-                    boxSizing: "border-box",
                     "& .MuiDrawer-paper": {
                         width: open ? drawerWidth : theme.spacing(7),
                         overflowX: "hidden",
-                        transition: theme.transitions.create("width", {
-                            easing: theme.transitions.easing.sharp,
-                            duration: open
-                                ? theme.transitions.duration.enteringScreen
-                                : theme.transitions.duration.leavingScreen,
-                        }),
+                        transition: theme.transitions.create("width"),
                     },
                 }}
             >
                 <Toolbar />
+
                 <List>
-                    {[
-                        { text: "Dashboard", icon: <DashboardIcon />, path: AppRoutes.DASHBOARD },
-                        { text: "Staff", icon: <PeopleIcon />, path: AppRoutes.STAFF },
-                        { text: "Students", icon: <PeopleIcon />, path: AppRoutes.STUDENTS },
-                        { text: "Admissions", icon: <PeopleIcon />, path: AppRoutes.ADMISSIONS },
-                        { text: "Firms", icon: <Business />, path: AppRoutes.FRIMS },
-                        { text: "Courses Category", icon: <BookmarkSharp />, path: AppRoutes.COURSE_CATEGORY },
-                        { text: "Courses", icon: <BookSharp />, path: AppRoutes.COURSES },
-                        { text: "Courses Fees", icon: <BookSharp />, path: AppRoutes.FEES },
-                        { text: "Discounts", icon: <BookSharp />, path: AppRoutes.DISCOUNUTS },
-                        { text: "Reports", icon: <BarChartIcon />, path: "/reports" },
-                    ].map((item) => (
-                        <ListItem
-                            key={item.text}
-                            component="a"
-                            href={item.path}
-                            sx={{
-                                "&.Mui-selected": {
-                                    backgroundColor: "rgba(0, 0, 0, 0.04)",
-                                },
-                            }}
-                        >
-                            <ListItemIcon>{item.icon}</ListItemIcon>
-                            {open && <ListItemText primary={item.text} />}
-                        </ListItem>
-                    ))}
+                    {menuItems.map((item) => {
+                        const isActive =
+                            pathname === item.path ||
+                            pathname.startsWith(item.path + "/");
+
+                        return (
+                            <ListItemButton
+                                key={item.text}
+                                component="a"
+                                href={item.path}
+                                selected={isActive}
+                                sx={{
+                                    mx: 1,
+                                    my: 0.5,
+                                    borderRadius: 1,
+                                    position: "relative",
+
+                                    "&.Mui-selected": {
+                                        backgroundColor:
+                                            theme.palette.primary.main + "14",
+                                        color: theme.palette.primary.main,
+                                        fontWeight: 600,
+                                    },
+
+                                    "&.Mui-selected::before": {
+                                        content: '""',
+                                        position: "absolute",
+                                        left: 0,
+                                        top: 8,
+                                        bottom: 8,
+                                        width: 4,
+                                        borderRadius: 4,
+                                        backgroundColor: theme.palette.primary.main,
+                                    },
+
+                                    "& .MuiListItemIcon-root": {
+                                        minWidth: 40,
+                                        color: isActive
+                                            ? theme.palette.primary.main
+                                            : "inherit",
+                                    },
+                                }}
+                            >
+                                <ListItemIcon>{item.icon}</ListItemIcon>
+                                {open && <ListItemText primary={item.text} />}
+                            </ListItemButton>
+                        );
+                    })}
                 </List>
             </Drawer>
 
-            {/* Main Content */}
+            {/* -------------------- MAIN CONTENT -------------------- */}
             <Box
                 component="main"
                 sx={{
                     flexGrow: 1,
                     p: 3,
-                    width: `calc(100% - ${open ? drawerWidth : theme.spacing(7)}px)`,
+                    width: `calc(100% - ${open ? drawerWidth : theme.spacing(7)
+                        }px)`,
                 }}
             >
                 <Toolbar />

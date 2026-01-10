@@ -58,7 +58,7 @@ export default function ProfilePage() {
     const profileData: ProfileData = {
         user: {
             userId: 16,
-            username: "shiva-admin",
+            username: "admin",
             email: "admin@shiva.edu",
             roles: ["Admin"],
             lastLoginAt: "2025-08-11T08:30:56.9414144Z",

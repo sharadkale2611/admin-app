@@ -12,6 +12,7 @@ import {
 import { CourseCategoryDto } from './courseCategoryTypes';
 import { clearCurrentCategory, clearError } from './courseCategorySlice';
 
+
 export const useCourseCategoryViewModel = () => {
     const dispatch = useAppDispatch();
     const {
@@ -21,32 +22,45 @@ export const useCourseCategoryViewModel = () => {
         currentCategory
     } = useAppSelector(state => state.courseCategories);
 
+    const firmId = useAppSelector(state => state.auth.user?.firmId);
+
     // Fetch categories
     const fetchCategories = useCallback(() => {
-        dispatch(fetchCourseCategories(null));
+        dispatch(fetchCourseCategories());
     }, [dispatch]);
-
     // Create category
     const createCourseCategory = useCallback(async (data: CourseCategoryDto) => {
         try {
-            const result = await dispatch(createCategoryAction(data)).unwrap();
+
+            const payload = {
+                ...data,
+                firmId: firmId
+            };
+
+            const result = await dispatch(createCategoryAction(payload)).unwrap();
             return result;
         } catch (error) {
             console.error('Failed to create category:', error);
             throw error;
         }
-    }, [dispatch]);
+    }, [dispatch, firmId]);
 
     // Update category
     const updateCourseCategory = useCallback(async ({ id, data }: { id: number; data: CourseCategoryDto }) => {
         try {
-            const result = await dispatch(updateCategoryAction({ id, data })).unwrap();
+
+            const payload = {
+                ...data,
+                firmId: firmId
+            };
+
+            const result = await dispatch(updateCategoryAction({ id, data: payload })).unwrap();
             return result;
         } catch (error) {
             console.error('Failed to update category:', error);
             throw error;
         }
-    }, [dispatch]);
+    }, [dispatch, firmId]);
 
     // Delete category
     const handleDelete = useCallback(async (categoryId: number, categoryName: string): Promise<boolean> => {

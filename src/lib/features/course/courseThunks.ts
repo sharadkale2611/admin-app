@@ -7,10 +7,34 @@ import {
     PaginatedCourses,
     ApiResponse,
     FetchCoursesParams,
-    CourseLevel
+    CourseLevel,
+    CourseWithDetails
 } from './courseTypes';
 import API_ENDPOINTS from "@/lib/config/apiConfig";
 import api from "@/lib/services/apiService";
+
+
+export const fetchCoursesListOptions = createAsyncThunk<
+  Course[],
+  void,
+  { rejectValue: string }
+>("courses/fetchCoursesList", async (_, { rejectWithValue }) => {
+  try {
+    const response = await api.get(`${API_ENDPOINTS.COURSES.GET_LIST}`, {
+      withCredentials: true,
+    });
+    
+    if (!response.success || !Array.isArray(response.data)) {
+      return rejectWithValue("No courses found");
+    }
+
+    return response.data; 
+  } catch (error: any) {
+    return rejectWithValue(error.message || "An error occurred");
+  }
+});
+
+
 
 export const fetchCoursesList = createAsyncThunk<
     Course[],
@@ -55,24 +79,37 @@ export const fetchCourses = createAsyncThunk<
         searchTerm = '',
         status = null,
         courseLevel = null,
-        categoryId = null
+        categoryId = null,
+        firmId
     }, { rejectWithValue }) => {
         try {
-            const queryParams = new URLSearchParams({
-                pageNumber: page.toString(),
-                pageSize: '10',
-                ...(searchTerm && { search: searchTerm }),
-                ...(status !== null && { status: status.toString() }),
-                ...(courseLevel && { courseLevel }),
-                ...(categoryId && { categoryId: categoryId.toString() }),
-                _: Date.now().toString()
-            }).toString();
+
+            const queryObj: Record<string, string> = {
+            pageNumber: page.toString(),
+            pageSize: '10',
+            _: Date.now().toString(),
+        };
+
+        // Add filters
+        if (searchTerm) queryObj.search = searchTerm;
+        // Align with Batches: backend expects `isActive` for active filter
+        if (status !== null) queryObj.isActive = status.toString();
+        if (courseLevel) queryObj.courseLevel = courseLevel;
+        if (categoryId !== null) queryObj.categoryId = categoryId.toString();
+
+        // ⭐ Add firmId
+        if (firmId !== null && firmId !== undefined) {
+            queryObj.firmId = firmId.toString();
+        }
+
+            // Now convert to query string
+            const queryString = new URLSearchParams(queryObj).toString();
 
             const response = await api.get<PaginatedCourses>(
-                `${API_ENDPOINTS.COURSES.GET_LIST_PAGINATED}?${queryParams}`,
+                `${API_ENDPOINTS.COURSES.GET_LIST_PAGINATED}?${queryString}`,
                 { withCredentials: true }
             );
-
+                
             if (!response?.data) {
                 return rejectWithValue('No response data from server');
             }            
@@ -92,21 +129,23 @@ export const fetchCourses = createAsyncThunk<
 );
 
 export const fetchCourseById = createAsyncThunk<
-    Course,
+    CourseWithDetails,
     number,
     { dispatch: AppDispatch; state: RootState; rejectValue: string }
 >(
     'courses/fetchCourseById',
     async (courseId, { rejectWithValue }) => {
         try {
-            const response = await api.get<Course>(
-                `${API_ENDPOINTS.COURSES.GET_BY_ID}/${courseId}`,
+            const response = await api.get<CourseWithDetails>(
+                `${API_ENDPOINTS.COURSES.GET_BY_ID}/details/${courseId}`,
                 { withCredentials: true }
             );
 
             if (!response.data) {
                 return rejectWithValue('Course not found');
             }
+
+            console.log('Fetched course details:', response.data);
 
             return response.data;
 

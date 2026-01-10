@@ -1,26 +1,63 @@
-// app/dashboard/page.tsx
 'use client';
+
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Box, Divider, Stack } from '@mui/material';
 import { useAppSelector } from '@/lib/hooks';
+
+import DashboardHeader from './components/DashboardHeader';
+import DashboardStats from './components/DashboardStats';
+import AttendanceOverview from './components/AttendanceOverview';
+import ActionRequired from './components/ActionRequired';
+import QuickActions from './components/QuickActions';
+import RecentActivity from './components/RecentActivity';
 
 export default function Dashboard() {
     const router = useRouter();
-    const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
-    const initialCheckDone = useAppSelector(state => state.auth.initialCheckDone);
+    const { isAuthenticated, initialCheckDone } = useAppSelector(
+        state => state.auth
+    );
 
     useEffect(() => {
-        // Only check after initial auth verification is complete
         if (initialCheckDone && !isAuthenticated) {
-            console.log('Redirecting to login');
             router.push('/login?redirect=/dashboard');
         }
-    }, [isAuthenticated, initialCheckDone, router]);
+    }, [initialCheckDone, isAuthenticated, router]);
 
-    // Show loading state while checking auth
     if (!initialCheckDone) {
-        return <div>Loading...</div>;
+        return <div>Loading dashboard...</div>;
     }
 
-    return <div>Dashboard Content</div>;
+    return (
+        <Box sx={{ p: 3 }}>
+            <Stack spacing={3}>
+                {/* Header */}
+                <DashboardHeader />
+
+                {/* KPI Cards */}
+                <DashboardStats />
+
+                <Divider />
+
+                {/* Attendance + Actions */}
+                <Stack
+                    direction={{ xs: 'column', md: 'row' }}
+                    spacing={3}
+                >
+                    <AttendanceOverview />
+                    <ActionRequired />
+                </Stack>
+
+                <Divider />
+
+                {/* Quick Actions */}
+                <QuickActions />
+
+                <Divider />
+
+                {/* Recent Activity */}
+                <RecentActivity />
+            </Stack>
+        </Box>
+    );
 }

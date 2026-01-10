@@ -7,7 +7,8 @@ import {
     createCourseFee,
     updateCourseFee,
     deleteCourseFee,
-    fetchCourseFeeById
+    fetchCourseFeeById,
+    fetchCourseFeesByFirm
 } from "./feesThunks";
 import {
     setCourseIdFilter,
@@ -15,6 +16,7 @@ import {
     clearCurrentCourseFee,
     clearError
 } from "./feesSlice";
+import { useCourseViewModel } from "@/lib/features/course/useCourseViewModel";
 
 export const useCourseFeesViewModel = () => {
     const dispatch: ThunkDispatch<RootState, unknown, AnyAction> = useAppDispatch();
@@ -27,6 +29,8 @@ export const useCourseFeesViewModel = () => {
         filters
     } = useAppSelector((state: RootState) => state.courseFees);
 
+    const { firmId } = useCourseViewModel();
+
     const safeCourseFees = courseFees || [];
 
     // Memoized fetch function
@@ -36,10 +40,22 @@ export const useCourseFeesViewModel = () => {
         }));
     }, [dispatch, filters.courseId]);
 
-    // Fetch course fees when filters change
+    const fetchCourseFeesDataByFirm = useCallback(() => {
+        if (!firmId) return;
+        return dispatch(fetchCourseFeesByFirm(firmId));
+    }, [dispatch, firmId]);
+
+    const loadFees = useCallback(() => {
+        if (filters.courseId) {
+            return fetchCourseFeesData();
+        }
+        return fetchCourseFeesDataByFirm();
+    }, [filters.courseId, fetchCourseFeesData, fetchCourseFeesDataByFirm]);
+
     useEffect(() => {
-        fetchCourseFeesData();
-    }, [fetchCourseFeesData]);
+        if (!firmId) return;
+        loadFees();
+    }, [loadFees, firmId]);
 
     // Action Handlers
     const handleCourseIdFilter = useCallback((courseId: number | undefined) => {
@@ -91,6 +107,9 @@ export const useCourseFeesViewModel = () => {
         handleCreateCourseFee,
         handleUpdateCourseFee,
         handleDeleteCourseFee,
-        refetch: fetchCourseFeesData
+        refetch: loadFees,                 // smart
+        refetchByFirm: fetchCourseFeesDataByFirm,
+        refetchByCourse: fetchCourseFeesData,
+
     };
 };

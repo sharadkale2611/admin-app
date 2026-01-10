@@ -3,50 +3,36 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+
+
 export function middleware(request: NextRequest) {
+
+    if (request.nextUrl.searchParams.has('_rsc')) {
+        return NextResponse.next();
+    }
+
     const token = request.cookies.get('access-token')?.value;
     const { pathname } = request.nextUrl;
 
+    const protectedRoutes = ['/dashboard', '/profile'];
+    const guestOnlyRoutes = ['/login', '/register'];
 
-    // Route groups to protect (matches the folder structure)
-    const protectedRoutes = [
-        '/(protected)', // All routes under /(protected) group
-        '/dashboard',   // Legacy support (if keeping pages directory)
-        '/profile'      // Legacy support
-    ];
+    const isProtectedRoute = protectedRoutes.some(p => pathname.startsWith(p));
+    const isGuestOnlyRoute = guestOnlyRoutes.some(p => pathname.startsWith(p));
 
-    const guestOnlyRoutes = [
-        '/(auth)',      // All routes under /(auth) group
-        '/login',       // Legacy support
-        '/register'     // Legacy support
-    ];
-
-    // Check if current path is protected
-    const isProtectedRoute = protectedRoutes.some(route =>
-        pathname.startsWith(route) ||
-        pathname === '/'
-    );
-
-    // Check if current path is guest-only
-    const isGuestOnlyRoute = guestOnlyRoutes.some(route =>
-        pathname.startsWith(route)
-    );
-
-    // Redirect unauthenticated users from protected routes
     if (isProtectedRoute && !token) {
         const redirectUrl = new URL('/login', request.url);
         redirectUrl.searchParams.set('redirect', pathname);
         return NextResponse.redirect(redirectUrl);
     }
 
-    return NextResponse.next();
-
-    // Redirect authenticated users from guest-only routes
-    if (!isProtectedRoute && token) {
+    if (isGuestOnlyRoute && token) {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
+    return NextResponse.next();
 }
+
 
 export const config = {
     matcher: [
@@ -61,3 +47,10 @@ export const config = {
         '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|api/auth).*)',
     ],
 };
+
+
+
+
+
+
+

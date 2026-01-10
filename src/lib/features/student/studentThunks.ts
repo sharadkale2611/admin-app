@@ -6,7 +6,9 @@ import {
     UpdateStudentDto,
     PaginatedStudent,
     ApiResponse,
-    FetchStudentParams
+    FetchStudentParams,
+    CreateStudentResponse,
+    CreatedStudent
 } from "./studentTypes";
 import API_ENDPOINTS from "@/lib/config/apiConfig";
 import api from "@/lib/services/apiService";
@@ -22,35 +24,39 @@ export interface ApiError {
 /**
  * Common error parser for API responses
  */
+
 function parseApiError(error: any): ApiError {
-    console.log('parseApiError from std_Thunk', error);
-    
-    if (error?.response?.data) {
-        const data = error.response.data;
+  console.log("parseApiError from std_Thunk", error);
 
-        if (data.errors && typeof data.errors === "object") {
-            // flatten { field: [messages] } into string[]
-            const flattened = Object.entries(data.errors).flatMap(
-                ([field, msgs]) => (msgs as string[]).map(msg => `${field}: ${msg}`)
-            );
-            return { error: null, errors: flattened };
-        }
+  if (error?.response?.data) {
+    const data = error.response.data;
 
-        if (data.error) {
-            return { error: data.error, errors: null };
-        }
+    if (data.errors && typeof data.errors === "object") {
+      // flatten { field: [messages] } into string[]
+      const flattened = Object.entries(data.errors).flatMap(([field, msgs]) =>
+        (msgs as string[]).map((msg) => `${field}: ${msg}`)
+      );
+      return { error: null, errors: flattened };
     }
 
-    if (error?.errors){
-        return { error: error.message, errors: error?.errors };
+    if (data.error) {
+      return { error: data.error, errors: null };
     }
+  }
 
-    if (error?.fieldErrors) {
-        return { error: error.message, errors: error?.fieldErrors };
-    }
-  
-    return { error: "An unknown error occurred...from thunk", errors: null };
+  if (error?.errors) {
+    return { error: error.message, errors: error?.errors };
+  }
+
+  if (error?.fieldErrors) {
+    return { error: error.message, errors: error?.fieldErrors };
+  }
+
+  return { error: "An unknown error occurred...from thunk", errors: null };
 }
+
+
+
 
 export const fetchStudentList = createAsyncThunk<
     Student[], // Response type: list of students
@@ -78,6 +84,8 @@ export const fetchStudentList = createAsyncThunk<
         }
     }
 );
+
+
 
 /**
  * Fetch Students (paginated)
@@ -113,58 +121,66 @@ export const fetchStudents = createAsyncThunk<
     }
 );
 
+
+
+
 /**
  * Create Student
  */
+
 export const createStudent = createAsyncThunk<
     {
         success: boolean;
         message: string;
         error: string | null;
         errors: Record<string, string[]> | null;
-        student: Student | null;
+        student: CreatedStudent | null;
     },
     CreateStudentDto,
-    { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
+    { rejectValue: ApiError }
 >(
     "students/createStudent",
-    async (createStudentDto, { rejectWithValue, getState }) => {
+    async (createStudentDto, { rejectWithValue }) => {
         try {
-            const response = await api.post<ApiResponse<Student>>(
+            const response = await api.post<CreateStudentResponse>(
                 API_ENDPOINTS.STUDENT.POST_CREATE,
                 createStudentDto,
-                {
-                    withCredentials: true,
-                    headers: { "Content-Type": "application/json" }
-                }
+                { withCredentials: true }
             );
 
-            // Check for non-200 response
-            if (response.status !== 200) {
+            if (!response.success || !response.data) {
                 return rejectWithValue({
-                    error: response.data?.error || response.data?.message || "Creation failed",
-                    errors: null,
+                    error: response.message || "Invalid server response",
+                    errors: response.errors
+                        ? Object.values(response.errors).flat()
+                        : null,
                 });
             }
+            const created = response.data;
 
-            // Return created student
             return {
                 success: true,
-                message: response.data?.message || "Student created successfully",
+                message: response.message || "Student created successfully",
                 error: null,
                 errors: null,
-                student: response.data?.data ?? null,
+                student: {
+                    studentId: created.studentId,
+                    studentCode: created.studentCode,
+                    userName: created.userName,
+                },
             };
         } catch (error: any) {
-            // Ensure parseApiError returns {error: string, errors: Record<string,string[]> | null}
-            const parsed = parseApiError(error);
             return rejectWithValue({
-                error: parsed.error ?? "Creation failed",
-                errors: parsed.errors ?? null,
+                error: error.message || "Creation failed",
+                errors: error.errors ?? null,
             });
         }
     }
 );
+
+
+
+
 
 /**
  * Update Student
@@ -269,6 +285,7 @@ export const updateStudent = createAsyncThunk<
 );
 
 
+
 /**
  * Delete Student
  */
@@ -292,6 +309,7 @@ export const deleteStudent = createAsyncThunk<
         }
     }
 );
+
 
 /**
  * Fetch Student By Id

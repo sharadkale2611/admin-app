@@ -9,12 +9,16 @@ import { resetFilters, setCategoryFilter, setCourseLevelFilter, setPage, setSear
 export const useCourseViewModel = () => {
     const dispatch: ThunkDispatch<RootState, unknown, AnyAction> = useAppDispatch();
 
+    const authUser = useAppSelector((state: RootState) => state.auth.user);
+
     const {
         courses,
         loading,
         error,
         page,
         totalPages,
+        totalCount,
+        pageSize,
         searchTerm,
         statusFilter,
         courseLevelFilter,
@@ -23,25 +27,35 @@ export const useCourseViewModel = () => {
 
     const safeCourses = courses || [];
 
-    // Memoized fetch function
-    const fetchCourseData = useCallback(() => {
-        dispatch(fetchCourses({
-            page,
-            searchTerm,
-            status: statusFilter,
-            courseLevel: courseLevelFilter,
-            categoryId: categoryFilter
-        }));
-    }, [dispatch, page, searchTerm, statusFilter, courseLevelFilter, categoryFilter]);
+    const firmId = authUser?.firmId ? Number(authUser.firmId) : null;
 
-    // Fetch courses when filters change with debounce for search
+    // Memoized fetch function
     useEffect(() => {
+        if (firmId === null) return;
+
         const timer = setTimeout(() => {
-            fetchCourseData();
+            dispatch(fetchCourses({
+                page,
+                searchTerm,
+                status: statusFilter,
+                courseLevel: courseLevelFilter,
+                categoryId: categoryFilter,
+                firmId,
+            }));
         }, searchTerm ? 300 : 0);
 
         return () => clearTimeout(timer);
-    }, [fetchCourseData, searchTerm]);
+
+    }, [
+        dispatch,
+        firmId,
+        page,
+        searchTerm,
+        statusFilter,
+        courseLevelFilter,
+        categoryFilter
+    ]);
+
 
     // Action Handlers
     const handleSearch = useCallback((term: string) => {
@@ -79,10 +93,13 @@ export const useCourseViewModel = () => {
         error,
         page,
         totalPages: totalPages || 1,
+        totalCount,
+        pageSize,
         searchTerm,
         statusFilter,
         courseLevelFilter,
         categoryFilter,
+        firmId,
 
         // Actions
         handleSearch,
@@ -91,6 +108,17 @@ export const useCourseViewModel = () => {
         handleCategoryFilter,
         handleResetFilters,
         handlePageChange,
-        refetch: fetchCourseData
+        refetch: () => {
+            if (firmId === null) return;
+
+            dispatch(fetchCourses({
+                page,
+                searchTerm,
+                status: statusFilter,
+                courseLevel: courseLevelFilter,
+                categoryId: categoryFilter,
+                firmId,
+            }));
+        }
     };
 };

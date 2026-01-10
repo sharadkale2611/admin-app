@@ -18,6 +18,7 @@ export interface Staff {
     updatedAt: string;
 }
 
+
 export interface PaginatedStaff {
     items: Staff[];
     totalCount: number;
@@ -26,20 +27,27 @@ export interface PaginatedStaff {
     totalPages: number;
 }
 
+
+
 export interface StaffState {
+    dropdownStaff: Staff[];
     staff: Staff[];
-    currentStaff: Staff | null, // Add this
+    currentStaff: Staff | null;
     totalCount: number;
     pageSize: number;
     currentPage: number;
     totalPages: number;
     loading: boolean;
     error: string | null;
+
     searchTerm: string;
-    activeOnly: boolean;
+    isActive: boolean;
     page: number;
+
     selectedDepartment: string;
     selectedPosition: string;
+
+    firmId: number | null; // ⭐ ADDED
 }
 
 export interface CreateStaffDto {
@@ -69,11 +77,12 @@ export interface ApiResponse<T> {
     error?: string | null;
     errors?: any | null;
 }
-
 export interface FetchStaffParams {
     page?: number;
     searchTerm?: string;
-    activeOnly?: boolean;
+    isActive?: boolean;
     department?: string;
     position?: string;
+    pageSize?: number;
+    firmId?: number | null;
 }

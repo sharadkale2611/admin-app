@@ -5,12 +5,13 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { CourseFeeDto } from './feesThunks';
 import { createCourseFee } from './feesThunks';
 import { fetchCourses } from '../course/courseThunks';
+import Swal from 'sweetalert2';
 
 interface FormData {
     courseId: number;
-    totalInstallments: number;
-    feeAmount: number;
-    gstPercentage: number;
+    totalInstallments: number | '';
+    feeAmount: number | '';
+    gstPercentage: number | '';
     branchId?: number;
 }
 
@@ -36,9 +37,9 @@ export const useCreateCourseFeeViewModel = () => {
     );
 
     // Fetch courses on component mount
-    useEffect(() => {
-        dispatch(fetchCourses({}));
-    }, [dispatch]);
+    // useEffect(() => {
+    //     dispatch(fetchCourses({}));
+    // }, [dispatch]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -58,14 +59,21 @@ export const useCreateCourseFeeViewModel = () => {
         }));
     };
 
-    const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleNumberChange = (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
         const { name, value } = e.target;
 
-        setFormData(prev => ({
-            ...prev,
-            [name]: value === '' ? 0 : Number(value)
-        }));
+        setFormData(prev => {
+            if (!prev) return prev;
+
+            return {
+                ...prev,
+                [name]: value === '' ? '' : Number(value),
+            };
+        });
     };
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -73,29 +81,35 @@ export const useCreateCourseFeeViewModel = () => {
         setError('');
 
         try {
+            // Convert to numbers for validation
+            const courseId = Number(formData.courseId);
+            const feeAmount = Number(formData.feeAmount);
+            const totalInstallments = Number(formData.totalInstallments);
+            const gstPercentage = Number(formData.gstPercentage);
+
             // Validate required fields
-            if (formData.courseId <= 0) {
+            if (courseId <= 0) {
                 throw new Error('Please select a course');
             }
 
-            if (formData.feeAmount <= 0) {
+            if (feeAmount <= 0) {
                 throw new Error('Fee amount must be greater than 0');
             }
 
-            if (formData.totalInstallments < 1 || formData.totalInstallments > 12) {
+            if (totalInstallments < 1 || totalInstallments > 12) {
                 throw new Error('Total installments must be between 1 and 12');
             }
 
-            if (formData.gstPercentage < 0 || formData.gstPercentage > 100) {
+            if (gstPercentage < 0 || gstPercentage > 100) {
                 throw new Error('GST percentage must be between 0 and 100');
             }
 
             const courseFeeDto: CourseFeeDto = {
-                courseId: formData.courseId,
-                totalInstallments: formData.totalInstallments,
-                feeAmount: formData.feeAmount,
-                gstPercentage: formData.gstPercentage,
-                branchId: formData.branchId
+                courseId,
+                totalInstallments,
+                feeAmount,
+                gstPercentage,
+                branchId: formData.branchId ? Number(formData.branchId) : undefined
             };
 
             console.log('Dispatching createCourseFee with:', courseFeeDto);
@@ -107,8 +121,16 @@ export const useCreateCourseFeeViewModel = () => {
                 // Success case
                 const result = resultAction.payload;
                 console.log('Create course fee success:', result);
-                router.push('/fees');
-                router.refresh();
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Recrod Added successfully!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                window.location.reload();
+                // router.push('/fees');
+                // router.refresh();
             } else if (createCourseFee.rejected.match(resultAction)) {
                 // Error case - get the error from the action payload
                 console.log('Create course fee rejected:', resultAction);
@@ -129,7 +151,7 @@ export const useCreateCourseFeeViewModel = () => {
         } finally {
             setIsSubmitting(false);
         }
-    };  
+    };
 
     const resetForm = () => {
         setFormData(initialFormData);
@@ -137,10 +159,11 @@ export const useCreateCourseFeeViewModel = () => {
     };
 
     // Calculate total fee
-    const totalFee = formData.feeAmount + (formData.feeAmount * formData.gstPercentage / 100);
+    const totalFee = Number(formData.feeAmount) + (Number(formData.feeAmount) * Number(formData.gstPercentage) / 100);
 
     return {
         formData,
+        setFormData,
         totalFee,
         isSubmitting,
         error,

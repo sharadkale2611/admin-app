@@ -1,7 +1,7 @@
 // src/lib/features/admission/admissionThunks.ts
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { AppDispatch, RootState } from "@/lib/store";
-import { Admission, PaginatedAdmissions, EnrollmentType, ApiResponse, AdmissionStatus, CreateAdmissionDto } from "./admissionTypes";
+import { Admission, PaginatedAdmissions, EnrollmentType, ApiResponse, AdmissionStatus, CreateAdmissionDto, UpdateAdmissionDto } from "./admissionTypes";
 import API_ENDPOINTS from "@/lib/config/apiConfig";
 import api from "@/lib/services/apiService";
 
@@ -107,8 +107,8 @@ export const createAdmission = createAsyncThunk<
                 headers: { "Content-Type": "application/json" }
             });
 
-            if (response.status !== 201) {
-                return rejectWithValue({ error: response.data?.error || "Failed to create admission", errors: null });
+            if (response.success === false || (response.status !== 200 && response.status !== 201)) {
+                return rejectWithValue({ error: response.message || "Failed to create admission", errors: null });
             }
 
             return {
@@ -129,22 +129,64 @@ export const createAdmission = createAsyncThunk<
 /**
  * Update Admission
  */
+// export const updateAdmission = createAsyncThunk<
+//     { success: boolean; message: string; error: string | null; errors: string[] | null; admission: Admission },
+//     Admission,
+//     { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
+// >(
+//     "admissions/updateAdmission",
+//     async (admissionDto, { rejectWithValue }) => {
+//         try {
+//             const response = await api.put<ApiResponse<Admission>>(
+//                 `${API_ENDPOINTS.ADMISSION.PUT_UPDATE}/${admissionDto.studentEnrollmentId}`,
+//                 admissionDto,
+//                 { withCredentials: true }
+//             );
+
+//             if (response.status !== 200) {
+//                 return rejectWithValue({ error: response.data?.error || "Failed to update admission", errors: null });
+//             }
+
+//             return {
+//                 success: true,
+//                 message: response.data?.message || "Admission updated successfully",
+//                 error: null,
+//                 errors: null,
+//                 admission: response.data?.data!
+//             };
+//         } catch (error: any) {
+//             const parsed = parseApiError(error);
+//             return rejectWithValue({ error: parsed.error ?? "Failed to update admission", errors: parsed.errors });
+//         }
+//     }
+// );
+
+
 export const updateAdmission = createAsyncThunk<
-    { success: boolean; message: string; error: string | null; errors: string[] | null; admission: Admission },
-    Admission,
+    {
+        success: boolean;
+        message: string;
+        error: string | null;
+        errors: Record<string, string[]> | null;
+        admission: Admission;
+    },
+    UpdateAdmissionDto, // <-- FIXED
     { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
 >(
     "admissions/updateAdmission",
-    async (admissionDto, { rejectWithValue }) => {
+    async (dto, { rejectWithValue }) => {
         try {
             const response = await api.put<ApiResponse<Admission>>(
-                `${API_ENDPOINTS.ADMISSION.PUT_UPDATE}/${admissionDto.admissionId}`,
-                admissionDto,
+                `${API_ENDPOINTS.ADMISSION.PUT_UPDATE}/${dto.studentEnrollmentId}`,
+                dto,
                 { withCredentials: true }
             );
 
             if (response.status !== 200) {
-                return rejectWithValue({ error: response.data?.error || "Failed to update admission", errors: null });
+                return rejectWithValue({
+                    error: response.data?.error || "Failed to update admission",
+                    errors: null,
+                });
             }
 
             return {
@@ -152,14 +194,15 @@ export const updateAdmission = createAsyncThunk<
                 message: response.data?.message || "Admission updated successfully",
                 error: null,
                 errors: null,
-                admission: response.data?.data!
+                admission: response.data?.data!,
             };
         } catch (error: any) {
-            const parsed = parseApiError(error);
-            return rejectWithValue({ error: parsed.error ?? "Failed to update admission", errors: parsed.errors });
+            return rejectWithValue(parseApiError(error));
         }
     }
 );
+
+
 
 /**
  * Delete Admission
@@ -183,6 +226,7 @@ export const deleteAdmission = createAsyncThunk<
 /**
  * Fetch Admission by Id
  */
+
 export const fetchAdmissionById = createAsyncThunk<
     Admission,
     number,
@@ -191,16 +235,20 @@ export const fetchAdmissionById = createAsyncThunk<
     "admissions/fetchAdmissionById",
     async (admissionId, { rejectWithValue }) => {
         try {
-            const response = await api.get<ApiResponse<Admission>>(
+            const response = await api.get<Admission>(
                 `${API_ENDPOINTS.ADMISSION.GET_BY_ID}/${admissionId}`,
                 { withCredentials: true }
             );
 
-            if (!response.data?.data) {
+            console.log("Admission View Response", response);
+            console.log("Admission View Response", response.data);
+
+            if (!response.data) {
                 return rejectWithValue({ error: "Admission not found", errors: null });
             }
 
-            return response.data.data;
+            // Return the admission object directly
+            return response.data;
         } catch (error: any) {
             return rejectWithValue(parseApiError(error));
         }
