@@ -8,7 +8,8 @@ import {
     ApiResponse,
     FetchStudentParams,
     CreateStudentResponse,
-    CreatedStudent
+    CreatedStudent,
+    StudentByMobileResponse
 } from "./studentTypes";
 import API_ENDPOINTS from "@/lib/config/apiConfig";
 import api from "@/lib/services/apiService";
@@ -332,6 +333,39 @@ export const fetchStudentById = createAsyncThunk<
             }
 
             return response.data;
+        } catch (error: any) {
+            return rejectWithValue(parseApiError(error));
+        }
+    }
+);
+
+
+export const fetchStudentByMobile = createAsyncThunk<
+    StudentByMobileResponse,
+    string,
+    { rejectValue: ApiError }
+>(
+    "students/fetchStudentByMobile",
+    async (mobile, { rejectWithValue }) => {
+        try {
+            // ✅ api.get<T>() already returns ApiResponse<T>
+            const response = await api.get<StudentByMobileResponse>(
+                `${API_ENDPOINTS.STUDENT.GET_BY_MOBILE}/${mobile}`,
+                { withCredentials: true }
+            );
+
+            // response is ApiResponse<StudentByMobileResponse>
+            if (!response.success || !response.data) {
+                return rejectWithValue({
+                    error: "Student not found",
+                    errors: null,
+                });
+            }
+
+            // ✅ Explicitly return payload
+            const payload: StudentByMobileResponse = response.data;
+            return payload;
+
         } catch (error: any) {
             return rejectWithValue(parseApiError(error));
         }

@@ -1,13 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import { AppDispatch } from '@/lib/store';
-import { ApiError, createAdmission } from './admissionThunks';
-import { CreateAdmissionDto, EnrollmentType, PaymentStatus } from './admissionTypes';
 import { fetchDiscountCodes } from '../discountCode/discountCodeThunks';
+import { EnrollmentType, PaymentStatus } from './admissionTypes';
+import { formatDate } from 'date-fns';
 
 export interface Installment {
     installmentCount: number;
@@ -15,27 +14,47 @@ export interface Installment {
     date: string;
 }
 
+export type InstallmentCycle =
+    | 'Weekly'
+    | 'Monthly'
+    | 'BiMonthly'
+    | 'Quarterly'
+    | 'FourMonthly';
+
+export type PaymentMode = 'Cash' | 'UPI' | 'Card';
+
 export interface AdmissionFormData {
     studentId: number | null;
     courseId: number | null;
     enrollmentType: EnrollmentType | '';
     enrollmentDate: string;
     paymentStatus: PaymentStatus | '';
-    totalAmount: number | null;
+    totalAmount: number;
     paidAmount: number | null;
     discountCode: string | null;
-    discountAmount: number | null;
-    finalAmount: number | null;
+    discountAmount: number;
+    finalAmount: number;
     remarks: string | null;
-    lastTransactionId: string | null;
     courseFeeId: number | null;
+
+    // ✅ ADD THESE
+    feeAmount: number;        // base fee
+    gstPercentage: number;
+    gstAmount: number;
+
+    paymentMode?: PaymentMode;              
     installmentCount: number;
-    installments: Installment[];
+    installmentCycle?: InstallmentCycle;
+
+    installments: {
+        installmentCount: number;
+        amount: number;
+        date: string;
+    }[];
 }
 
+
 export default function useCreateAdmissionViewModel() {
-    const router = useRouter();
-    const searchParams = useSearchParams();
     const dispatch = useDispatch<AppDispatch>();
 
     const [discounts, setDiscounts] = useState<
@@ -46,183 +65,162 @@ export default function useCreateAdmissionViewModel() {
         studentId: null,
         courseId: null,
         enrollmentType: '',
-        enrollmentDate: new Date().toISOString().split("T")[0],
+        enrollmentDate: new Date().toISOString().split('T')[0],
         paymentStatus: '',
-        totalAmount: null,
+        totalAmount: 0,
         paidAmount: null,
         discountCode: null,
-        discountAmount: null,
-        finalAmount: null,
-        remarks: null,
-        lastTransactionId: null,
+        discountAmount: 0,
+        finalAmount: 0,
+        remarks: 'Registration Fee',
         courseFeeId: null,
-        installmentCount: 1,
-        installments: []
+
+        feeAmount: 0,
+        gstPercentage: 0,
+        gstAmount: 0,
+
+        installmentCount: 1,          
+        installmentCycle: 'Monthly',
+        paymentMode: undefined,
+        installments: [],
     });
 
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState<ApiError | null>(null);
 
-    // Prefill student & course from query params
+    /* -------------------------------------------------------
+       LOAD DISCOUNTS
+    ------------------------------------------------------- */
     useEffect(() => {
-        const studentIdParam = searchParams.get("studentId");
-        const courseIdParam = searchParams.get("courseId");
-
-        setFormData((prev) => ({
-            ...prev,
-            studentId: studentIdParam ? Number(studentIdParam) : prev.studentId,
-            courseId: courseIdParam ? Number(courseIdParam) : prev.courseId,
-        }));
-    }, [searchParams]);
-
-    // Load discounts
-    useEffect(() => {
-        async function getDiscounts() {
-            try {
-                const result = await dispatch(fetchDiscountCodes()).unwrap();
-                setDiscounts(result);
-            } catch (err) {
-                console.error("Failed to fetch discounts", err);
-            }
-        }
-        getDiscounts();
+        dispatch(fetchDiscountCodes())
+            .unwrap()
+            .then(setDiscounts)
+            .catch(() => console.error('Failed to load discounts'));
     }, [dispatch]);
 
-    // Handle discount changes
+    /* -------------------------------------------------------
+       APPLY DISCOUNT
+    ------------------------------------------------------- */
     const handleDiscountChange = (code: string) => {
-        const selected = discounts.find((d) => d.code === code);
-        if (!selected) return;
+        setFormData(prev => {
+            const selected = discounts.find(d => d.code === code);
+            if (!selected) return prev;
 
-        const discountAmount =
-            selected.discountType === "Percentage"
-                ? ((formData.totalAmount ?? 0) * selected.discountValue) / 100
-                : selected.discountValue;
+            let discountAmount = 0;
 
-        const finalAmount = (formData.totalAmount ?? 0) - discountAmount;
+            if (selected.discountType === 'Percentage') {
+                discountAmount = Math.round(
+                    (prev.totalAmount * selected.discountValue) / 100
+                );
+            } else {
+                discountAmount = selected.discountValue;
+            }
 
-        setFormData((prev) => ({
-            ...prev,
-            discountCode: selected.code,
-            discountAmount,
-            finalAmount,
-        }));
+            const finalAmount = Math.max(
+                0,
+                prev.totalAmount - discountAmount
+            );
+
+            return {
+                ...prev,
+                discountCode: selected.code,
+                discountAmount,
+                finalAmount,
+                paidAmount: null,
+                paymentStatus: '',
+            };
+        });
     };
+ 
+    
+    
 
-    // General form input handling
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
 
-        let updatedValue: any =
-            ["studentId", "courseId", "totalAmount", "paidAmount"].includes(name)
-                ? value === "" ? null : Number(value)
-                : value;
+    /* -------------------------------------------------------
+       PAID AMOUNT → PAYMENT STATUS
+    ------------------------------------------------------- */
+    const handlePaidAmountChange = (amount: number | null) => {
+        setFormData(prev => {
+            let status: PaymentStatus | '' = '';
 
-        setFormData((prev) => {
-            let updated = { ...prev, [name]: updatedValue };
-
-            // Auto-payment status logic
-            if (name === "paidAmount" && updated.finalAmount !== null) {
-                if (updatedValue < 100) {
-                    toast.error("Paid amount must be at least 100");
-                } else if (updatedValue > updated.finalAmount) {
-                    toast.error("Paid amount cannot exceed Final Amount");
-                }
-
-                if (updatedValue === updated.finalAmount) {
-                    updated.paymentStatus = PaymentStatus.Paid;
-                } else if (updatedValue >= 100 && updatedValue < updated.finalAmount) {
-                    updated.paymentStatus = PaymentStatus.PartiallyPaid;
-                } else {
-                    updated.paymentStatus = "";
+            if (amount !== null) {
+                if (amount < 100) {
+                    toast.error('Paid amount must be at least ₹100');
+                } else if (amount > prev.finalAmount) {
+                    toast.error('Paid amount cannot exceed Final Amount');
+                } else if (amount === prev.finalAmount) {
+                    status = PaymentStatus.Paid;
+                } else if (amount >= 100) {
+                    status = PaymentStatus.PartiallyPaid;
                 }
             }
 
-            return updated;
+            return {
+                ...prev,
+                paidAmount: amount,
+                paymentStatus: status,
+            };
         });
     };
 
-    // Handle select fields
-    const handleSelectChange = (e: { target: { name: string; value: any } }) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: name === "enrollmentType" ? (value as EnrollmentType) : value,
-        }));
-    };
+    /* -------------------------------------------------------
+       INSTALLMENT GENERATION
+    ------------------------------------------------------- */
+   
+ 
+    useEffect(() => {
+        if (!formData.installmentCount || formData.finalAmount <= 0) return;
 
-    // Submit handler
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-        setError(null);
-        console.log('Submitting form with data:', formData);
-        try {
-            // VALIDATION FIXED (no falsy-number issues)
-            if (
-                formData.studentId === null ||
-                formData.courseId === null ||
-                !formData.enrollmentType ||
-                !formData.enrollmentDate ||
-                formData.totalAmount === null ||
-                formData.finalAmount === null ||
-                formData.paidAmount === null
-            ) {
-                throw "Please fill in all required fields";
-            }
+        const count = formData.installmentCount;
+        const paid = formData.paidAmount ?? 0;
 
-            if (formData.paidAmount < 100) throw "Paid Amount must be at least 100";
-            if (formData.paidAmount > formData.finalAmount)
-                throw "Paid Amount cannot exceed Final Amount";
+        // 1️⃣ Split FINAL AMOUNT (before paid)
+        const baseAmount = Math.ceil(formData.finalAmount / count);
+        let remaining = formData.finalAmount;
 
-            const dto: CreateAdmissionDto = {
-                studentId: formData.studentId!,
-                courseId: formData.courseId!,
-                enrollmentType: formData.enrollmentType as EnrollmentType,
-                enrollmentDate: formData.enrollmentDate,
-                paymentStatus: formData.paymentStatus as PaymentStatus,
-                totalAmount: formData.totalAmount!,
-                paidAmount: formData.paidAmount!,
-                discountCode: formData.discountCode || "",
-                discountAmount: formData.discountAmount || 0,
-                finalAmount: formData.finalAmount!,
-                remarks: formData.remarks || "",
-                lastTransactionId: formData.lastTransactionId || "",
-                courseFeeId: formData.courseFeeId || null,
-                installmentCount: formData.installmentCount,
-                installments: formData.installments,
+        const startDate = new Date(formData.enrollmentDate);
+        startDate.setDate(startDate.getDate() + 10);
+
+        const installments: Installment[] = Array.from({ length: count }, (_, i) => {
+            const amount =
+                i === count - 1 ? remaining : Math.min(baseAmount, remaining);
+
+            remaining -= amount;
+
+            const d = new Date(startDate);
+            d.setMonth(startDate.getMonth() + i);
+
+            return {
+                installmentCount: i + 1,
+                amount,
+                date: formatDate(d, 'dd-MM-yyyy'),
             };
+        });
 
-            const result = await dispatch(createAdmission(dto)).unwrap();
-
-            if (result.success) {
-                toast.success(result.message || "Admission created successfully");
-                router.push(`/students/${formData.studentId}`);
-                // router.push("/admissions");
-            } else {
-                throw result.error || "Failed to create admission";
-            }
-        } catch (err: any) {
-            const msg = typeof err === "string"
-            ? err
-            : err?.message ?? JSON.stringify(err);
-
-            setError({ error: msg, errors: null });
-            toast.error(msg);
-
-        } finally {
-            setIsSubmitting(false);
+        // 2️⃣ Deduct PAID AMOUNT from FIRST installment
+        if (paid > 0 && installments.length > 0) {
+            installments[0].amount = Math.max(
+                0,
+                installments[0].amount - paid
+            );
         }
-    };
+
+        setFormData(prev => ({
+            ...prev,
+            installments,
+        }));
+    }, [
+        formData.installmentCount,
+        formData.finalAmount,
+        formData.paidAmount,
+        formData.enrollmentDate,
+    ]);
+
+    
 
     return {
         formData,
         setFormData,
-        isSubmitting,
-        error,
         discounts,
-        handleChange,
-        handleSelectChange,
         handleDiscountChange,
-        handleSubmit,
+        handlePaidAmountChange,
     };
 }
