@@ -19,13 +19,13 @@ export const ADMISSION_STEPS: readonly AdmissionStep[] = [
     },
     {
         key: 'step-2',
-        label: 'Course & Fees',
+        label: 'Course Details',
         path: '/admissions/new/step-2',
         requires: 'studentConfirmed',
     },
     {
         key: 'step-3',
-        label: 'Pricing',
+        label: 'Fees & Installments',
         path: '/admissions/new/step-3',
         requires: 'courseConfirmed',
     },

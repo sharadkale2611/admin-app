@@ -28,12 +28,14 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import {
     setDraftStudent,
     resetStudentSelection,
+    resetAdmissionDraft,
 } from '@/lib/features/admission/admissionDraftSlice';
 import { fetchStudentByMobile } from '@/lib/features/student/studentThunks';
 import { useWizardNext } from '../components/wizard/WizardNextContext';
 import AddressSelector, {
     AddressValue,
 } from '@/app/components/modules/AddressSelector';
+import { useRouter } from 'next/navigation';
 
 type ExistingStudent = {
     studentId: number;
@@ -53,6 +55,7 @@ export default function IdentifyStudentPage() {
     const [student, setStudent] = useState<ExistingStudent | null>(null);
     const [notFound, setNotFound] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const router = useRouter();
 
     const clearError = (field: string) => {
         setErrors(prev => ({ ...prev, [field]: '' }));
@@ -63,6 +66,7 @@ export default function IdentifyStudentPage() {
         firstName: '',
         lastName: '',
         email: '',
+        dateOfBirth: '', // ✅ ADD (ISO: YYYY-MM-DD)
 
         fatherName: '',
         motherName: '',
@@ -95,6 +99,7 @@ export default function IdentifyStudentPage() {
             firstName: draft.student.firstName ?? '',
             lastName: draft.student.lastName ?? '',
             email: draft.student.email ?? '',
+            dateOfBirth: draft.student.dateOfBirth ?? '', // ✅ ADD
 
             fatherName: draft.student.fatherName ?? '',
             motherName: draft.student.motherName ?? '',
@@ -179,6 +184,14 @@ export default function IdentifyStudentPage() {
         if (!form.lastName) e.lastName = 'Last name is required';
         if (!form.gender) e.gender = 'Gender is required';
 
+        if (!form.dateOfBirth) e.dateOfBirth = 'Date of birth is required';
+        const dob = new Date(form.dateOfBirth);
+        const age =
+            new Date().getFullYear() - dob.getFullYear();
+
+        if (age < 5) e.dateOfBirth = 'Age must be at least 5 years';
+
+
         if (!form.fatherName) e.fatherName = 'Father name is required';
         if (!form.motherName) e.motherName = 'Mother name is required';
         if (!form.fatherOccupation)
@@ -249,34 +262,61 @@ export default function IdentifyStudentPage() {
 
     const isLocked = draft.studentConfirmed && draft.student?.isExisting;
 
+    
+        /* -------------------- RESET ALL -------------------- */
+        const handleResetAll = () => {
+            const confirmReset = window.confirm(
+                'This will clear all admission data and start over. Are you sure?'
+            );
+    
+            if (!confirmReset) return;
+    
+            dispatch(resetAdmissionDraft());
+            router.replace('/admissions/new/step-1');
+        };
+    
 
     /* ---------------- UI ---------------- */
     return (
         <Box  sx={{ backgroundColor: 'white', padding: 3, borderRadius: 2 }}>
-            <Typography variant="subtitle2" gutterBottom>
-                {/* Student Mobile Nubmer */}
-            </Typography>
+            <Box display="flex" alignItems="center" justifyContent="space-between">
+                {/* LEFT SIDE */}
+                <Box display="flex" gap={1} alignItems="center">
+                    <Typography variant="subtitle2">
+                        {/* Student Mobile Number */}
+                    </Typography>
 
-            <TextField
-                label="Mobile Number"
-                required
-                value={mobile}
-                size='small'
-                error={!!errors.mobile}
-                helperText={errors.mobile}
-                disabled={isLocked}
-                inputProps={{ maxLength: 10 }}
-                onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, '');
-                    setMobile(val);
-                    if (val.length === 10) checkMobile(val);
-                }}
-                InputProps={{
-                    endAdornment: loading ? (
-                        <CircularProgress size={20} />
-                    ) : null,
-                }}
-            />
+                    <TextField
+                        label="Mobile Number"
+                        required
+                        value={mobile}
+                        size="small"
+                        error={!!errors.mobile}
+                        helperText={errors.mobile}
+                        disabled={isLocked}
+                        inputProps={{ maxLength: 10 }}
+                        onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '');
+                            setMobile(val);
+                            if (val.length === 10) checkMobile(val);
+                        }}
+                        InputProps={{
+                            endAdornment: loading ? (
+                                <CircularProgress size={20} />
+                            ) : null,
+                        }}
+                    />
+                </Box>
+
+                {/* RIGHT SIDE */}
+                <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={handleResetAll}
+                >
+                    Reset All
+                </Button>
+            </Box>
 
             {(student || notFound || isLocked) && (
                 <Card sx={{ mt: 3 }} variant="outlined">
@@ -516,6 +556,25 @@ export default function IdentifyStudentPage() {
                                 />
                             </Grid>
                             <Grid size={{ xs: 12, md: 6 }}>
+
+                                    <TextField
+                                        label="Date of Birth"
+                                        type="date"
+                                        fullWidth
+                                        size="small"
+                                        required
+                                        value={form.dateOfBirth}
+                                        error={submitted && !!errors.dateOfBirth}
+                                        helperText={submitted ? errors.dateOfBirth : ''}
+                                        onChange={(e) => {
+                                            setForm({ ...form, dateOfBirth: e.target.value });
+                                            clearError('dateOfBirth');
+                                        }}
+                                        InputLabelProps={{
+                                            shrink: true, // 🔥 IMPORTANT for date inputs
+                                        }}
+                                    />
+
                                 {/* CATEGORY */}
                                 <Typography variant="subtitle1" fontWeight={600} gutterBottom>
                                     Reservation Category
