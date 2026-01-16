@@ -82,7 +82,7 @@ const API_ENDPOINTS = {
     POST_CREATE:
       process.env.NEXT_PUBLIC_ENROLLMENTS_ENDPOINT || "api/Enrollments",
     POST_COMPLETE_CREATE:
-      process.env.NEXT_PUBLIC_ADMISSIONS_ENDPOINT || "api/admissions",
+      process.env.NEXT_PUBLIC_ADMISSIONS_ENDPOINT || "/admissions",
 
     PUT_UPDATE:
       process.env.NEXT_PUBLIC_ENROLLMENTS_ENDPOINT || "api/Enrollments",
