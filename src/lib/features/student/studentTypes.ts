@@ -76,6 +76,15 @@ export interface CreateStudentResponse {
     // inviteSent: boolean;
 }
 
+export type StudentByMobileResponse = {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email?: string;
+    profileImagePath?: string;
+
+};
+
 
 export interface FetchStudentParams {
     page?: number;

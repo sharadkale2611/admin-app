@@ -54,6 +54,8 @@ const API_ENDPOINTS = {
     POST_CREATE: process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || "api/Students",
     PUT_UPDATE: process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || "api/Students",
     DELETE: process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || "api/Students",
+    GET_BY_MOBILE: "/students/by-mobile",
+
   },
     EXAM_MARKS: {
       GET_LIST_PAGINATED:
@@ -78,6 +80,9 @@ const API_ENDPOINTS = {
       process.env.NEXT_PUBLIC_ENROLLMENTS_ENDPOINT || "api/Enrollments",
     POST_CREATE:
       process.env.NEXT_PUBLIC_ENROLLMENTS_ENDPOINT || "api/Enrollments",
+    POST_COMPLETE_CREATE:
+      process.env.NEXT_PUBLIC_ADMISSIONS_ENDPOINT || "api/admissions",
+
     PUT_UPDATE:
       process.env.NEXT_PUBLIC_ENROLLMENTS_ENDPOINT || "api/Enrollments",
     DELETE: process.env.NEXT_PUBLIC_ENROLLMENTS_ENDPOINT || "api/Enrollments",
@@ -281,7 +286,14 @@ EXAMS: {
     DELETE:
       process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
     GET_STUDENTS_BY_MODULE: "/Exams/students-by-module",
-  }  
+  },  
+  STATES: {
+    GET_LIST: "/states",
+  },
+  CITIES: {
+    GET_LIST: "/cities",
+  }
+
   // Add other endpoint categories here as needed
 };
 
