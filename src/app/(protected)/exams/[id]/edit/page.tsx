@@ -106,6 +106,22 @@ export default function EditExam() {
               />
             </Grid>
 
+            {/* Exam Date/Time */}
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                fullWidth
+                label="Exam Date & Time"
+                name="examDateTime"
+                type="datetime-local"
+                value={formData.examDateTime}
+                onChange={handleChange}
+                required
+                size="small"
+                disabled={isSubmitting}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+
             {/* Description */}
             <Grid size={{ xs: 12 }}>
               <TextField

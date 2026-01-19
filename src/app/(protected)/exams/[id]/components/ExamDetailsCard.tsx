@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import Link from "next/link";
+import { formatDateTime } from "@/lib/utils/dateUtils";
 
 type Props = {
     exam: any;
@@ -73,6 +74,15 @@ export function ExamDetailsCard({ exam, courseName, moduleName }: Props) {
                     </Typography>
                     <Typography fontWeight={500}>
                         {exam.examDurationHrs} hrs
+                    </Typography>
+                </Grid>
+
+                <Grid size={{ xs: 6 }}>
+                    <Typography variant="caption" color="text.secondary">
+                        Exam Date/Time
+                    </Typography>
+                    <Typography fontWeight={500}>
+                        {formatDateTime(exam.examDateTime, "—")}
                     </Typography>
                 </Grid>
 

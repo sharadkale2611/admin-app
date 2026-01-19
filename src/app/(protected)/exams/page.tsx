@@ -42,6 +42,7 @@ import Link from "next/link";
 import { useExamViewModel } from "@/lib/features/exam/useExamViewModel";
 import { Exam } from "@/lib/features/exam/examTypes";
 import { useDeleteExam } from "@/lib/features/exam/useDeleteExam";
+import { formatDateTime } from "@/lib/utils/dateUtils";
 
 
 const ExamList: React.FC = () => {
@@ -178,6 +179,13 @@ const ExamList: React.FC = () => {
       headerName: "Exam Name",
       flex: 1,
       valueGetter: (v, row) => row?.examName || "",
+    },
+
+    {
+      field: "examDateTime",
+      headerName: "Exam Date/Time",
+      width: 200,
+      valueGetter: (v, row) => formatDateTime(row?.examDateTime) || "-",
     },
 
     {
