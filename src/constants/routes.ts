@@ -23,6 +23,7 @@ export const AppRoutes = {
     EXAM_MARKS: '/exam-marks',
     STUDENTS: '/students',
     ADMISSIONS: '/admissions',
+    NEW_ADMISSION: '/admissions/new',
     FIRMS: '/firms',
 
     COURSES: '/courses',

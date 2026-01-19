@@ -76,7 +76,11 @@ export default function EditStaff() {
                                 onChange={handleChange}
                                 required
                                 size="small"
-                                disabled={isSubmitting}
+                                sx={{backgroundColor: '#b3b3b3'}}
+                                // disabled={isSubmitting}
+                                InputProps={{
+                                    readOnly: true,
+                                }}                                
                             />
                         </Grid>
 
@@ -194,6 +198,12 @@ export default function EditStaff() {
                                 required
                                 size="small"
                                 disabled={isSubmitting}
+                                sx={{ backgroundColor: '#b3b3b3' }}
+                                // disabled={isSubmitting}
+                                InputProps={{
+                                    readOnly: true,
+                                }}                                
+
                             />
                         </Grid>
 

@@ -42,10 +42,18 @@ export interface UpdateFirmDto {
 }
 
 
+// export interface ApiResponse<T> {
+//     success: boolean;
+//     message?: string;
+//     data?: T;
+//     error?: string | null;
+//     errors?: any | null;
+// }
+
 export interface ApiResponse<T> {
     success: boolean;
-    message?: string;
-    data?: T;
-    error?: string | null;
-    errors?: any | null;
+    message: string;
+    data: T | null;
+    error: string | null;
+    errors: Record<string, string[]> | null;
 }
