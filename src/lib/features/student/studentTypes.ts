@@ -17,6 +17,11 @@ export interface Student {
     firmName?: string;
 }
 
+export interface CreatedStudent {
+    studentId: number;
+    studentCode: string;
+    userName: string;
+}
 export interface PaginatedStudent {
     items: Student[];
     totalCount: number;
@@ -63,6 +68,71 @@ export interface ApiResponse<T> {
     error?: string | null;
     errors?: any | null;
 }
+
+export interface CreateStudentResponse {
+    studentId: number;
+    studentCode: string;
+    userName: string;
+    // inviteSent: boolean;
+}
+
+export interface StudentAddressResponse {
+    userAddressId: number;
+    addressOf: string;
+    addressType: string;
+    country: string;
+    stateId: number | null;
+    cityId: number | null;
+    stateName: string;
+    cityName: string;
+    pinCode: string;
+    fullAddress: string;
+    isPrimaryAddress: boolean;
+    isActive: boolean;
+    isDeleted: boolean;
+    createdAt: string;
+    updatedAt: string | null;
+}
+
+export interface StudentAcademicDetailResponse {
+    studentAcademicDetailId: number;
+    firmId: number;
+    studentId: number;
+    currentAcademicYear: string;
+    currentClass: string;
+    currentMedium: string;
+    currentBoard: string;
+    currentInstitution: string;
+    stream: string;
+    prevAcademicYear: string;
+    prevClass: string;
+    prevMedium: string;
+    prevBoard: string;
+    prevInstitution: string;
+    prevMarkEnglish: string;
+    prevMarkMath: string;
+    prevMarkScience: string;
+    prevPercentage: string;
+    prevGrade: string;
+}
+
+export interface StudentByMobileResponse {
+    studentId: number;
+    studentCode: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    mobileNumber1: string;
+    gender: string | null;
+    fatherName: string | null;
+    motherName: string | null;
+    mobileNumber2: string | null;
+    resevationCategory: string | null; // note: backend spelling
+    profileImagePath: string | null;
+    academicDetail: StudentAcademicDetailResponse | null;
+    addresses: StudentAddressResponse[];
+}
+
 
 export interface FetchStudentParams {
     page?: number;

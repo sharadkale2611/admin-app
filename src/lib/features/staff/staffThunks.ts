@@ -7,7 +7,8 @@ import {
     UpdateStaffDto,
     PaginatedStaff,
     ApiResponse,
-    FetchStaffParams
+    FetchStaffParams,
+    TrainerModule
 } from "./staffTypes";
 import API_ENDPOINTS from "@/lib/config/apiConfig";
 import api from "@/lib/services/apiService";
@@ -265,4 +266,36 @@ export const fetchStaffById = createAsyncThunk<
             );
         }
     }
+);
+
+
+export const fetchTrainersByCourse = createAsyncThunk<
+  TrainerModule[],
+  number,
+  { dispatch: AppDispatch; state: RootState; rejectValue: string }
+>(
+  "trainer/fetchTrainersByCourse",
+  async (courseId, { rejectWithValue }) => {
+    try {
+      const response = await api.get<TrainerModule[]>(
+        `${API_ENDPOINTS.STAFF.GET_BY_COURSE}/${courseId}`,
+        { withCredentials: true }
+      );
+
+      console.log("Trainers:", response.data);
+
+      if (!response.data) {
+        return rejectWithValue("No trainers found for this course");
+      }
+
+      return response.data;
+
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.status === 401
+          ? "SESSION_EXPIRED"
+          : error.message || "Something went wrong"
+      );
+    }
+  }
 );

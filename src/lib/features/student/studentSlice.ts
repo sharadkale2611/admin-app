@@ -100,11 +100,11 @@ const studentSlice = createSlice({
             })
             .addCase(createStudent.fulfilled, (state, action) => {
                 state.loading = false;
-                if (action.payload.success && action.payload.student) {
-                    state.students.unshift(action.payload.student);
-                    state.totalCount += 1;
-                    state.totalPages = Math.ceil(state.totalCount / state.pageSize);
-                }
+                // if (action.payload.success && action.payload.student) {
+                //     state.students.unshift(action.payload.student);
+                //     state.totalCount += 1;
+                //     state.totalPages = Math.ceil(state.totalCount / state.pageSize);
+                // }
             })
             .addCase(createStudent.rejected, (state, action) => {
                 state.loading = false;
@@ -140,6 +140,7 @@ const studentSlice = createSlice({
                     // ensure it's ApiError
                     state.error = {
                         error: action.payload.error ?? 'Failed to update student',
+                        errors: null,
                         // errors: action.payload.errors ?? null,
                     };
                 }

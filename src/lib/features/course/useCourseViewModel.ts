@@ -30,27 +30,32 @@ export const useCourseViewModel = () => {
     const firmId = authUser?.firmId ? Number(authUser.firmId) : null;
 
     // Memoized fetch function
-    const fetchCourseData = useCallback(() => {
-        dispatch(fetchCourses({
-            page,
-            searchTerm,
-            status: statusFilter,
-            courseLevel: courseLevelFilter,
-            categoryId: categoryFilter,
-            firmId,
-        }));
-    }, [dispatch, page, searchTerm, statusFilter, courseLevelFilter, categoryFilter, firmId]);
-
-    // Fetch courses when filters change with debounce for search
     useEffect(() => {
-        if (firmId === null) return; 
+        if (firmId === null) return;
 
         const timer = setTimeout(() => {
-            fetchCourseData();
+            dispatch(fetchCourses({
+                page,
+                searchTerm,
+                status: statusFilter,
+                courseLevel: courseLevelFilter,
+                categoryId: categoryFilter,
+                firmId,
+            }));
         }, searchTerm ? 300 : 0);
 
         return () => clearTimeout(timer);
-    }, [fetchCourseData, searchTerm, firmId]);
+
+    }, [
+        dispatch,
+        firmId,
+        page,
+        searchTerm,
+        statusFilter,
+        courseLevelFilter,
+        categoryFilter
+    ]);
+
 
     // Action Handlers
     const handleSearch = useCallback((term: string) => {
@@ -103,6 +108,17 @@ export const useCourseViewModel = () => {
         handleCategoryFilter,
         handleResetFilters,
         handlePageChange,
-        refetch: fetchCourseData
+        refetch: () => {
+            if (firmId === null) return;
+
+            dispatch(fetchCourses({
+                page,
+                searchTerm,
+                status: statusFilter,
+                courseLevel: courseLevelFilter,
+                categoryId: categoryFilter,
+                firmId,
+            }));
+        }
     };
 };

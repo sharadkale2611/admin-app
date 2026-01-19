@@ -6,7 +6,10 @@ import {
     UpdateStudentDto,
     PaginatedStudent,
     ApiResponse,
-    FetchStudentParams
+    FetchStudentParams,
+    CreateStudentResponse,
+    CreatedStudent,
+    StudentByMobileResponse
 } from "./studentTypes";
 import API_ENDPOINTS from "@/lib/config/apiConfig";
 import api from "@/lib/services/apiService";
@@ -125,69 +128,57 @@ export const fetchStudents = createAsyncThunk<
 /**
  * Create Student
  */
+
 export const createStudent = createAsyncThunk<
     {
         success: boolean;
         message: string;
         error: string | null;
         errors: Record<string, string[]> | null;
-        student: Student | null;
+        student: CreatedStudent | null;
     },
     CreateStudentDto,
-    { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
+    { rejectValue: ApiError }
 >(
     "students/createStudent",
-    async (createStudentDto, { rejectWithValue, getState }) => {
+    async (createStudentDto, { rejectWithValue }) => {
         try {
-            const response = await api.post<ApiResponse<Student>>(
+            const response = await api.post<CreateStudentResponse>(
                 API_ENDPOINTS.STUDENT.POST_CREATE,
                 createStudentDto,
-                {
-                    withCredentials: true,
-                    headers: { "Content-Type": "application/json" }
-                }
-                
+                { withCredentials: true }
             );
-            
-            // Check for non-200 response
-            if (response.status !== 201 ) {
-                return rejectWithValue({
-                    error:   response.message || response.error || "Creation failed",
-                    errors: null,
-                    });
-            }
 
-            // Check API logical success
-            if (response.data?.success === false ) {
+            if (!response.success || !response.data) {
                 return rejectWithValue({
-                    error: response.message || response.error || "Creation failed",
-                    errors: null ,
-                    });
+                    error: response.message || "Invalid server response",
+                    errors: response.errors
+                        ? Object.values(response.errors).flat()
+                        : null,
+                });
             }
+            const created = response.data;
 
-            // Return created student
             return {
                 success: true,
-                message: response.data?.message || "Student created successfully",
+                message: response.message || "Student created successfully",
                 error: null,
                 errors: null,
-                student: response.data?.data ?? null,
+                student: {
+                    studentId: created.studentId,
+                    studentCode: created.studentCode,
+                    userName: created.userName,
+                },
             };
-
-
         } catch (error: any) {
-            // Ensure parseApiError returns {error: string, errors: Record<string,string[]> | null}
-            const parsed = parseApiError(error);
             return rejectWithValue({
-
-                error: parsed.error || "Creation failed",
-                errors: parsed.errors || null,
-
+                error: error.message || "Creation failed",
+                errors: error.errors ?? null,
             });
-
         }
     }
 );
+
 
 
 
@@ -342,6 +333,39 @@ export const fetchStudentById = createAsyncThunk<
             }
 
             return response.data;
+        } catch (error: any) {
+            return rejectWithValue(parseApiError(error));
+        }
+    }
+);
+
+
+export const fetchStudentByMobile = createAsyncThunk<
+    StudentByMobileResponse,
+    string,
+    { rejectValue: ApiError }
+>(
+    "students/fetchStudentByMobile",
+    async (mobile, { rejectWithValue }) => {
+        try {
+            // ✅ api.get<T>() already returns ApiResponse<T>
+            const response = await api.get<StudentByMobileResponse>(
+                `${API_ENDPOINTS.STUDENT.GET_BY_MOBILE}/${mobile}`,
+                { withCredentials: true }
+            );
+
+            // response is ApiResponse<StudentByMobileResponse>
+            if (!response.success || !response.data) {
+                return rejectWithValue({
+                    error: "Student not found",
+                    errors: null,
+                });
+            }
+
+            // ✅ Explicitly return payload
+            const payload: StudentByMobileResponse = response.data;
+            return payload;
+
         } catch (error: any) {
             return rejectWithValue(parseApiError(error));
         }

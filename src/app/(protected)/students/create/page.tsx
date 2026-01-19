@@ -133,7 +133,7 @@
             const result = await handleSubmit(e);
 
             if (result?.success) {
-              setSnackbarMessage(result.message);
+              setSnackbarMessage(result.message!);
               setSnackbarSeverity("success");
               setSnackbarOpen(true);
 

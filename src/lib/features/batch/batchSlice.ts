@@ -1,33 +1,49 @@
 // src/lib/features/batch/batchSlice.ts
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Batch, BatchState } from "./batchTypes";
 import {
   fetchBatches,
   fetchBatchById,
   deleteBatch,
   createBatch,
   updateBatch,
+  fetchBatchesByStudentId,
+  fetchBatchesByCourseId,
 } from "./batchThunks";
 import type { ApiError } from "./batchThunks";
 
-const initialState: BatchState = {
+import { BatchState, StudentBatchState, CourseBatchState, Batch } from "./batchTypes";
+
+
+const initialState: BatchState & StudentBatchState & CourseBatchState = {
+  // --------------------
+  // ADMIN / PAGINATED
+  // --------------------
   batches: [],
   currentBatch: null,
 
-  // PAGINATION STATE
   totalCount: 0,
   pageSize: 10,
-  page: 1,               // <-- USE THIS AS CURRENT PAGE
+  page: 1,
   totalPages: 0,
 
   loading: false,
   error: null,
 
-  // FILTERS
   searchTerm: "",
   activeOnly: true,
+
+  // --------------------
+  // STUDENT CONTEXT
+  // --------------------
+  studentBatches: [],
+
+  // --------------------
+  // COURSE CONTEXT
+  // --------------------
+  courseBatches: [],   // ✅ FIX
 };
+
 
 const batchSlice = createSlice({
   name: "batches",
@@ -168,7 +184,47 @@ const batchSlice = createSlice({
         state.error =
           (action.payload as ApiError) ??
           { error: "Failed to delete batch", errors: null };
+      })
+      // -------------------------------------------------
+      // 🔹 FETCH BATCHES BY STUDENT ID
+      // -------------------------------------------------
+      .addCase(fetchBatchesByStudentId.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+
+      .addCase(fetchBatchesByStudentId.fulfilled, (state, action) => {
+        state.loading = false;
+        state.studentBatches = action.payload;
+      })
+
+      .addCase(fetchBatchesByStudentId.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          (action.payload as ApiError) ??
+          { error: "Failed to fetch student batches", errors: null };
+      })
+      .addCase(fetchBatchesByCourseId.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+
+      .addCase(fetchBatchesByCourseId.fulfilled, (state, action) => {
+        state.loading = false;
+        state.courseBatches = action.payload;
+      })
+
+      .addCase(fetchBatchesByCourseId.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          (action.payload as ApiError) ?? {
+            error: "Failed to fetch course batches",
+            errors: null,
+          };
       });
+
+    // fetchBatchesByCourseId
+
   },
 });
 

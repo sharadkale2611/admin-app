@@ -2,11 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createStudent } from "./studentThunks";
+import { createStudent, fetchStudents } from "./studentThunks";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { AppDispatch } from "@/lib/store";
-import { ApiError } from "./studentTypes";
+import { ApiError, ApiResponse, CreateStudentResponse } from "./studentTypes";
+
+export interface CreateStudentResult {
+  success: boolean;
+  studentId?: number;
+}
+
 
 export interface StudentFormData {
   // User fields
@@ -60,78 +66,62 @@ export default function useCreateStudentViewModel() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+
+  const handleSubmit = async (
+    e: React.FormEvent
+  ): Promise<ApiResponse<CreateStudentResponse>> => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
 
     try {
-      // Basic validation
-      if (
-        !formData.userName ||
-        !formData.password ||
-        !formData.email ||
-        !formData.studentCode ||
-        !formData.firstName ||
-        !formData.lastName
-      ) {
-        throw new Error("Please fill in all required fields");
-      }
-
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        throw new Error("Please enter a valid email address");
-      }
-
-      // Call createStudent thunk
       const result = await dispatch(createStudent(formData)).unwrap();
+      console.log("Create student result:", result);
 
       if (result.success) {
-        // toast.success(result.message || "Student created successfully");
+        dispatch(fetchStudents({ page: 1 }));
+
+        toast.success(result.message ?? "Student created successfully");
+
         return {
           success: true,
-          message: result.message || "Student created successfully",
+          message: result.message ?? "Student created successfully",
+          data: {
+            studentId: Number(result.student?.studentId),
+            studentCode: result.student?.studentCode ?? "",
+            userName: result.student?.userName ?? "",
+            // inviteSent: result.inviteSent ?? false,
+          },
         };
-
-        // // Reset form
-        // setFormData({
-        //   userName: "",
-        //   password: "",
-        //   email: "",
-        //   mobileNumber: "",
-        //   studentCode: "",
-        //   firstName: "",
-        //   lastName: "",
-        //   dateOfBirth: "",
-        //   gender: "",
-        // });
-
-        //  setTimeout(() => {
-        //    router.push("/students");
-        //  }, 1500);
-      } else {
-        throw new Error(result.error || "Failed to create student");
       }
+
+      // backend responded but failed
+      return {
+        success: false,
+        error: result.error ?? "Failed to create student",
+        errors: result.errors ?? null,
+      };
     } catch (err: any) {
-      // If error came from our thunk rejectWithValue()
-      if (err?.error) {
-        toast.error(err.error);
-        setError(err);
-        return;
-      }
+      const apiError = {
+        success: false,
+        error:
+          err?.error ||
+          err?.response?.data?.message ||
+          err?.message ||
+          "Something went wrong",
+        errors: err?.errors ?? null,
+      };
 
-      // If error unexpectedly came from axios
-      const apiMessage =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        err?.message ||
-        "Something went wrong";
+      toast.error(apiError.error);
+      setError({ error: apiError.error, errors: apiError.errors });
 
-      toast.error(apiMessage);
-      setError({ error: apiMessage, errors: null });
+      return apiError;
     } finally {
       setIsSubmitting(false);
     }
   };
+
+ 
 
   return {
     formData,

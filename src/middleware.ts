@@ -4,48 +4,49 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-    const token = request.cookies.get('access-token')?.value;
+    // Skip RSC / internal Next.js requests
+    if (request.nextUrl.searchParams.has('_rsc')) {
+        return NextResponse.next();
+    }
+
     const { pathname } = request.nextUrl;
+    const token = request.cookies.get('access-token')?.value;
 
+    // Routes configuration
+    const protectedRoutes = ['/dashboard', '/profile'];
+    const guestOnlyRoutes = ['/login', '/register'];
 
-    // Route groups to protect (matches the folder structure)
-    const protectedRoutes = [
-        '/(protected)', // All routes under /(protected) group
-        '/dashboard',   // Legacy support (if keeping pages directory)
-        '/profile'      // Legacy support
-    ];
-
-    const guestOnlyRoutes = [
-        '/(auth)',      // All routes under /(auth) group
-        '/login',       // Legacy support
-        '/register'     // Legacy support
-    ];
-
-    // Check if current path is protected
-    const isProtectedRoute = protectedRoutes.some(route =>
-        pathname.startsWith(route) ||
-        pathname === '/'
+    const isProtectedRoute = protectedRoutes.some(p =>
+        pathname === p || pathname.startsWith(`${p}/`)
     );
 
-    // Check if current path is guest-only
-    const isGuestOnlyRoute = guestOnlyRoutes.some(route =>
-        pathname.startsWith(route)
+    const isGuestOnlyRoute = guestOnlyRoutes.some(p =>
+        pathname === p || pathname.startsWith(`${p}/`)
     );
 
-    // Redirect unauthenticated users from protected routes
+    /*
+     * ✅ RULE 1: Protect private routes
+     * If no token → redirect to login
+     */
     if (isProtectedRoute && !token) {
-        const redirectUrl = new URL('/login', request.url);
-        redirectUrl.searchParams.set('redirect', pathname);
-        return NextResponse.redirect(redirectUrl);
+        const loginUrl = new URL('/login', request.url);
+        loginUrl.searchParams.set('redirect', pathname);
+        return NextResponse.redirect(loginUrl);
     }
 
+    /*
+     * ✅ RULE 2: DO NOT force redirect from guest routes based on token
+     * Let the app (Redux/AuthProvider) decide actual auth state
+     * This prevents infinite redirect loops
+     */
+    if (isGuestOnlyRoute) {
+        return NextResponse.next();
+    }
+
+    /*
+     * ✅ RULE 3: Allow everything else
+     */
     return NextResponse.next();
-
-    // Redirect authenticated users from guest-only routes
-    if (!isProtectedRoute && token) {
-        return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
-
 }
 
 export const config = {
@@ -54,17 +55,10 @@ export const config = {
          * Match all request paths except for:
          * - _next/static (static files)
          * - _next/image (image optimization files)
-         * - favicon.ico (favicon file)
-         * - images - .svg, .png, .jpg, etc.
-         * - api/auth routes (if using NextAuth.js)
+         * - favicon.ico
+         * - image assets
+         * - api/auth routes
          */
         '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|api/auth).*)',
     ],
 };
-
-
-
-
-
-
-

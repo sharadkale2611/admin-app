@@ -45,6 +45,7 @@ const API_ENDPOINTS = {
     POST_CREATE: process.env.NEXT_PUBLIC_STAFFS_ENDPOINT || "api/staffs",
     PUT_UPDATE: process.env.NEXT_PUBLIC_STAFFS_ENDPOINT || "api/staffs",
     DELETE: process.env.NEXT_PUBLIC_STAFFS_ENDPOINT || "api/staffs",
+    GET_BY_COURSE: process.env.NEXT_PUBLIC_TRAINERS_BY_COURSE_ENDPOINT || "Staffs/trainers/by-course",
   },
   STUDENT: {
     GET_LIST_PAGINATED:
@@ -54,6 +55,8 @@ const API_ENDPOINTS = {
     POST_CREATE: process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || "api/Students",
     PUT_UPDATE: process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || "api/Students",
     DELETE: process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || "api/Students",
+    GET_BY_MOBILE: "/students/by-mobile",
+
   },
     EXAM_MARKS: {
       GET_LIST_PAGINATED:
@@ -78,6 +81,9 @@ const API_ENDPOINTS = {
       process.env.NEXT_PUBLIC_ENROLLMENTS_ENDPOINT || "api/Enrollments",
     POST_CREATE:
       process.env.NEXT_PUBLIC_ENROLLMENTS_ENDPOINT || "api/Enrollments",
+    POST_COMPLETE_CREATE:
+      process.env.NEXT_PUBLIC_ADMISSIONS_ENDPOINT || "/admissions",
+
     PUT_UPDATE:
       process.env.NEXT_PUBLIC_ENROLLMENTS_ENDPOINT || "api/Enrollments",
     DELETE: process.env.NEXT_PUBLIC_ENROLLMENTS_ENDPOINT || "api/Enrollments",
@@ -174,6 +180,9 @@ const API_ENDPOINTS = {
     POST_CREATE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
     PUT_UPDATE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
     DELETE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
+    GET_BY_STUDENT: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches/by-student",
+    GET_BY_COURSE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches/by-course",
+
   },
 
   STUDENT_BATCH_ASSIGNMENTS: {
@@ -259,23 +268,32 @@ const API_ENDPOINTS = {
     PUT_UPDATE: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
     DELETE: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
   },
+  
+  STUDENT_PAYMENTS: {
+    GET_BY_STUDENT_ID: "/StudentPayments/student-id",
+    UPDATE_PAYMENT: "/StudentPayments/updatePayment"
+  },
 EXAMS: {
-  GET_LIST_PAGINATED:
-    "/Exams/paginated",
-  GET_LIST:
-    process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
-  GET_BY_ID:
-    process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
-  POST_CREATE:
-    process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
-  PUT_UPDATE:
-    process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
-  DELETE:
-    process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
-  GET_STUDENTS_BY_MODULE: "/Exams/students-by-module",
-}
-
-
+    GET_LIST_PAGINATED:
+      "/Exams/paginated",
+    GET_LIST:
+      process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+    GET_BY_ID:
+      process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+    POST_CREATE:
+      process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+    PUT_UPDATE:
+      process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+    DELETE:
+      process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+    GET_STUDENTS_BY_MODULE: "/Exams/students-by-module",
+  },  
+  STATES: {
+    GET_LIST: "/states",
+  },
+  CITIES: {
+    GET_LIST: "/cities",
+  }
 
   // Add other endpoint categories here as needed
 };

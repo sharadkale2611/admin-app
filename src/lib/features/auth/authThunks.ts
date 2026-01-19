@@ -7,6 +7,7 @@ import API_ENDPOINTS, { getApiUrl } from '@/lib/config/apiConfig';
 import { setSessionExpiry, setRefreshing } from '../session/sessionSlice';
 import { AppDispatch, RootState } from '@/lib/store';
 import { setFirmId } from "../staff/staffSlice";
+import { resetAdmissionDraft } from '../admission/admissionDraftSlice';
 
 interface LoginCredentials {
     username: string;
@@ -109,6 +110,7 @@ export const logoutUser = createAsyncThunk<void, void, { dispatch: AppDispatch }
             console.log('logout done!');
             
         } finally {
+            dispatch(resetAdmissionDraft());
             dispatch(logout());
             dispatch(setSessionExpiry(null));
         }
@@ -160,6 +162,7 @@ export const checkAuth = createAsyncThunk<
                     }
                 } catch (refreshError) {
                     console.log('Refresh token failed → logging out');
+                    dispatch(resetAdmissionDraft());
                     dispatch(logout());
                     return rejectWithValue('Session expired. Please login again.');
                 }
@@ -187,6 +190,7 @@ export const checkAuth = createAsyncThunk<
             return null;
         } catch (error) {
             console.error('Authentication check failed:', error);
+            dispatch(resetAdmissionDraft());
             dispatch(logout());
             return rejectWithValue('Session expired. Please login again.');
         }
@@ -220,7 +224,7 @@ export const refreshToken = createAsyncThunk<
                 message: errorMessage,
                 severity: 'error'
             }));
-
+            dispatch(resetAdmissionDraft());
             dispatch(logout());
             dispatch(setSessionExpiry(null));
 

@@ -32,8 +32,20 @@ import { studentBatchAssignmentReducer } from "@/lib/features/studentBatchAssign
 import batchStudyWorksReducer from "@/lib/features/BatchStudyWorks/batchStudyWorkSlice";
 import batchSchedulesReducer from "@/lib/features/batchSchedules/batchScheduleSlice";
 import noticeReducer from "@/lib/features/notice/noticeSlice";
+import { studentPaymentReducer } from "@/lib/features/studentPayment/studentPaymentSlice";
+
 import examReducer from "@/lib/features/exam/examSlice";
 import examMarksReducer from "@/lib/features/examMarks/examMarksSlice";
+import attendanceSessionReducer from '@/lib/features/attendance/attendanceSessionSlice';
+import admissionDraftReducer from '@/lib/features/admission/admissionDraftSlice';
+import sessionStorageEngine from '@/lib/utils/sessionStorage';
+import locationReducer from "@/lib/features/location/locationSlice";
+
+
+const admissionDraftPersistConfig = {
+    key: 'admissionDraft',
+    storage: sessionStorageEngine,
+};
 
 
 const rootReducer = combineReducers({
@@ -55,8 +67,15 @@ const rootReducer = combineReducers({
     batchStudyWorks: batchStudyWorksReducer,
     batchSchedules: batchSchedulesReducer,
     notices: noticeReducer,
-     exam: examReducer,
+    studentPayments: studentPaymentReducer,
+    exam: examReducer,
     examMarks: examMarksReducer,
+    attendanceSession: attendanceSessionReducer,
+    admissionDraft: persistReducer(
+        admissionDraftPersistConfig,
+        admissionDraftReducer
+    ),
+    location: locationReducer,
 
 });
 
@@ -68,7 +87,9 @@ const persistConfig = {
     version: 1,
     storage,
     whitelist: ['auth'],
+
 };
+
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 

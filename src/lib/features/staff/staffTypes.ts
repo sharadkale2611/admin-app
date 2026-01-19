@@ -32,6 +32,7 @@ export interface PaginatedStaff {
 export interface StaffState {
     dropdownStaff: Staff[];
     staff: Staff[];
+    trainersByCourse: TrainerModule[];
     currentStaff: Staff | null;
     totalCount: number;
     pageSize: number;
@@ -85,4 +86,20 @@ export interface FetchStaffParams {
     position?: string;
     pageSize?: number;
     firmId?: number | null;
+}
+
+export interface TrainerModule {
+  staffId: number;
+
+  // ⭐ Staff details
+  trainerName: string;
+  position: string;
+  isActive: boolean;
+  email: string;
+  mobileNumber: string;
+  department: string;
+
+  // ⭐ Module details
+  moduleId: number;
+  moduleName: string;
 }

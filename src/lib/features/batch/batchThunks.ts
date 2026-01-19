@@ -253,3 +253,69 @@ export const deleteBatch = createAsyncThunk<
     return rejectWithValue(parseApiError(error));
   }
 });
+
+
+/**
+ * 🔹 Fetch Batches by Student ID
+ * Uses: GET /Batches/by-student/{studentId}
+ */
+export const fetchBatchesByStudentId = createAsyncThunk<
+  Batch[],
+  number,
+  { rejectValue: ApiError }
+>(
+  "batches/fetchByStudentId",
+  async (studentId, { rejectWithValue }) => {
+    try {
+      const response = await api.get<ApiResponse<Batch[]>>(
+        `${API_ENDPOINTS.BATCHES.GET_BY_STUDENT}/${studentId}`,
+        { withCredentials: true }
+      );
+
+      if (!response.success || !Array.isArray(response.data)) {
+        return rejectWithValue({
+          error: response.error || response.message || "Failed to fetch student batches",
+          errors: null,
+        });
+      }
+
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(parseApiError(error));
+    }
+  }
+);
+
+/**
+ * 🔹 Fetch Batches by Course ID
+ * Uses: GET /Batches/by-course/{courseId}
+ */
+export const fetchBatchesByCourseId = createAsyncThunk<
+  Batch[],
+  number,
+  { rejectValue: ApiError }
+>(
+  "batches/fetchByCourseId",
+  async (courseId, { rejectWithValue }) => {
+    try {
+      const response = await api.get<ApiResponse<Batch[]>>(
+        `${API_ENDPOINTS.BATCHES.GET_BY_COURSE}/${courseId}`,
+        { withCredentials: true }
+      );
+
+      if (!response.success || !Array.isArray(response.data)) {
+        return rejectWithValue({
+          error:
+            response.error ||
+            response.message ||
+            "Failed to fetch course batches",
+          errors: null,
+        });
+      }
+
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(parseApiError(error));
+    }
+  }
+);
