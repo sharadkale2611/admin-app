@@ -207,6 +207,9 @@ const API_ENDPOINTS = {
     DELETE:
       process.env.NEXT_PUBLIC_STUDENT_BATCH_ASSIGNMENTS_ENDPOINT ||
       "/StudentBatchAssignments",
+
+    GET_BY_BATCH: "/StudentBatchAssignments/by-batch",
+
   },
   BRANCHES: {
     GET_LIST: process.env.NEXT_PUBLIC_BRANCHES_ENDPOINT || "/Branches",

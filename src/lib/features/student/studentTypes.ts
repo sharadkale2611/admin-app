@@ -1,21 +1,42 @@
 export interface Student {
-    studentId: string;
-    userId: string;
-    studentCode: string;
-    userName: string;
-    email: string;
-    mobileNumber: string;
-    firstName: string;
-    lastName: string;
-    dateOfBirth: string;
-    gender: string;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
-    firmId?: string;
+    studentId: number;
+    userId: number;
+
+    firmId?: number;
     firmCode?: string;
     firmName?: string;
+
+    studentCode: string;
+
+    firstName: string;
+    motherName?: string;
+    fatherName?: string;
+    lastName: string;
+
+    profileImagePath?: string;
+
+    dateOfBirth?: string;
+    age?: number;
+
+    gender?: string;
+
+    email?: string;
+    mobileNumber1?: string;
+    mobileNumber2?: string;
+    whatsappNumber?: string;
+
+    resevationCategory?: string;
+    fathersOccupation?: string;
+
+    isActive: boolean;
+    isDeleted: boolean;
+
+    createdAt: string;
+    updatedAt?: string;
+
+    userName: string;
 }
+
 
 export interface CreatedStudent {
     studentId: number;
@@ -30,60 +51,111 @@ export interface PaginatedStudent {
     totalPages: number;
 }
 
+
 export interface StudentState {
     students: Student[];
     currentStudent: Student | null;
+
     totalCount: number;
     pageSize: number;
     currentPage: number;
     totalPages: number;
+
     loading: boolean;
     error: string | null;
+
     searchTerm: string;
     activeOnly: boolean;
-    page: number;
 }
+
 
 export interface CreateStudentDto {
-    studentCode: string;
-    userName: string;
-    password: string;
-    email: string;
-    mobileNumber: string;
+    firmId?: number;
+
     firstName: string;
+    motherName?: string;
+    fatherName?: string;
     lastName: string;
-    dateOfBirth: string;
-    gender: string;
+
+    dateOfBirth?: string;
+    gender?: 'M' | 'F' | 'O' | 'Male' | 'Female' | 'Other';
+
+    email?: string;
+    mobileNumber1?: string;
+    mobileNumber2?: string;
+    whatsappNumber?: string;
+
+    resevationCategory?: string;
+    fathersOccupation?: string;
+
+    isActive?: boolean;
+
+    profileImage?: File; // multipart/form-data
 }
 
-export interface UpdateStudentDto extends Partial<CreateStudentDto> {
-    id: string;
+
+export interface UpdateStudentDto {
+    firstName?: string;
+    motherName?: string;
+    fatherName?: string;
+    lastName?: string;
+
+    dateOfBirth?: string;
+    gender?: 'M' | 'F' | 'O' | 'Male' | 'Female' | 'Other';
+
+    email?: string;
+    mobileNumber1?: string;
+    mobileNumber2?: string;
+    whatsappNumber?: string;
+
+    resevationCategory?: string;
+    fathersOccupation?: string;
+
     isActive?: boolean;
 }
+
 
 export interface ApiResponse<T> {
     success: boolean;
     message?: string;
     data?: T;
     error?: string | null;
-    errors?: any | null;
+    errors?: string[] | Record<string, string[]> | null;
 }
+
 
 export interface CreateStudentResponse {
     studentId: number;
     studentCode: string;
     userName: string;
-    // inviteSent: boolean;
+    firmId?: number;
+    inviteSent: boolean;
 }
 
-export type StudentByMobileResponse = {
-    id: number;
+
+export interface StudentByMobileResponse {
+    studentId: number;
+    studentCode: string;
+
     firstName: string;
     lastName: string;
-    email?: string;
-    profileImagePath?: string;
 
-};
+    email?: string;
+    mobileNumber1?: string;
+    mobileNumber2?: string;
+
+    gender?: string;
+    fatherName?: string;
+    motherName?: string;
+
+    resevationCategory?: string;
+    profileImagePath?: string;
+    dateOfBirth?: string;
+
+    academicDetail?: any;
+    addresses: any[];
+}
+
 
 
 export interface FetchStudentParams {

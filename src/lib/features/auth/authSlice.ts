@@ -6,25 +6,23 @@ import { User } from './authTypes';
 export interface AuthState {
     isAuthenticated: boolean;
     user: User | null;
-    loading: boolean;
+    loading: boolean;          // login/register only
+    isAuthChecking: boolean;   // initial check
     error: {
         message: string;
         severity?: 'error' | 'warning' | 'info' | 'success';
     } | null;
-    hasChecked: boolean; // ✅
-    initialCheckDone: boolean
-
+    initialCheckDone: boolean; // 🔑 SINGLE SOURCE OF TRUTH
 }
+
 
 const initialState: AuthState = {
     isAuthenticated: false,
     user: null,
-    loading: false, //  form & async actions only
+    loading: false,
+    isAuthChecking: false,
     error: null,
-    hasChecked: false,
     initialCheckDone: false
-
-
 };
 
 export const authSlice = createSlice({
@@ -39,13 +37,13 @@ export const authSlice = createSlice({
             state.isAuthenticated = true;
             state.loading = false;
             state.error = null;
-            state.hasChecked = true;
             const user = action.payload;
+            state.initialCheckDone = true;
 
             state.user = {
                 userId: user.userId,
                 username: user.username,
-                email: user.email,
+            email: user.email,
                 roles: user.roles,
                 firmId: user.firmId !== undefined && user.firmId !== null
                     ? Number(user.firmId)
@@ -58,14 +56,14 @@ export const authSlice = createSlice({
         loginFailure: (state, action: PayloadAction<AuthState['error']>) => {
             state.loading = false;
             state.error = action.payload;
-            state.hasChecked = true; // ✅ add this
-
+            state.initialCheckDone = true;
         },
         logout: (state) => {
             state.isAuthenticated = false;
             state.user = null;
             state.loading = false;
             state.error = null;
+            state.initialCheckDone = true;
         },
         setAuthLoading: (state, action: PayloadAction<boolean>) => {
             state.loading = action.payload;
@@ -73,21 +71,7 @@ export const authSlice = createSlice({
         clearError: (state) => {
             state.error = null;
         },
-        setInitialized: (state) => {
-            if (state.loading) {
-                state.loading = false;
-            }
-        },
-        markInitialCheckDone: (state) => {
-            state.initialCheckDone = true;
-        },        
-        markInitialCheckComplete: (state) => {
-            state.initialCheckDone = true;
-        },
         resetAuthState: () => initialState,
-        setHasChecked: (state, action: PayloadAction<boolean>) => {
-            state.hasChecked = action.payload;
-        },
     },
     // Removed extraReducers - they will be added in authStore.ts
 });
@@ -99,8 +83,6 @@ export const {
     logout,
     setAuthLoading,
     clearError,
-    setInitialized,
-    setHasChecked
 } = authSlice.actions;
 
 // Export the plain reducer (without extraReducers)

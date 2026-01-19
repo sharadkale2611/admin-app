@@ -118,7 +118,7 @@ export const createSBA = createAsyncThunk<
     "sba/create",
     async (payload, { rejectWithValue }) => {
         try {
-            const res = await api.post<ApiResponse<StudentBatchAssignment>>(
+            const res = await api.post<StudentBatchAssignment>(
                 API_ENDPOINTS.STUDENT_BATCH_ASSIGNMENTS.POST_CREATE,
                 payload,
                 {
@@ -127,18 +127,19 @@ export const createSBA = createAsyncThunk<
                 }
             );
 
-            if (!res.data?.success) {
+            if (!res.success) {
                 return rejectWithValue({
-                    error: res.data?.message ?? "Creation failed",
+                    error: res.message ?? "Creation failed",
                     errors: null
                 });
             }
 
             return {
                 success: true,
-                message: res.data.message ?? "Created successfully",
-                data: res.data.data ?? null
+                message: res.message ?? "Created successfully",
+                data: res.data ?? null
             };
+
         } catch (err: any) {
             return rejectWithValue(parseApiError(err));
         }
@@ -282,6 +283,45 @@ export const fetchSBAById = createAsyncThunk<
             }
 
             return res.data;
+        } catch (err: any) {
+            return rejectWithValue(parseApiError(err));
+        }
+    }
+);
+
+
+// ======================================================
+// 7. Get Assignments By BatchId
+// ======================================================
+export const fetchSBAByBatchId = createAsyncThunk<
+    StudentBatchAssignment[],
+    number, // batchId
+    { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
+>(
+    "sba/fetchByBatchId",
+    async (batchId, { rejectWithValue }) => {
+        try {
+            const res = await api.get<StudentBatchAssignment[]>(
+                `${API_ENDPOINTS.STUDENT_BATCH_ASSIGNMENTS.GET_BY_BATCH}/${batchId}`,
+                { withCredentials: true }
+            );
+
+            if (!res.success) {
+                return rejectWithValue({
+                    error: res.message ?? "Failed to fetch batch assignments",
+                    errors: null
+                });
+            }
+
+            if (!res.data) {
+                return rejectWithValue({
+                    error: "No assignments found for this batch",
+                    errors: null
+                });
+            }
+
+            return res.data;
+
         } catch (err: any) {
             return rejectWithValue(parseApiError(err));
         }

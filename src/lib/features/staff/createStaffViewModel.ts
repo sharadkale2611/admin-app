@@ -35,7 +35,7 @@ export default function useCreateStaffViewModel() {
         lastName: '',
         dateOfBirth: '',
         gender: '',
-        position: '',
+        position: 'Teacher',
         department: '',
         hireDate: new Date().toISOString().split('T')[0],
         salary: ''
@@ -61,7 +61,8 @@ export default function useCreateStaffViewModel() {
 
         try {
             // Local validation
-            if (!formData.userName || !formData.password || !formData.email ||
+            // formData.userName, formData.password ||
+            if ( !formData.email ||
                 !formData.firstName || !formData.lastName || !formData.position) {
                 throw new Error("Please fill in all required fields");
             }

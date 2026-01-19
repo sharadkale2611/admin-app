@@ -104,7 +104,7 @@ export default function StudentDetailsPage() {
       </TabPanel>
 
       <TabPanel value={tabIndex} index={2}>
-        <FeesTab studentId={Number(student.studentId)} enrollmentId={1} />
+        <FeesTab studentId={Number(student.studentId)} />
       </TabPanel>
       <TabPanel value={tabIndex} index={3}>
         <BatchesTab studentId={Number(student.studentId)} />

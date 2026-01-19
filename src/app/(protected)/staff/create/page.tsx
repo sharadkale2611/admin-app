@@ -50,7 +50,7 @@ export default function CreateStaff() {
                             </Typography>
                         </Grid>
 
-                        <Grid  size={{ xs: 12, sm: 6 }}>
+                        {/* <Grid  size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="Username"
@@ -61,9 +61,9 @@ export default function CreateStaff() {
                                 size="small"
                                 disabled={isSubmitting}
                             />
-                        </Grid>
+                        </Grid> */}
 
-                        <Grid  size={{ xs: 12, sm: 6 }}>
+                        {/* <Grid  size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="Password"
@@ -75,7 +75,7 @@ export default function CreateStaff() {
                                 size="small"
                                 disabled={isSubmitting}
                             />
-                        </Grid>
+                        </Grid> */}
 
                         <Grid  size={{ xs: 12, sm: 6 }}>
                             <TextField
@@ -176,7 +176,10 @@ export default function CreateStaff() {
                                 onChange={handleChange}
                                 required
                                 size="small"
-                                disabled={isSubmitting}
+                                // disabled={isSubmitting}
+                                InputProps={{
+                                    readOnly: true,
+                                }}
                             />
                         </Grid>
 

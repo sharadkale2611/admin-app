@@ -7,7 +7,8 @@ import {
     createSBA,
     updateSBA,
     deleteSBA,
-    createSBABulk
+    createSBABulk,
+    fetchSBAByBatchId
 } from "./studentBatchAssignmentThunks";
 
 import {
@@ -22,6 +23,7 @@ import {
 
 export interface StudentBatchAssignmentState {
     assignments: StudentBatchAssignment[];
+    assignmentsByBatch: StudentBatchAssignment[];
     currentAssignment: StudentBatchAssignment | null;
 
     totalCount: number;
@@ -39,6 +41,7 @@ export interface StudentBatchAssignmentState {
 
 const initialState: StudentBatchAssignmentState = {
     assignments: [],
+    assignmentsByBatch: [],
     currentAssignment: null,
 
     totalCount: 0,
@@ -140,6 +143,23 @@ const studentBatchAssignmentSlice = createSlice({
                 state.error =
                     (action.payload as ApiError) ??
                     { error: "Failed to fetch assignment", errors: null };
+            })
+            // ===================================================================
+            // FETCH BY BATCH ID
+            // ===================================================================
+            .addCase(fetchSBAByBatchId.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchSBAByBatchId.fulfilled, (state, action) => {
+                state.loading = false;
+                state.assignmentsByBatch = action.payload; // ✅ isolated storage
+            })
+            .addCase(fetchSBAByBatchId.rejected, (state, action) => {
+                state.loading = false;
+                state.error =
+                    (action.payload as ApiError) ??
+                    { error: "Failed to fetch batch assignments", errors: null };
             })
 
             // ===================================================================

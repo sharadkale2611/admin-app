@@ -25,10 +25,11 @@ const theme = createTheme({
 });
 
 export function Providers({ children }: { children: React.ReactNode }) {
+
     const handleBeforeLift = async () => {
         const state = store.getState();
-        if (!state.auth.isAuthenticated) {
-            // Use the store's dispatch method directly with proper typing
+
+        if (!state.auth.initialCheckDone) {
             await store.dispatch(checkAuth());
         }
     };

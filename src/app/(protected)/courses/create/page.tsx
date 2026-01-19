@@ -111,9 +111,9 @@ export default function CreateCourse() {
                                         ) : null
                                     }
                                 >
-                                    <MenuItem value={0}>
+                                    {/* <MenuItem value={0}>
                                         <em>Select a category</em>
-                                    </MenuItem>
+                                    </MenuItem> */}
                                     {categories.map((category) => (
                                         <MenuItem key={category.courseCategoryId} value={category.courseCategoryId}>
                                             {category.courseCategoryName}

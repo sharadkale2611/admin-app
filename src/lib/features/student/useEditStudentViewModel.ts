@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
@@ -8,188 +8,184 @@ import { RootState, AppDispatch } from '@/lib/store';
 import { toast } from 'react-toastify';
 import { ApiError } from './studentTypes';
 
-
-
+/* =========================================================
+   FULL FORM DATA – MATCHES ASP.NET CORE MODEL
+   (EXCLUDES profileImage)
+========================================================= */
 export interface StudentFormData {
     userName: string;
-    email: string;
-    mobileNumber: string;
+
     firstName: string;
+    motherName: string;
+    fatherName: string;
     lastName: string;
+
+    email: string;
+    mobileNumber1: string;
+    mobileNumber2: string;
+    whatsappNumber: string;
+
     dateOfBirth: string;
-    gender: string;
+    gender: 'M' | 'F' | 'O' | 'Male' | 'Female' | 'Other' | '';
+
+    resevationCategory: string;
+    fathersOccupation: string;
+
     isActive: boolean;
 }
-
-
 
 export default function useEditStudentViewModel() {
     const router = useRouter();
     const { id } = useParams();
     const dispatch: AppDispatch = useDispatch();
 
-    const { currentStudent, loading, error: fetchError } = useSelector((state: RootState) => state.students);
+    const studentId = Number(id);
+    if (!id || isNaN(studentId)) {
+        throw new Error('Invalid student ID');
+    }
+
+    const { currentStudent, loading, error: fetchError } = useSelector(
+        (state: RootState) => state.students
+    );
 
     const [formData, setFormData] = useState<StudentFormData>({
         userName: '',
-        email: '',
-        mobileNumber: '',
+
         firstName: '',
+        motherName: '',
+        fatherName: '',
         lastName: '',
+
+        email: '',
+        mobileNumber1: '',
+        mobileNumber2: '',
+        whatsappNumber: '',
+
         dateOfBirth: '',
         gender: '',
-        isActive: true
+
+        resevationCategory: '',
+        fathersOccupation: '',
+
+        isActive: true,
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<ApiError | null>(null);
 
-
-    // Load student data when component mounts
+    /* ---------------- FETCH ---------------- */
     useEffect(() => {
-        if (id) {
-            dispatch(fetchStudentById(id as string));
-        }
-    }, [dispatch, id]);
+        dispatch(fetchStudentById(String(studentId)));
+    }, [dispatch, studentId]);
 
-    // Populate form when student data is loaded
-    useEffect(() => {
-        if (currentStudent) {
-            setFormData({
-                userName: currentStudent.userName || '',
-                email: currentStudent.email || '',
-                mobileNumber: currentStudent.mobileNumber || '',
-                firstName: currentStudent.firstName || '',
-                lastName: currentStudent.lastName || '',
-                dateOfBirth: currentStudent.dateOfBirth ? currentStudent.dateOfBirth.split('T')[0] : '',
-                gender: currentStudent.gender || '',
-                isActive: currentStudent.isActive
-            });
+    const normalizeGender = (
+        gender?: string
+    ): StudentFormData['gender'] => {
+        if (
+            gender === 'M' ||
+            gender === 'F' ||
+            gender === 'O' ||
+            gender === 'Male' ||
+            gender === 'Female' ||
+            gender === 'Other'
+        ) {
+            return gender;
         }
+        return '';
+    };
+
+    /* ---------------- HYDRATE ---------------- */
+    useEffect(() => {
+        if (!currentStudent) return;
+
+        setFormData({
+            userName: currentStudent.userName || '',
+
+            firstName: currentStudent.firstName || '',
+            motherName: currentStudent.motherName || '',
+            fatherName: currentStudent.fatherName || '',
+            lastName: currentStudent.lastName || '',
+
+            email: currentStudent.email || '',
+            mobileNumber1: currentStudent.mobileNumber1 || '',
+            mobileNumber2: currentStudent.mobileNumber2 || '',
+            whatsappNumber: currentStudent.whatsappNumber || '',
+
+            dateOfBirth: currentStudent.dateOfBirth
+                ? currentStudent.dateOfBirth.split('T')[0]
+                : '',
+            gender: normalizeGender(currentStudent.gender),
+
+            resevationCategory: currentStudent.resevationCategory || '',
+            fathersOccupation: currentStudent.fathersOccupation || '',
+
+            isActive: currentStudent.isActive,
+        });
     }, [currentStudent]);
 
+    /* ---------------- HANDLERS ---------------- */
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData((p) => ({ ...p, [name]: value }));
     };
 
     const handleSelectChange = (e: { target: { name: string; value: string } }) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData((p) => ({ ...p, [name]: value }));
     };
 
     const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: checked
-        }));
+        setFormData((p) => ({ ...p, [name]: checked }));
     };
 
+    /* ---------------- SUBMIT ---------------- */
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
         setError(null);
-        console.log('flag --- 1');
-        
+
         try {
-            console.log('flag --- 2');
+            const result = await dispatch(
+                updateStudent({
+                    id: studentId,
+                    data: {
+                        firstName: formData.firstName,
+                        motherName: formData.motherName || undefined,
+                        fatherName: formData.fatherName || undefined,
+                        lastName: formData.lastName,
 
-            if (!id) {
-                console.log('flag --- 3');
+                        email: formData.email || undefined,
+                        mobileNumber1: formData.mobileNumber1 || undefined,
+                        mobileNumber2: formData.mobileNumber2 || undefined,
+                        whatsappNumber: formData.whatsappNumber || undefined,
 
-                throw new Error('Student ID is required');
-            }
+                        dateOfBirth: formData.dateOfBirth || undefined,
+                        gender: formData.gender || undefined,
 
-            // Validate form data
-            if (!formData.userName || !formData.email || !formData.firstName || !formData.lastName) {
-                console.log('flag --- 4');
+                        resevationCategory:
+                            formData.resevationCategory || undefined,
+                        fathersOccupation:
+                            formData.fathersOccupation || undefined,
 
-                throw new Error('Please fill in all required fields');
-            }
+                        isActive: formData.isActive,
+                    },
+                })
+            ).unwrap();
 
-            // Validate email format
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-                console.log('flag --- 5');
-                throw new Error('Please enter a valid email address');
-            }
-            console.log('flag --- 6');
-
-            // Update the student using Redux action
-            const result = await dispatch(updateStudent({
-                id: id as string,
-                userName: formData.userName,
-                email: formData.email,
-                mobileNumber: formData.mobileNumber,
-                firstName: formData.firstName,
-                lastName: formData.lastName,
-                dateOfBirth: formData.dateOfBirth,
-                gender: formData.gender,
-                isActive: formData.isActive
-            })).unwrap();
-            
-            console.log('flag --- 7');
-
-            toast.success(result.message || 'Student updated successfully');
-            router.push('/students'); // no need to check result.error
-            console.log('flag --- 8');
-                        
             if (result.success) {
-                console.log('flag --- 9');
-
                 toast.success('Student updated successfully');
                 router.push('/students');
             } else {
-                console.log('flag --- 10');
-
-                throw new Error(result.error || 'Failed to update student');
+                throw new Error(result.error || 'Update failed');
             }
-        } catch (err: unknown) {
-            // console.log(err);
-            // console.log('flag --- 11');
-
-            // const errorMessage = err instanceof Error ? err.error :
-            //     typeof err === 'string' ? err :
-            //         'An unknown error occurred from edit view model';
-            // setError({ error: errorMessage, errors: null });
-
-            // toast.error(errorMessage);
-            console.log(err);
-            console.log('flag --- 11');
-
-            let errorMessage = 'An unknown error occurred from edit view model';
-            let errorDetails: Record<string, string[]> | null = null;
-
-            if (typeof err === 'object' && err !== null) {
-                // If it's Axios error with response
-                if ('response' in err && (err as any).response?.data) {
-                    const apiError = (err as any).response.data;
-                    errorMessage = apiError.error || apiError.message || errorMessage;
-                    errorDetails = apiError.errors || null;
-                }
-                // If it's plain object already shaped like API response
-                else if ('error' in (err as any)) {
-                    errorMessage = (err as any).error || errorMessage;
-                    errorDetails = (err as any).errors || null;
-                }
-            } else if (typeof err === 'string') {
-                errorMessage = err;
-            } else if (err instanceof Error) {
-                errorMessage = err.message;
-            }
-
-            setError({ error: errorMessage, errors: errorDetails });
-            toast.error(errorMessage);
-
+        } catch (err: any) {
+            setError({
+                error: err?.error || err?.message || 'Update failed',
+                errors: err?.errors || null,
+            });
+            toast.error(err?.message || 'Update failed');
         } finally {
-            console.log('flag --- 12');
-
             setIsSubmitting(false);
         }
     };
@@ -197,12 +193,13 @@ export default function useEditStudentViewModel() {
     return {
         formData,
         isSubmitting,
+        loading,
         error: error || fetchError,
         errors: error || fetchError,
-        loading,
+
         handleChange,
         handleSelectChange,
         handleCheckboxChange,
-        handleSubmit
+        handleSubmit,
     };
 }

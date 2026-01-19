@@ -138,7 +138,7 @@ export default function IdentifyStudentPage() {
         try {
             const result = await dispatch(fetchStudentByMobile(value)).unwrap();
             setStudent({
-                studentId: result.id,
+                studentId: result.studentId,
                 firstName: result.firstName,
                 lastName: result.lastName,
                 email: result.email,

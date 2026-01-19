@@ -45,18 +45,21 @@ export default function Dashboard() {
                     spacing={3}
                 >
                     <AttendanceOverview />
-                    <ActionRequired />
+                    {/* <ActionRequired /> */}
+                    {/* Recent Activity */}
+                    <RecentActivity />
+
                 </Stack>
 
                 <Divider />
 
                 {/* Quick Actions */}
-                <QuickActions />
+                {/* <QuickActions /> */}
 
                 <Divider />
 
                 {/* Recent Activity */}
-                <RecentActivity />
+                {/* <RecentActivity /> */}
             </Stack>
         </Box>
     );
