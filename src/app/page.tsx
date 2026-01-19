@@ -28,7 +28,7 @@ export default function Home() {
   }, []);
 
   // ⛔ Prevent SSR/client mismatch
-  if (!mounted || !initialCheckDone) return null;
+  // if (!mounted || !initialCheckDone) return null;
 
   return (
     <Box

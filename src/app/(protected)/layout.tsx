@@ -163,18 +163,24 @@ const ProtectedLayout = ({ children }: LayoutParams) => {
                         </Badge>
                     </IconButton> */}
 
-                        <Button variant="outlined" color="primary" onClick={() => router.push(AppRoutes.NEW_ADMISSION)}>
-                            <SupervisedUserCircleSharp /> 
-                            <Typography sx={{ ml: 1 }}>New Admission</Typography>
-                        </Button>
+                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+  <Button
+    variant="outlined"
+    color="primary"
+    onClick={() => router.push(AppRoutes.NEW_ADMISSION)}
+  >
+    <SupervisedUserCircleSharp />
+    <Typography sx={{ ml: 1 }}>New Admission</Typography>
+  </Button>
 
-                    <IconButton>
-                        <SettingsIcon />
-                    </IconButton>
+  <IconButton onClick={() => router.push(AppRoutes.SETTINGS)}>
+    <SettingsIcon />
+  </IconButton>
 
-                    <IconButton onClick={handleUserMenuOpen} sx={{ ml: 1 }}>
-                        <Avatar />
-                    </IconButton>
+  <IconButton onClick={handleUserMenuOpen}>
+    <Avatar />
+  </IconButton>
+</Box>
 
                     <Menu
                         anchorEl={anchorEl}
@@ -184,8 +190,15 @@ const ProtectedLayout = ({ children }: LayoutParams) => {
                         <MenuItem onClick={() => router.push(AppRoutes.PROFILE)}>
                             Profile
                         </MenuItem>
-                        <MenuItem>Settings</MenuItem>
-                        <Divider />
+                    <MenuItem
+  onClick={() => {
+    setAnchorEl(null);
+    router.push(AppRoutes.SETTINGS);
+  }}
+>
+  Settings
+</MenuItem>
+                 <Divider />
                         <MenuItem onClick={handleLogout}>Logout</MenuItem>
                     </Menu>
                 </Toolbar>

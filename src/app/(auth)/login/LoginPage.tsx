@@ -21,7 +21,7 @@ export default function LoginPage() {
 
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { isAuthenticated, hasChecked } = useAppSelector((state) => state.auth);
+    const { isAuthenticated } = useAppSelector((state) => state.auth);
 
     const [mounted, setMounted] = useState(false);
 
@@ -29,17 +29,17 @@ export default function LoginPage() {
         setMounted(true);
     }, []);
 
-    useEffect(() => {
-        if (!mounted || !hasChecked) return;
+    // useEffect(() => {
+    //     if (!mounted || !hasChecked) return;
 
-        if (isAuthenticated) {
-            router.replace(searchParams?.get("redirect") || "/dashboard");
-        }
-    }, [mounted, isAuthenticated, hasChecked, router, searchParams]);
+    //     if (isAuthenticated) {
+    //         router.replace(searchParams?.get("redirect") || "/dashboard");
+    //     }
+    // }, [mounted, isAuthenticated, hasChecked, router, searchParams]);
 
-    if (!hasChecked) {
-        return null; // keep SSR clean
-    }
+    // if (!hasChecked) {
+    //     return null; // keep SSR clean
+    // }
 
     return (
         <Box
