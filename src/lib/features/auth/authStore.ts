@@ -14,13 +14,6 @@ type AuthState = ReturnType<typeof authSlice.getInitialState>;
 
 // Create a new reducer with the extra reducers
 const authReducer = createReducer(authSlice.getInitialState(), (builder) => {
-    // Add original slice reducers
-    Object.entries(authSlice.actions).forEach(([_, actionCreator]) => {
-        builder.addCase(actionCreator, (state: AuthState, action: AnyAction) => {
-            return authSlice.reducer(state, action);
-        });
-    });
-
     // Then add the thunk cases
     builder
         .addCase(authThunks.login.pending, (state) => {

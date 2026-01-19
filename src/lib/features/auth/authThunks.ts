@@ -4,7 +4,7 @@ import { loginFailure, loginStart, loginSuccess, logout } from './authSlice';
 import api from '@/lib/services/apiService';
 import { User } from './authTypes';
 import API_ENDPOINTS, { getApiUrl } from '@/lib/config/apiConfig';
-import { setSessionExpiry, setRefreshing } from '../session/sessionSlice';
+import { setSessionExpiry, setRefreshing, clearTokens } from '../session/sessionSlice';
 import { AppDispatch, RootState } from '@/lib/store';
 import { setFirmId } from "../staff/staffSlice";
 import { resetAdmissionDraft } from '../admission/admissionDraftSlice';
@@ -225,6 +225,7 @@ export const refreshToken = createAsyncThunk<
                 severity: 'error'
             }));
             dispatch(resetAdmissionDraft());
+            dispatch(clearTokens());
             dispatch(logout());
             dispatch(setSessionExpiry(null));
 
