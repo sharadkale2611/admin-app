@@ -13,6 +13,8 @@ export interface AuthState {
         severity?: 'error' | 'warning' | 'info' | 'success';
     } | null;
     initialCheckDone: boolean; // 🔑 SINGLE SOURCE OF TRUTH
+    hasLoggedOut: boolean;
+
 }
 
 
@@ -22,7 +24,8 @@ const initialState: AuthState = {
     loading: false,
     isAuthChecking: false,
     error: null,
-    initialCheckDone: false
+    initialCheckDone: false,
+    hasLoggedOut: false,
 };
 
 export const authSlice = createSlice({
@@ -37,20 +40,21 @@ export const authSlice = createSlice({
             state.isAuthenticated = true;
             state.loading = false;
             state.error = null;
-            const user = action.payload;
             state.initialCheckDone = true;
+            state.hasLoggedOut = false; // 🔥 RESET HERE
 
+            const user = action.payload;
             state.user = {
                 userId: user.userId,
                 username: user.username,
-            email: user.email,
+                email: user.email,
                 roles: user.roles,
                 firmId: user.firmId !== undefined && user.firmId !== null
                     ? Number(user.firmId)
-                    : null,                  // FIX: ALWAYS number
+                    : null,
                 firmName: user.firmName || "",
                 firmCode: user.firmCode || ""
-            };            
+            };
         },
 
         loginFailure: (state, action: PayloadAction<AuthState['error']>) => {
@@ -64,6 +68,7 @@ export const authSlice = createSlice({
             state.loading = false;
             state.error = null;
             state.initialCheckDone = true;
+            state.hasLoggedOut = true;
         },
         setAuthLoading: (state, action: PayloadAction<boolean>) => {
             state.loading = action.payload;

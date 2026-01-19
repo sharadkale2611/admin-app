@@ -9,6 +9,7 @@ import { logout as logoutAction } from '@/lib/features/auth/authSlice';
 import { resetAdmissionDraft } from '@/lib/features/admission/admissionDraftSlice';
 import { persistor } from '@/lib/store';
 import { AppRoutes } from '@/constants/routes';
+import { clearTokens } from '../session/sessionSlice';
 
 export const useLogout = () => {
     const dispatch = useAppDispatch();
@@ -41,19 +42,24 @@ export const useLogout = () => {
 
                 // 3️⃣ Reset redux slices
                 dispatch(logoutAction());
+                dispatch(clearTokens());
                 dispatch(resetAdmissionDraft());
 
-                // 4️⃣ Purge redux-persist storage
+                // 🔥 REQUIRED FIX #1:
+                // Make sure redux-persist finishes writing before purge
+                await persistor.flush();
                 await persistor.purge();
 
-                // 5️⃣ Optional extra client cleanup (kept from your existing logic)
+                // 🔥 REQUIRED FIX #2:
+                // DO NOT clear entire localStorage/sessionStorage
+                // Only remove redux-persist key to avoid Next.js cache corruption
                 if (clearLocalState) {
-                    localStorage.clear();
-                    sessionStorage.clear();
+                    localStorage.removeItem('persist:root');
                 }
 
-                // 6️⃣ Redirect
-                router.replace(redirectPath);
+                // 🔥 REQUIRED FIX #3:
+                // Use hard navigation to avoid App Router stale state
+                window.location.href = redirectPath;
             }
 
             return true;
