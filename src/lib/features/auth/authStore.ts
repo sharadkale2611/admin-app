@@ -53,13 +53,14 @@ const authReducer = createReducer(authSlice.getInitialState(), (builder) => {
             state.loading = false;
         })
         .addCase(authThunks.checkAuth.pending, (state) => {
-            state.loading = true;
+            // state.loading = true;
             state.isAuthChecking = true;
         })
         .addCase(authThunks.checkAuth.fulfilled, (state, action: PayloadAction<{ user: User } | null>) => {
             state.loading = false;
             state.initialCheckDone = true;
             state.isAuthChecking = false;
+            state.initialCheckDone = true; 
 
             if (action.payload) {
                 state.isAuthenticated = true;
@@ -75,6 +76,7 @@ const authReducer = createReducer(authSlice.getInitialState(), (builder) => {
             state.loading = false;
             state.isAuthChecking = false;
             state.initialCheckDone = true;
+            state.initialCheckDone = true; 
         });
 });
 
