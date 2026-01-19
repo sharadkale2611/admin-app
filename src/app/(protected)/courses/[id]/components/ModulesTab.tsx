@@ -87,8 +87,10 @@ export function ModulesTab({ course }: { course: any }) {
     /* ---------------- EFFECTS ---------------- */
 
     useEffect(() => {
-        setSelectedModuleIds(assignedModuleIds);
-    }, [assignedModuleIds]);
+        if (!isEditingModules) {
+            setSelectedModuleIds(assignedModuleIds);
+        }
+    }, [assignedModuleIds, isEditingModules]);
 
     /* ---------------- HANDLERS ---------------- */
 
@@ -132,6 +134,9 @@ export function ModulesTab({ course }: { course: any }) {
                     await deleteCourseModule(rec.courseModuleId);
                 }
             }
+
+            // 🔥 IMPORTANT: lock local selection
+            setSelectedModuleIds([...selectedModuleIds]);
 
             await refetchCourseModules();
             setIsEditingModules(false);
