@@ -23,6 +23,7 @@ import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { useWizardNext } from '../components/wizard/WizardNextContext';
 import { submitAdmissionFromDraft } from "@/lib/features/admission/admissionDraftThunks";
+import { resetAdmissionDraft } from '@/lib/features/admission/admissionDraftSlice';
 
 
 
@@ -124,7 +125,8 @@ export default function AdmissionStep4ReviewPage() {
         dispatch(submitAdmissionFromDraft())
             .unwrap()
             .then(res => {
-                router.replace(`/admissions/${res.admission.admissionId}`);
+                dispatch(resetAdmissionDraft());
+                router.replace(`/students/${res.admission.studentId}`);
             })
             .catch(err => {
                 console.error("Submit failed", err);
@@ -133,45 +135,6 @@ export default function AdmissionStep4ReviewPage() {
 
         return false; // ⛔ stop wizard navigation
     }, [dispatch, router]);
-
-
-    const handleSubmit2 = useCallback((): boolean => {
-        console.log('🚀 [Step-4] handleSubmit CALLED');
-
-        console.log('📦 draft:', draft);
-        console.log('👤 student:', student);
-        console.log('💰 pricing:', pricing);
-
-        if (
-            !student ||
-            !draft.courseId ||
-            !draft.enrollmentDate ||
-            !pricing ||
-            pricing.finalAmount <= 0
-        ) {
-            console.error('⛔ Missing required submit data');
-            return false;
-        }
-
-        const payload: DraftAdmissionSubmitPayload = {
-            student,
-            courseId: draft.courseId,
-            enrollmentType: draft.enrollmentType!,
-            enrollmentDate: draft.enrollmentDate,
-            academicDetails: draft.academicDetails,
-            pricing,
-        };
-
-        console.group('📤 FINAL ADMISSION PAYLOAD (DRAFT)');
-        console.log(payload);
-        console.groupEnd();
-
-        
-        alert('Draft admission payload is ready. Backend integration pending.');
-
-        return false;
-    }, [dispatch, student, draft, pricing, router]);
-
 
     useEffect(() => {
         if (!wizardNextRef) {

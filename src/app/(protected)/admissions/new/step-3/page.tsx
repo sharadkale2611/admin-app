@@ -299,7 +299,7 @@ export default function AdmissionStep3PricingPage() {
     return (
         <Box maxWidth={900}>
             <Typography variant="h6" gutterBottom>
-                Pricing & Payment
+                Fees & Installments
             </Typography>
 
             <Card variant="outlined">

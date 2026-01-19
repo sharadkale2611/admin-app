@@ -102,6 +102,7 @@ const CreateFirmPage: React.FC = () => {
     try {
       const result = await dispatch(createFirm(formData)).unwrap();
 
+      console.log("Create Firm Result:", result);
       // This will only execute if the promise was fulfilled
       setSnackbarMessage(result.message || "Firm created successfully!");
       setSnackbarSeverity("success");

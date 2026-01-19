@@ -24,6 +24,7 @@ import {
     MenuItem,
     Avatar,
     ListItemButton,
+    Button,
 } from "@mui/material";
 
 import {
@@ -41,6 +42,7 @@ import {
     Assignment as AssignmentIcon,
     AssignmentInd as AssignmentIndIcon,
     EventNote as EventNoteIcon,
+    SupervisedUserCircleSharp,
 } from "@mui/icons-material";
 
 import { useTheme } from "@mui/material/styles";
@@ -149,17 +151,22 @@ const ProtectedLayout = ({ children }: LayoutParams) => {
 
                     <Box sx={{ flexGrow: 1 }} />
 
-                    <IconButton>
+                    {/* <IconButton>
                         <Badge badgeContent={4} color="error">
                             <MailIcon />
                         </Badge>
-                    </IconButton>
+                    </IconButton> */}
 
-                    <IconButton>
+                    {/* <IconButton>
                         <Badge badgeContent={3} color="error">
                             <NotificationsIcon />
                         </Badge>
-                    </IconButton>
+                    </IconButton> */}
+
+                        <Button variant="outlined" color="primary" onClick={() => router.push(AppRoutes.NEW_ADMISSION)}>
+                            <SupervisedUserCircleSharp /> 
+                            <Typography sx={{ ml: 1 }}>New Admission</Typography>
+                        </Button>
 
                     <IconButton>
                         <SettingsIcon />

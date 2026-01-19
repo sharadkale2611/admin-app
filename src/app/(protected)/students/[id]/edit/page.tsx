@@ -1,288 +1,289 @@
-'use client'
-import React from 'react';
+'use client';
+
 import {
-    Container,
-    Typography,
+    Box,
+    Card,
+    CardContent,
     TextField,
+    Typography,
     Button,
-    Paper,
+    Grid,
+    FormControlLabel,
+    RadioGroup,
+    Radio,
+    Divider,
     FormControl,
     InputLabel,
     Select,
     MenuItem,
-    Box,
-    Grid,
-    Alert,
-    FormControlLabel,
     Checkbox,
-    Skeleton
 } from '@mui/material';
 import { Save, Cancel } from '@mui/icons-material';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+
 import useEditStudentViewModel from '@/lib/features/student/useEditStudentViewModel';
-import { ApiError } from '@/lib/features/student/studentTypes';
 
+/* =========================================================
+   EDIT STUDENT PAGE – FULL FORM (NO PROFILE IMAGE)
+   Matches ASP.NET Core Student + UpdateStudentDto
+========================================================= */
 
-const fieldLabels: Record<string, string> = {
-    userName: "Username",
-    email: "Email",
-    mobileNumber: "Mobile Number",
-    firstName: "First Name",
-    lastName: "Last Name",
-    dateOfBirth: "Date of Birth",
-    gender: "Gender",
-    isActive: "Active Status",
-
-    // In case API sends PascalCase
-    UserName: "Username",
-    Email: "Email",
-    MobileNumber: "Mobile Number",
-    FirstName: "First Name",
-    LastName: "Last Name",
-    DateOfBirth: "Date of Birth",
-    Gender: "Gender",
-    IsActive: "Active Status",
-};
-
-
-function transformErrorMessage(field: string, message: string): string {
-    // Handle Mobile Number regex
-    if (field.toLowerCase() === "mobilenumber" || field.toLowerCase() === "mobileNumber") {
-        if (message.includes("regular expression")) {
-            return "Mobile Number must be exactly 10 digits.";
-        }
-    }
-
-    // Handle Email
-    if (field.toLowerCase() === "email") {
-        if (message.includes("not a valid email")) {
-            return "Please enter a valid email address.";
-        }
-    }
-
-    // Add more transformations here if needed
-
-    // Default fallback
-    return message;
-}
-
-function renderErrorContent(error: ApiError | null) {
-    if (!error) return null;
-
-    return (
-        <div className="text-red-600">
-            {/* Main error heading */}
-            {error.error && <h4 className="font-semibold mb-2">{error.error}</h4>}
-
-            {/* Validation errors */}
-            {error.errors && (
-                <ul className="list-disc list-inside space-y-1">
-                    {Object.entries(error.errors).map(([field, messages]) =>
-                        messages.map((msg, i) => (
-                            <li key={`${field}-${i}`}>
-                                <strong>{fieldLabels[field] || field}:</strong>{" "}
-                                {transformErrorMessage(field, msg)}
-                            </li>
-                        ))
-                    )}
-                </ul>
-            )}
-        </div>
-    );
-}
-
-
-
-
-export default function EditStudent() {
+export default function EditStudentPage() {
     const { id } = useParams();
+
     const {
         formData,
         isSubmitting,
-        error,
         loading,
+        error,
         handleChange,
         handleSelectChange,
         handleCheckboxChange,
-        handleSubmit
+        handleSubmit,
     } = useEditStudentViewModel();
 
     if (loading) {
-        return (
-            <Container maxWidth="md" sx={{ mt: 3, mb: 4 }}>
-                <Skeleton variant="text" width={300} height={40} />
-                <Skeleton variant="rectangular" width="100%" height={400} sx={{ mt: 2 }} />
-            </Container>
-        );
+        return <Typography>Loading...</Typography>;
     }
 
     return (
-        <Container maxWidth="md" sx={{ mt: 3, mb: 4 }}>
-            <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
+        <Box sx={{ backgroundColor: 'white', p: 3, borderRadius: 2 }}>
+            <Typography variant="h6" fontWeight={600} gutterBottom>
                 Edit Student
             </Typography>
 
-            {error && (
-                <Alert severity="error" sx={{ mb: 2 }}>
-                    {renderErrorContent(error)}
-                </Alert>
-            )}
+            <Card variant="outlined">
+                <CardContent>
+                    <form onSubmit={handleSubmit}>
+                        {/* ================= BASIC DETAILS ================= */}
+                        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                            Basic Details
+                        </Typography>
 
-            <Paper elevation={0} sx={{ p: 3, border: '1px solid #e0e0e0' }}>
-                <form onSubmit={handleSubmit}>
-                    <Grid container spacing={2}>
-                        {/* User Account Section */}
-                        <Grid size={{ xs: 12 }}>
-                            <Typography variant="subtitle1" sx={{ mb: 1, color: 'text.secondary' }}>
-                                Account Information
-                            </Typography>
-                        </Grid>
-
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                            <TextField
-                                fullWidth
-                                label="Username"
-                                name="userName"
-                                value={formData.userName}
-                                onChange={handleChange}
-                                required
-                                size="small"
-                                disabled={isSubmitting}
-                            />
-                        </Grid>
-
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                            <TextField
-                                fullWidth
-                                label="Email"
-                                name="email"
-                                type="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                required
-                                size="small"
-                                disabled={isSubmitting}
-                            />
-                        </Grid>
-
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                            <TextField
-                                fullWidth
-                                label="Mobile Number"
-                                name="mobileNumber"
-                                value={formData.mobileNumber}
-                                onChange={handleChange}
-                                size="small"
-                                disabled={isSubmitting}
-                            />
-                        </Grid>
-
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        name="isActive"
-                                        checked={formData.isActive}
-                                        onChange={handleCheckboxChange}
-                                        disabled={isSubmitting}
-                                    />
-                                }
-                                label="Active Status"
-                            />
-                        </Grid>
-
-                        {/* Student Information Section */}
-                        <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
-                            <Typography variant="subtitle1" sx={{ mb: 1, color: 'text.secondary' }}>
-                                Student Details
-                            </Typography>
-                        </Grid>
-
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                            <TextField
-                                fullWidth
-                                label="First Name"
-                                name="firstName"
-                                value={formData.firstName}
-                                onChange={handleChange}
-                                required
-                                size="small"
-                                disabled={isSubmitting}
-                            />
-                        </Grid>
-
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                            <TextField
-                                fullWidth
-                                label="Last Name"
-                                name="lastName"
-                                value={formData.lastName}
-                                onChange={handleChange}
-                                required
-                                size="small"
-                                disabled={isSubmitting}
-                            />
-                        </Grid>
-
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                            <TextField
-                                fullWidth
-                                label="Date of Birth"
-                                name="dateOfBirth"
-                                type="date"
-                                value={formData.dateOfBirth}
-                                onChange={handleChange}
-                                InputLabelProps={{ shrink: true }}
-                                size="small"
-                                disabled={isSubmitting}
-                            />
-                        </Grid>
-
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                            <FormControl fullWidth size="small" disabled={isSubmitting}>
-                                <InputLabel>Gender</InputLabel>
-                                <Select
-                                    label="Gender"
-                                    name="gender"
-                                    value={formData.gender}
-                                    onChange={handleSelectChange}
-                                >
-                                    <MenuItem value="M">Male</MenuItem>
-                                    <MenuItem value="F">Female</MenuItem>
-                                    <MenuItem value="O">Other</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Grid>
-
-                        <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
-                            <Box sx={{ display: 'flex', gap: 2 }}>
-                                <Link href={`/students/${id}`} passHref>
-                                    <Button
-                                        variant="outlined"
-                                        color="secondary"
-                                        startIcon={<Cancel />}
-                                        size="small"
-                                        disabled={isSubmitting}
-                                    >
-                                        Cancel
-                                    </Button>
-                                </Link>
-                                <Button
-                                    type="submit"
-                                    variant="contained"
-                                    color="primary"
-                                    startIcon={<Save />}
+                        <Grid container spacing={2}>
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                <TextField
+                                    label="First Name"
+                                    name="firstName"
+                                    value={formData.firstName}
+                                    onChange={handleChange}
+                                    fullWidth
                                     size="small"
+                                    required
+                                />
+                            </Grid>
+
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                <TextField
+                                    label="Last Name"
+                                    name="lastName"
+                                    value={formData.lastName}
+                                    onChange={handleChange}
+                                    fullWidth
+                                    size="small"
+                                    required
+                                />
+                            </Grid>
+
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                <TextField
+                                    label="Email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    fullWidth
+                                    size="small"
+                                    type="email"
+                                />
+                            </Grid>
+
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                                    <Typography fontWeight={500}>Gender *</Typography>
+
+                                    <RadioGroup
+                                        row
+                                        name="gender"
+                                        value={formData.gender}
+                                        onChange={handleSelectChange}
+                                    >
+                                        {['Male', 'Female', 'Other'].map((g) => (
+                                            <FormControlLabel
+                                                key={g}
+                                                value={g}
+                                                control={<Radio />}
+                                                label={g}
+                                            />
+                                        ))}
+                                    </RadioGroup>
+                                </Box>
+                            </Grid>
+                        </Grid>
+
+                        <Divider sx={{ my: 2 }} />
+
+                        {/* ================= PARENT & CONTACT ================= */}
+                        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                            Parent & Contact Details
+                        </Typography>
+
+                        <Grid container spacing={2}>
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                <TextField
+                                    label="Father Name"
+                                    name="fatherName"
+                                    value={formData.fatherName}
+                                    onChange={handleChange}
+                                    fullWidth
+                                    size="small"
+                                    required
+                                />
+                            </Grid>
+
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                <TextField
+                                    label="Mother Name"
+                                    name="motherName"
+                                    value={formData.motherName}
+                                    onChange={handleChange}
+                                    fullWidth
+                                    size="small"
+                                    required
+                                />
+                            </Grid>
+
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                <TextField
+                                    label="Mobile Number"
+                                    name="mobileNumber1"
+                                    value={formData.mobileNumber1}
+                                    onChange={handleChange}
+                                    fullWidth
+                                    size="small"
+                                />
+                            </Grid>
+
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                <TextField
+                                    label="Alternate Mobile"
+                                    name="mobileNumber2"
+                                    value={formData.mobileNumber2}
+                                    onChange={handleChange}
+                                    fullWidth
+                                    size="small"
+                                />
+                            </Grid>
+
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                <FormControl fullWidth size="small">
+                                    <InputLabel>Father Occupation</InputLabel>
+                                    <Select
+                                        name="fathersOccupation"
+                                        value={formData.fathersOccupation}
+                                        label="Father Occupation"
+                                        onChange={handleSelectChange}
+                                    >
+                                        {['Business', 'Service', 'Farmer', 'Other'].map((o) => (
+                                            <MenuItem key={o} value={o}>
+                                                {o}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                        </Grid>
+
+                        <Divider sx={{ my: 2 }} />
+
+                        {/* ================= ACADEMIC / OTHER ================= */}
+                        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                            Other Details
+                        </Typography>
+
+                        <Grid container spacing={2}>
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                <TextField
+                                    label="Date of Birth"
+                                    type="date"
+                                    name="dateOfBirth"
+                                    value={formData.dateOfBirth}
+                                    onChange={handleChange}
+                                    fullWidth
+                                    size="small"
+                                    InputLabelProps={{ shrink: true }}
+                                />
+                            </Grid>
+
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                <FormControl fullWidth size="small">
+                                    <InputLabel>Reservation Category</InputLabel>
+                                    <Select
+                                        name="resevationCategory"
+                                        value={formData.resevationCategory}
+                                        label="Reservation Category"
+                                        onChange={handleSelectChange}
+                                    >
+                                        {['Open', 'OBC', 'SC', 'ST', 'VJNT', 'EWS'].map((c) => (
+                                            <MenuItem key={c} value={c}>
+                                                {c}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                <TextField
+                                    label="WhatsApp Number"
+                                    name="whatsappNumber"
+                                    value={formData.whatsappNumber}
+                                    onChange={handleChange}
+                                    fullWidth
+                                    size="small"
+                                />
+                            </Grid>
+
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            name="isActive"
+                                            checked={formData.isActive}
+                                            onChange={handleCheckboxChange}
+                                        />
+                                    }
+                                    label="Active"
+                                />
+                            </Grid>
+                        </Grid>
+
+                        <Divider sx={{ my: 3 }} />
+
+                        {/* ================= ACTIONS ================= */}
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                            <Link href={`/students/${id}`}>
+                                <Button
+                                    variant="outlined"
+                                    startIcon={<Cancel />}
                                     disabled={isSubmitting}
                                 >
-                                    {isSubmitting ? 'Updating...' : 'Update Student'}
+                                    Cancel
                                 </Button>
-                            </Box>
-                        </Grid>
-                    </Grid>
-                </form>
-            </Paper>
-        </Container>
+                            </Link>
+
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                startIcon={<Save />}
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? 'Updating...' : 'Update Student'}
+                            </Button>
+                        </Box>
+                    </form>
+                </CardContent>
+            </Card>
+        </Box>
     );
 }

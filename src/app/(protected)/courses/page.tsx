@@ -182,11 +182,11 @@ const CoursesPage: React.FC = () => {
                                 onClick={() => router.push(`/courses/${course.courseId}`)}
                             >
                                 <Box sx={{ position: 'absolute', right: 10, top: 10 }}>
-                                    <Chip
+                                    {/* <Chip
                                         size="small"
                                         label={course.courseLevel}
                                         sx={{ mr: 1 }}
-                                    />
+                                    /> */}
                                     <Chip
                                         size="small"
                                         label={course.status ? 'Active' : 'Inactive'}
@@ -195,7 +195,7 @@ const CoursesPage: React.FC = () => {
                                 </Box>
 
                                 <CardContent sx={{ mt: 3 }}>
-                                    <Typography variant="h6" fontWeight={700}>
+                                    <Typography variant="subtitle1" fontWeight={700}>
                                         {course.courseName}
                                     </Typography>
 

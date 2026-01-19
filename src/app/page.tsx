@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/lib/hooks';
 import { useRouter } from 'next/navigation';
 import {
@@ -16,11 +17,18 @@ import LoginIcon from '@mui/icons-material/Login';
 
 export default function Home() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
   const { isAuthenticated, initialCheckDone } = useAppSelector(
     (state) => state.auth
   );
 
-  if (!initialCheckDone) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // ⛔ Prevent SSR/client mismatch
+  if (!mounted || !initialCheckDone) return null;
 
   return (
     <Box

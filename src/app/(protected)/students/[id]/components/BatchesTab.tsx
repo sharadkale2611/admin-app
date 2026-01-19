@@ -11,6 +11,9 @@ import {
     Divider,
     Stack,
     CircularProgress,
+    AlertColor,
+    Snackbar,
+    Alert,
 } from '@mui/material';
 
 import {
@@ -48,6 +51,28 @@ export default function BatchesTab({ studentId }: { studentId: number }) {
         new Date().toISOString().split('T')[0];
 
 
+    const [snackbar, setSnackbar] = useState<{
+        open: boolean;
+        message: string;
+        severity: AlertColor;
+    }>({
+        open: false,
+        message: '',
+        severity: 'success'
+    });
+
+    const showSnackbar = (message: string, severity: AlertColor = 'success') => {
+        setSnackbar({
+            open: true,
+            message,
+            severity
+        });
+    };
+
+    const handleCloseSnackbar = () => {
+        setSnackbar(prev => ({ ...prev, open: false }));
+    };
+
     const handleAssignBatch = async (batch: Batch) => {
         try {
             const payload = {
@@ -59,17 +84,26 @@ export default function BatchesTab({ studentId }: { studentId: number }) {
                 isActive: true,
             };
 
-            // ✅ unwrap() throws error if rejected
+            // Create assignment
             await dispatch(createSBA(payload)).unwrap();
 
-            // ✅ ALWAYS refetch after success
+            // Refetch batches
             await dispatch(fetchBatchesByStudentId(studentId)).unwrap();
+
+            // ✅ Success snackbar
+            showSnackbar('Batch assigned successfully', 'success');
 
         } catch (err: any) {
             console.error('Assign failed:', err);
-            alert(err?.error || 'Failed to assign batch');
+
+            // ✅ Error snackbar
+            showSnackbar(
+                err?.error || err?.message || 'Failed to assign batch',
+                'error'
+            );
         }
     };
+
 
 
     const [rightView, setRightView] =
@@ -265,6 +299,21 @@ export default function BatchesTab({ studentId }: { studentId: number }) {
                     />
                 )}
             </Grid>
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+                <Alert
+                    onClose={handleCloseSnackbar}
+                    severity={snackbar.severity}
+                    variant="filled"
+                    sx={{ width: '100%' }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>            
         </Grid>
     );
 }

@@ -1,4 +1,4 @@
-// src/app/(protected)/discount-codes/page.tsx
+// src/app/(protected)/discountCodes/page.tsx
 
 'use client';
 import React, { useState } from 'react';

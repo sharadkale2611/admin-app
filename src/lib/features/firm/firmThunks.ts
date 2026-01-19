@@ -3,6 +3,7 @@ import type { AppDispatch, RootState } from "@/lib/store";
 import { Firm, CreateFirmDto, UpdateFirmDto, PaginatedFirms, ApiResponse } from './firmType';
 import API_ENDPOINTS from "@/lib/config/apiConfig";
 import api from "@/lib/services/apiService";
+import flattenErrors from "@/lib/utils/errorUtil";
 
 /**
  * Error type for consistent API error handling
@@ -85,36 +86,45 @@ export const fetchFirms = createAsyncThunk<
 /**
  * Create Firm
  */
+
 export const createFirm = createAsyncThunk<
-    { success: boolean; message: string; error: string | null; errors: string[] | null; firm: Firm | null },
+    {
+        success: boolean;
+        message: string;
+        error: string | null;
+        errors: string[] | null;
+        firm: Firm | null;
+    },
     CreateFirmDto,
-    { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
+    { rejectValue: ApiError }
 >(
     'firms/createFirm',
     async (createFirmDto, { rejectWithValue }) => {
         try {
-            const response = await api.post<ApiResponse<Firm>>(
+            const response = await api.post<Firm>(
                 API_ENDPOINTS.FIRM.CREATE,
                 { firmId: 0, ...createFirmDto },
-                { withCredentials: true, headers: { 'Content-Type': 'application/json' } }
+                { withCredentials: true }
             );
 
-            if (response.status !== 200) {
+            console.log("Create Firm Response:", response);
+
+            if (!response.success) {
                 return rejectWithValue({
-                    error: response.data?.error || response.data?.message || 'Creation failed',
-                    errors: null
+                    error: response.error || response.message || "Creation failed",
+                    errors: flattenErrors(response.errors)
                 });
             }
 
             return {
                 success: true,
-                message: response.data?.message || 'Firm created successfully',
+                message: response.message ?? "Firm created successfully", // ✅ fix #1
                 error: null,
                 errors: null,
-                firm: response.data?.data ?? null
+                firm: response.data ?? null                                // ✅ fix #2
             };
-        } catch (error: any) {
-            const parsed = parseApiError(error);
+        } catch (err: any) {
+            const parsed = parseApiError(err);
             return rejectWithValue({
                 error: parsed.error ?? "Creation failed",
                 errors: parsed.errors ?? null
@@ -122,6 +132,8 @@ export const createFirm = createAsyncThunk<
         }
     }
 );
+
+
 
 /**
  * Update Firm

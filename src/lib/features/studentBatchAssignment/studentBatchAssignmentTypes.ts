@@ -6,6 +6,7 @@ export interface StudentBatchAssignment {
     studentBatchAssignmentId: number;
     studentEnrollmentId: number;
     studentName?: string | null;
+    profileImagePath?: string | null;
 
     batchId: number;
     batchCode?: string | null;

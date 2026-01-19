@@ -37,6 +37,19 @@ export const useCreateCourseViewModel = () => {
         (state) => state.courseCategories
     );
 
+    // Auto-select first course category when categories load
+    useEffect(() => {
+        if (
+            categories.length > 0 &&
+            (formData.courseCategoryId === 0 || !formData.courseCategoryId)
+        ) {
+            setFormData(prev => ({
+                ...prev,
+                courseCategoryId: categories[0].courseCategoryId
+            }));
+        }
+    }, [categories]);
+
     // Fetch course categories on component mount
     useEffect(() => {
         dispatch(fetchCourseCategories(null)); // Pass null or firmId if needed

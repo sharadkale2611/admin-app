@@ -29,8 +29,8 @@ import { fetchClassRooms } from '@/lib/features/classRoom/classRoomThunks';
 
 // Tabs
 import BatchDetailsTab from './components/BatchDetailsTab';
-import ScheduleInfoTab from './components/ScheduleInfoTab';
 import SavedSchedulesTab from './components/SavedSchedulesTab';
+import BatchEnrollmentsTab from './components/BatchEnrollmentsTab';
 
 /* ---------------- TAB PANEL ---------------- */
 interface TabPanelProps {
@@ -154,7 +154,7 @@ export default function BatchDetailsPage() {
           TAB 3 : SAVED SCHEDULES
       ====================================================== */}
       <TabPanel value={tabIndex} index={2}>
-        <ScheduleInfoTab />
+        <BatchEnrollmentsTab />
       </TabPanel>
       
     </Container>
