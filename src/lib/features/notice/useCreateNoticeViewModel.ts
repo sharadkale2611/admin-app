@@ -17,7 +17,7 @@ import { SelectChangeEvent } from "@mui/material";
 export interface NoticeFormData {
   title: string;
   description: string;
-  createdBy: string;
+  // createdBy: string;
   createdFor: "BATCH" | "STUDENT";
   batchId?: number | "";
   studentId?: number | "";
@@ -30,7 +30,7 @@ export default function useCreateNoticeViewModel() {
   const [formData, setFormData] = useState<NoticeFormData>({
     title: "",
     description: "",
-    createdBy: "",
+    // createdBy: "",
     createdFor: "BATCH",
     batchId: "",
     studentId: "",
@@ -100,7 +100,7 @@ const handleNumberSelectChange = (e: SelectChangeEvent<number>) => {
     try {
       /* ---------- Validation ---------- */
 
-      if (!formData.title || !formData.description || !formData.createdBy) {
+      if (!formData.title || !formData.description) {
         throw new Error("Please fill in all required fields");
       }
 
@@ -123,7 +123,7 @@ const handleNumberSelectChange = (e: SelectChangeEvent<number>) => {
       const payload: CreateNoticeDto = {
         title: formData.title,
         description: formData.description,
-        createdBy: formData.createdBy,
+        // createdBy: formData.createdBy,
         createdFor: formData.createdFor,
         batchId:
           formData.createdFor === "BATCH"

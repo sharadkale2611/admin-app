@@ -30,7 +30,7 @@ export interface NoticeState {
 export interface CreateNoticeDto {
   title: string;
   description: string;
-  createdBy: string;
+  // createdBy: string;
   createdFor: "BATCH" | "STUDENT";
   batchId?: number | null;
   studentId?: number | null;

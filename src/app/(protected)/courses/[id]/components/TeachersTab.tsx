@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from "react";
+import { useMemo } from "react";
 import {
     Grid,
     Paper,
@@ -11,11 +11,10 @@ import {
     Avatar,
     Stack,
     CircularProgress,
-    Pagination,
 } from "@mui/material";
-import { Person, Email, Phone, Work } from "@mui/icons-material";
+import { Person, Work } from "@mui/icons-material";
 
-import { useStaffViewModel } from "@/lib/features/staff/useStaffViewModel";
+import { useTrainersByCourseViewModel } from "@/lib/features/staff/useTrainersByCourseViewModel";
 
 /* =====================================================
    TEACHERS TAB
@@ -25,30 +24,18 @@ export default function TeachersTab({
 }: {
     courseId: number;
 }) {
-    const {
-        staff,
-        isLoading,
-        error,
-        page,
-        totalPages,
-        handlePositionChange,
-        handlePageChange,
-    } = useStaffViewModel();
+    const { trainers, isLoading, error } = useTrainersByCourseViewModel(courseId ?? null);
 
-    useEffect(() => {
-        handlePositionChange("Teacher");
-    }, [handlePositionChange]);
+    const uniqueTrainerCount = useMemo(
+        () => new Set((trainers || []).map((t) => t.staffId)).size,
+        [trainers]
+    );
 
-    /* -----------------------------------------------------
-       Filter only teachers
-    ----------------------------------------------------- */
-    useEffect(() => {
-        handlePositionChange("Teacher");
-    }, [handlePositionChange]);
+    const moduleCount = useMemo(
+        () => new Set((trainers || []).map((t) => t.moduleId)).size,
+        [trainers]
+    );
 
-    /* -----------------------------------------------------
-       UI STATES
-    ----------------------------------------------------- */
     if (isLoading) {
         return (
             <Box display="flex" justifyContent="center" mt={4}>
@@ -65,26 +52,20 @@ export default function TeachersTab({
         );
     }
 
-    if (!staff.length) {
+    if (!trainers || !trainers.length) {
         return (
             <Typography color="text.secondary" sx={{ mt: 2 }}>
-                No teachers found.
+                No trainers found for this course.
             </Typography>
         );
     }
 
-    /* -----------------------------------------------------
-       RENDER
-    ----------------------------------------------------- */
     return (
         <Grid container spacing={3}>
-            {/* =====================================================
-         LEFT : TEACHER LIST
-      ====================================================== */}
             <Grid size={{ xs: 12, md: 8 }}>
                 <Stack spacing={2}>
-                    {staff.map((teacher) => (
-                        <Paper key={teacher.staffId} sx={{ p: 3 }}>
+                    {trainers.map((trainer) => (
+                        <Paper key={`${trainer.staffId}-${trainer.moduleId}`} sx={{ p: 3 }}>
                             <Box display="flex" gap={2} alignItems="center">
                                 <Avatar sx={{ bgcolor: "primary.main" }}>
                                     <Person />
@@ -92,20 +73,12 @@ export default function TeachersTab({
 
                                 <Box flex={1}>
                                     <Typography variant="h6">
-                                        {teacher.firstName} {teacher.lastName}
+                                        {trainer.trainerName}
                                     </Typography>
 
-                                    <Stack direction="row" spacing={1} mt={0.5}>
-                                        <Chip
-                                            label={teacher.position}
-                                            size="small"
-                                            color="primary"
-                                        />
-                                        <Chip
-                                            label={teacher.isActive ? "Active" : "Inactive"}
-                                            size="small"
-                                            color={teacher.isActive ? "success" : "default"}
-                                        />
+                                    <Stack direction="row" spacing={1} mt={0.5} flexWrap="wrap">
+                                        <Chip label={trainer.moduleName} size="small" color="primary" />
+                                        <Chip label={trainer.position} size="small" variant="outlined" />
                                     </Stack>
                                 </Box>
                             </Box>
@@ -114,63 +87,39 @@ export default function TeachersTab({
 
                             <Grid container spacing={2}>
                                 <Grid size={{ xs: 12, sm: 6 }}>
-                                    <InfoRow
-                                        icon={<Email fontSize="small" />}
-                                        label="Email"
-                                        value={teacher.email}
-                                    />
+                                    <InfoRow icon={<Work fontSize="small" />} label="Module" value={trainer.moduleName} />
                                 </Grid>
 
                                 <Grid size={{ xs: 12, sm: 6 }}>
-                                    <InfoRow
-                                        icon={<Phone fontSize="small" />}
-                                        label="Mobile"
-                                        value={teacher.mobileNumber}
-                                    />
+                                    <InfoRow label="Staff ID" value={trainer.staffId} />
                                 </Grid>
 
                                 <Grid size={{ xs: 12, sm: 6 }}>
-                                    <InfoRow
-                                        icon={<Work fontSize="small" />}
-                                        label="Department"
-                                        value={teacher.department}
-                                    />
+                                    <InfoRow label="Email" value={trainer.email} />
+                                </Grid>
+
+                                <Grid size={{ xs: 12, sm: 6 }}>
+                                    <InfoRow label="Mobile" value={trainer.mobileNumber} />
                                 </Grid>
                             </Grid>
                         </Paper>
                     ))}
                 </Stack>
-
-                {/* PAGINATION */}
-                {totalPages > 1 && (
-                    <Box display="flex" justifyContent="center" mt={3}>
-                        <Pagination
-                            count={totalPages}
-                            page={page}
-                            onChange={(_, value) => handlePageChange(value)}
-                            color="primary"
-                        />
-                    </Box>
-                )}
             </Grid>
 
-            {/* =====================================================
-         RIGHT : SUMMARY PANEL
-      ====================================================== */}
             <Grid size={{ xs: 12, md: 4 }}>
                 <Paper sx={{ p: 3 }}>
                     <Typography variant="h6">Teachers Summary</Typography>
                     <Divider sx={{ my: 2 }} />
 
-                    <Typography variant="subtitle2">Total Teachers</Typography>
-                    <Typography>{staff.length}</Typography>
+                    <Typography variant="subtitle2">Total Trainers</Typography>
+                    <Typography>{uniqueTrainerCount}</Typography>
 
-                    <Typography variant="subtitle2" sx={{ mt: 1 }}>
-                        Active Teachers
-                    </Typography>
-                    <Typography>
-                        {staff.filter((t) => t.isActive).length}
-                    </Typography>
+                    <Typography variant="subtitle2" sx={{ mt: 1 }}>Modules Covered</Typography>
+                    <Typography>{moduleCount}</Typography>
+
+                    <Typography variant="subtitle2" sx={{ mt: 1 }}>Trainer-Module Pairs</Typography>
+                    <Typography>{trainers.length}</Typography>
                 </Paper>
             </Grid>
         </Grid>

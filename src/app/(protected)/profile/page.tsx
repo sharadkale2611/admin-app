@@ -61,7 +61,7 @@ export default function ProfilePage() {
 
         alert('Password changed successfully');
 
-        // 🔐 Redirect to login page
+        // Redirect to login page
         router.push('/login');
 
     } catch (error: any) {
@@ -98,8 +98,7 @@ export default function ProfilePage() {
                             </Typography>
                            
                            <Typography><strong>Username:</strong> {user?.username || '—'}</Typography>
-
-<Typography><strong>Email:</strong> {user?.email || '—'}</Typography>
+                           <Typography><strong>Email:</strong> {user?.email || '—'}</Typography>
 
                             {/* <Typography><strong>Username:</strong> admin</Typography>
                             <Typography><strong>Email:</strong> admin@shiva.edu</Typography> */}

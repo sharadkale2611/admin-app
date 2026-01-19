@@ -127,6 +127,7 @@ export default function ViewExamPage() {
 
     const fetchMarks = async () => {
       try {
+        
         const query = new URLSearchParams({
           pageNumber: "1",
           pageSize: "1000",

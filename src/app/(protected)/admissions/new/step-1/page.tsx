@@ -137,12 +137,19 @@ export default function IdentifyStudentPage() {
 
         try {
             const result = await dispatch(fetchStudentByMobile(value)).unwrap();
+
+            // prefer primary address, otherwise first
+            const primaryAddress =
+                result.addresses?.find((a) => a.isPrimaryAddress) ||
+                result.addresses?.[0] ||
+                null;
+
             setStudent({
                 studentId: result.studentId,
                 firstName: result.firstName,
                 lastName: result.lastName,
-                email: result.email,
-                profileImagePath: result.profileImagePath,
+                email: result.email ?? undefined,
+                profileImagePath: result.profileImagePath ?? undefined,
             });
             
             setForm((prev) => ({
@@ -150,8 +157,29 @@ export default function IdentifyStudentPage() {
                 firstName: result.firstName,
                 lastName: result.lastName,
                 email: result.email ?? '',
+                fatherName: result.fatherName ?? '',
+                motherName: result.motherName ?? '',
+                alternateMobile: result.mobileNumber2 ?? '',
+                gender: result.gender ?? '',
+                reservationCategory: result.resevationCategory ?? '',
                 profileImagePath: result.profileImagePath ?? '',
             }));
+
+            if (primaryAddress) {
+                setAddress({
+                    fullAddress: primaryAddress.fullAddress ?? '',
+                    pincode: primaryAddress.pinCode ?? '',
+                    stateId:
+                        typeof primaryAddress.stateId === 'number'
+                            ? primaryAddress.stateId
+                            : null,
+                    cityId:
+                        typeof primaryAddress.cityId === 'number'
+                            ? primaryAddress.cityId
+                            : null,
+                    addressType: (primaryAddress.addressType as AddressValue['addressType']) || 'Residential',
+                });
+            }
         } catch {
             setNotFound(true);
         } finally {
@@ -261,6 +289,7 @@ export default function IdentifyStudentPage() {
     }, [wizardNextRef, handleNext]);
 
     const isLocked = draft.studentConfirmed && draft.student?.isExisting;
+    const isExistingStudent = !!student || isLocked;
 
     
         /* -------------------- RESET ALL -------------------- */
@@ -335,6 +364,7 @@ export default function IdentifyStudentPage() {
                                     size='small'
                                     required
                                     value={form.firstName}
+                                    disabled={isExistingStudent}
                                     error={submitted && !!errors.firstName}
                                     helperText={submitted ? errors.firstName : ''}
                                     onChange={(e) => {
@@ -351,6 +381,7 @@ export default function IdentifyStudentPage() {
                                     size='small'
                                     required
                                     value={form.lastName}
+                                    disabled={isExistingStudent}
                                     error={submitted && !!errors.lastName}
                                     helperText={submitted ? errors.lastName : ''}
                                     onChange={(e) => {
@@ -366,6 +397,7 @@ export default function IdentifyStudentPage() {
                                     size="small"
                                     type="email"
                                     value={form.email}
+                                    disabled={isExistingStudent}
                                     error={submitted && !!errors.email}
                                     helperText={submitted ? errors.email : ''}
                                     onChange={(e) => {
@@ -413,6 +445,7 @@ export default function IdentifyStudentPage() {
                                                     key={g}
                                                     value={g}
                                                     control={<Radio sx={{ display: 'none' }} />}
+                                                    disabled={isExistingStudent}
                                                     label={g}
                                                     sx={{
                                                         m: 0,
@@ -462,6 +495,7 @@ export default function IdentifyStudentPage() {
                                     size='small'
                                     required
                                     value={form.fatherName}
+                                    disabled={isExistingStudent}
                                     error={submitted && !!errors.fatherName}
                                     helperText={submitted ? errors.fatherName : ''}
                                     onChange={(e) => {
@@ -479,6 +513,7 @@ export default function IdentifyStudentPage() {
                                     size='small'
                                     required
                                     value={form.motherName}
+                                    disabled={isExistingStudent}
                                     error={submitted && !!errors.motherName}
                                     helperText={submitted ? errors.motherName : ''}
                                     onChange={(e) => {
@@ -495,6 +530,7 @@ export default function IdentifyStudentPage() {
                                     fullWidth
                                     size='small'
                                     value={form.alternateMobile}
+                                    disabled={isExistingStudent}
                                     onChange={(e) =>
                                         setForm({
                                             ...form,
@@ -553,6 +589,7 @@ export default function IdentifyStudentPage() {
                                 <AddressSelector
                                     value={address}
                                     onChange={setAddress}
+                                    disabled={isExistingStudent}
                                 />
                             </Grid>
                             <Grid size={{ xs: 12, md: 6 }}>
@@ -601,6 +638,7 @@ export default function IdentifyStudentPage() {
                                                 key={cat}
                                                 value={cat}
                                                 control={<Radio sx={{ display: 'none' }} />}
+                                                    disabled={isExistingStudent}
                                                 label={cat}
                                                 sx={{
                                                     m: 0,
@@ -647,6 +685,7 @@ export default function IdentifyStudentPage() {
                                             }}
                                         />
                                         <IconButton
+                                            disabled={isExistingStudent}
                                             component="label"
                                             sx={{
                                                 position: 'absolute',
