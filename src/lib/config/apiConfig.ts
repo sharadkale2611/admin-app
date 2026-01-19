@@ -215,7 +215,6 @@ const API_ENDPOINTS = {
     GET_LIST: process.env.NEXT_PUBLIC_BRANCHES_ENDPOINT || "/Branches",
   },
 
-
     BATCH_STUDY_WORKS: {
     GET_LIST_PAGINATED:
       process.env.NEXT_PUBLIC_BATCH_STUDY_WORKS_PAGINATED_ENDPOINT ||
@@ -295,8 +294,11 @@ EXAMS: {
   },
   CITIES: {
     GET_LIST: "/cities",
-  }
+  },
 
+  USERS: {
+    BASE: "/Users",
+  },
   // Add other endpoint categories here as needed
 };
 

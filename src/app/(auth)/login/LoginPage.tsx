@@ -21,7 +21,29 @@ export default function LoginPage() {
 
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { isAuthenticated } = useAppSelector((state) => state.auth);
+
+    const {
+        isAuthenticated,
+        isAuthChecking,
+        initialCheckDone,
+        hasLoggedOut,          // 🔥 FIX 1: READ IT
+    } = useAppSelector(state => state.auth);
+
+    console.log(
+        'LoginPage:',
+        'isAuthenticated =', isAuthenticated,
+        'hasLoggedOut =', hasLoggedOut,
+        'initialCheckDone =', initialCheckDone
+    );
+
+    // 🔥 FIX 2: block ONLY until auth check completes
+    if (!initialCheckDone || isAuthChecking) {
+        return (
+            <Box height="100vh" display="flex" alignItems="center" justifyContent="center">
+                <CircularProgress />
+            </Box>
+        );
+    }
 
     const [mounted, setMounted] = useState(false);
 
@@ -29,17 +51,21 @@ export default function LoginPage() {
         setMounted(true);
     }, []);
 
-    // useEffect(() => {
-    //     if (!mounted || !hasChecked) return;
+    useEffect(() => {
+        if (!mounted) return;
 
-    //     if (isAuthenticated) {
-    //         router.replace(searchParams?.get("redirect") || "/dashboard");
-    //     }
-    // }, [mounted, isAuthenticated, hasChecked, router, searchParams]);
+        // 🔥 FIX 3: redirect ONLY after checkAuth finishes
+        if (isAuthenticated && !hasLoggedOut) {
+            router.replace(searchParams?.get("redirect") || "/dashboard");
+        }
+    }, [mounted, isAuthenticated, hasLoggedOut, router, searchParams]);
 
-    // if (!hasChecked) {
-    //     return null; // keep SSR clean
-    // }
+    if (!mounted) {
+        return null;
+    }
+
+    // ❌ REMOVED: blocking login page based on isAuthenticated
+    // Login page must always render once auth check is done
 
     return (
         <Box
@@ -49,12 +75,12 @@ export default function LoginPage() {
                 alignItems: "center",
                 justifyContent: "center",
                 background: `
-          linear-gradient(
-            rgba(15, 23, 42, 0.75),
-            rgba(15, 23, 42, 0.75)
-          ),
-          url("/images/institute-bg1.png")
-        `,
+                  linear-gradient(
+                    rgba(15, 23, 42, 0.75),
+                    rgba(15, 23, 42, 0.75)
+                  ),
+                  url("/images/institute-bg1.png")
+                `,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 px: 2,
@@ -70,35 +96,19 @@ export default function LoginPage() {
                         backgroundColor: "rgba(255,255,255,0.92)",
                     }}
                 >
-                    {/* ================= Header ================= */}
                     <Box textAlign="center" mb={3}>
-                        <Typography
-                            variant="h5"
-                            fontWeight={700}
-                            color="primary"
-                        >
+                        <Typography variant="h5" fontWeight={700} color="primary">
                             Revolution Science Academy
                         </Typography>
-
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            mt={0.5}
-                        >
+                        <Typography variant="body2" color="text.secondary" mt={0.5}>
                             Institute Management Portal
                         </Typography>
                     </Box>
 
-                    <Typography
-                        variant="h6"
-                        fontWeight={600}
-                        textAlign="center"
-                        mb={3}
-                    >
+                    <Typography variant="h6" fontWeight={600} textAlign="center" mb={3}>
                         Sign in to your account
                     </Typography>
 
-                    {/* ================= Errors ================= */}
                     {validationErrors.length > 0 && (
                         <Alert severity="error" sx={{ mb: 2 }}>
                             <ul style={{ margin: 0, paddingLeft: 18 }}>
@@ -115,7 +125,6 @@ export default function LoginPage() {
                         </Alert>
                     )}
 
-                    {/* ================= Form ================= */}
                     <Box
                         component="form"
                         onSubmit={(e) => {
@@ -168,7 +177,6 @@ export default function LoginPage() {
                         </Button>
                     </Box>
 
-                    {/* ================= Footer ================= */}
                     <Typography
                         variant="caption"
                         color="text.secondary"
@@ -178,7 +186,7 @@ export default function LoginPage() {
                     >
                         © {new Date().getFullYear()} Revolution Science Academy
                     </Typography>
-                </Paper>    
+                </Paper>
             </Container>
         </Box>
     );

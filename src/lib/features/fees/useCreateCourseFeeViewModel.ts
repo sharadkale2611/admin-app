@@ -123,7 +123,7 @@ export const useCreateCourseFeeViewModel = () => {
                 console.log('Create course fee success:', result);
                 Swal.fire({
                     title: 'Success!',
-                    text: 'Recrod Added successfully!',
+                    text: 'Record Added successfully!',
                     icon: 'success',
                     timer: 2000,
                     showConfirmButton: false

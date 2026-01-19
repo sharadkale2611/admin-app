@@ -10,6 +10,7 @@ import {
   Typography,
   Stack,
   Chip,
+  CircularProgress,
 } from '@mui/material';
 import SchoolIcon from '@mui/icons-material/School';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -19,7 +20,7 @@ export default function Home() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
-  const { isAuthenticated, initialCheckDone } = useAppSelector(
+  const { isAuthenticated } = useAppSelector(
     (state) => state.auth
   );
 
@@ -27,8 +28,30 @@ export default function Home() {
     setMounted(true);
   }, []);
 
-  // ⛔ Prevent SSR/client mismatch
-  // if (!mounted || !initialCheckDone) return null;
+  // 🔥 REDIRECT authenticated users
+  useEffect(() => {
+    if (!mounted) return;
+
+    if (isAuthenticated) {
+      router.replace('/dashboard');
+    }
+  }, [mounted, isAuthenticated, router]);
+
+  if (!mounted) return null;
+
+  if (isAuthenticated) {
+    return (
+      <Box
+        height="100vh"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
 
   return (
     <Box

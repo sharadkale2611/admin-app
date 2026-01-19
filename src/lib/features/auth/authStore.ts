@@ -14,13 +14,6 @@ type AuthState = ReturnType<typeof authSlice.getInitialState>;
 
 // Create a new reducer with the extra reducers
 const authReducer = createReducer(authSlice.getInitialState(), (builder) => {
-    // Add original slice reducers
-    Object.entries(authSlice.actions).forEach(([_, actionCreator]) => {
-        builder.addCase(actionCreator, (state: AuthState, action: AnyAction) => {
-            return authSlice.reducer(state, action);
-        });
-    });
-
     // Then add the thunk cases
     builder
         .addCase(authThunks.login.pending, (state) => {
@@ -53,13 +46,14 @@ const authReducer = createReducer(authSlice.getInitialState(), (builder) => {
             state.loading = false;
         })
         .addCase(authThunks.checkAuth.pending, (state) => {
-            state.loading = true;
+            // state.loading = true;
             state.isAuthChecking = true;
         })
         .addCase(authThunks.checkAuth.fulfilled, (state, action: PayloadAction<{ user: User } | null>) => {
             state.loading = false;
             state.initialCheckDone = true;
             state.isAuthChecking = false;
+            state.initialCheckDone = true; 
 
             if (action.payload) {
                 state.isAuthenticated = true;
@@ -75,6 +69,7 @@ const authReducer = createReducer(authSlice.getInitialState(), (builder) => {
             state.loading = false;
             state.isAuthChecking = false;
             state.initialCheckDone = true;
+            state.initialCheckDone = true; 
         });
 });
 

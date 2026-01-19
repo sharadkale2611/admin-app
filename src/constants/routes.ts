@@ -41,7 +41,8 @@ export const AppRoutes = {
     EXAMS:'/exams',
     ATTENDANCE:'/attendance/sessions',
 
-    
+    CHANGE_PASSWORD: '/profile/change-password',
+
 
 
 
@@ -74,6 +75,8 @@ export const ProtectedRoutes = [
     AppRoutes.PROFILE,
     AppRoutes.SETTINGS,
     AppRoutes.ADMIN,
+    AppRoutes.CHANGE_PASSWORD, // ✅ ADD
+
 ] as const;
 
 // Auth-only routes (guest)

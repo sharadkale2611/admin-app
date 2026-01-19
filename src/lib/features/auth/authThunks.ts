@@ -4,7 +4,7 @@ import { loginFailure, loginStart, loginSuccess, logout } from './authSlice';
 import api from '@/lib/services/apiService';
 import { User } from './authTypes';
 import API_ENDPOINTS, { getApiUrl } from '@/lib/config/apiConfig';
-import { setSessionExpiry, setRefreshing } from '../session/sessionSlice';
+import { setSessionExpiry, setRefreshing, clearTokens } from '../session/sessionSlice';
 import { AppDispatch, RootState } from '@/lib/store';
 import { setFirmId } from "../staff/staffSlice";
 import { resetAdmissionDraft } from '../admission/admissionDraftSlice';
@@ -163,7 +163,7 @@ export const checkAuth = createAsyncThunk<
                 } catch (refreshError) {
                     console.log('Refresh token failed → logging out');
                     dispatch(resetAdmissionDraft());
-                    dispatch(logout());
+                    // dispatch(logout());
                     return rejectWithValue('Session expired. Please login again.');
                 }
             }
@@ -191,7 +191,7 @@ export const checkAuth = createAsyncThunk<
         } catch (error) {
             console.error('Authentication check failed:', error);
             dispatch(resetAdmissionDraft());
-            dispatch(logout());
+            // dispatch(logout());
             return rejectWithValue('Session expired. Please login again.');
         }
     }
@@ -225,6 +225,7 @@ export const refreshToken = createAsyncThunk<
                 severity: 'error'
             }));
             dispatch(resetAdmissionDraft());
+            dispatch(clearTokens());
             dispatch(logout());
             dispatch(setSessionExpiry(null));
 
@@ -233,4 +234,29 @@ export const refreshToken = createAsyncThunk<
             dispatch(setRefreshing(false));
         }
     }
+);
+
+/**
+ * CHANGE PASSWORD
+ */
+export const changePassword = createAsyncThunk<
+  void,
+  { currentPassword: string; newPassword: string },
+  { state: RootState }
+>(
+  "auth/changePassword",
+  async (payload, { getState }) => {
+    // 1️⃣ get logged-in userId from redux
+    const userId = getState().auth.user?.userId;
+
+    if (!userId) {
+      throw new Error("User not logged in");
+    }
+
+    // 2️⃣ build API url
+    const url = `${API_ENDPOINTS.USERS.BASE}/${userId}/change-password`;
+
+    // 3️⃣ call backend API
+    await api.post(getApiUrl(url), payload);
+  }
 );
