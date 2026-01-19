@@ -163,7 +163,7 @@ export const checkAuth = createAsyncThunk<
                 } catch (refreshError) {
                     console.log('Refresh token failed → logging out');
                     dispatch(resetAdmissionDraft());
-                    dispatch(logout());
+                    // dispatch(logout());
                     return rejectWithValue('Session expired. Please login again.');
                 }
             }
@@ -191,7 +191,7 @@ export const checkAuth = createAsyncThunk<
         } catch (error) {
             console.error('Authentication check failed:', error);
             dispatch(resetAdmissionDraft());
-            dispatch(logout());
+            // dispatch(logout());
             return rejectWithValue('Session expired. Please login again.');
         }
     }

@@ -28,8 +28,14 @@ export default function Home() {
   }, []);
 
   // ⛔ Prevent SSR/client mismatch
-  if (!mounted || !initialCheckDone) return null;
-
+  if (!mounted || !initialCheckDone) {
+    return (
+      <Box sx={{ height: '100vh' }} display="flex" alignItems="center" justifyContent="center">
+        <Typography variant="body1">Loading...</Typography>
+      </Box>
+    );
+  }
+  
   return (
     <Box
       sx={{
