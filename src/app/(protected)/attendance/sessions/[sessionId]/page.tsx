@@ -14,6 +14,7 @@ import AttendanceHeader from "./components/AttendanceHeader";
 import AttendanceSummary from "./components/AttendanceSummary";
 import AttendanceTable from "./components/AttendanceTable";
 import { AttendanceFilterProvider } from "./_context/AttendanceFilterContext";
+import { AttendanceSessionDataProvider } from "./_context/AttendanceSessionDataContext";
 
 /**
  * Page Props
@@ -37,26 +38,28 @@ export default async function AttendanceDetailsPage({
     }
 
     return (
-        <Box sx={{ p: 3 }}>
-            {/* ================= HEADER ================= */}
-            <Suspense fallback={<HeaderSkeleton />}>
-                <AttendanceHeader sessionId={sessionId} />
-            </Suspense>
+        <AttendanceSessionDataProvider sessionId={sessionId}>
+            <Box sx={{ p: 3 }}>
+                {/* ================= HEADER ================= */}
+                <Suspense fallback={<HeaderSkeleton />}>
+                    <AttendanceHeader sessionId={sessionId} />
+                </Suspense>
 
-            <Divider sx={{ my: 2 }} />
+                <Divider sx={{ my: 2 }} />
 
-            {/* ================= SUMMARY ================= */}
-            <Suspense fallback={<SummarySkeleton />}>
-                <AttendanceSummary sessionId={sessionId} />
-            </Suspense>
+                {/* ================= SUMMARY ================= */}
+                <Suspense fallback={<SummarySkeleton />}>
+                    <AttendanceSummary sessionId={sessionId} />
+                </Suspense>
 
-            <Divider sx={{ my: 2 }} />
+                <Divider sx={{ my: 2 }} />
 
-            {/* ================= TABLE ================= */}
-            <Suspense fallback={<TableSkeleton />}>
-                <AttendanceTable sessionId={sessionId} />
-            </Suspense>
-        </Box>
+                {/* ================= TABLE ================= */}
+                <Suspense fallback={<TableSkeleton />}>
+                    <AttendanceTable sessionId={sessionId} />
+                </Suspense>
+            </Box>
+        </AttendanceSessionDataProvider>
     );
 }
 

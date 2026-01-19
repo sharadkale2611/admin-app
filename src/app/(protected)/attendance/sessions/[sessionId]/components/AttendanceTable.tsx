@@ -13,49 +13,29 @@ import {
     TableRow,
     Typography,
     Paper,
+    Alert,
+    Skeleton,
 } from '@mui/material';
-import { useMemo, useState } from 'react';
-import { useAttendanceFilter } from '../_context/AttendanceFilterContext';
+import { useEffect, useMemo, useState } from 'react';
 import AttendanceAuditDrawer from './AttendanceAuditDrawer';
 import { useAttendanceSession } from '@/lib/features/attendance/useAttendanceSession';
+import {
+    useAttendanceSessionData,
+    type AttendanceStatus,
+} from '../_context/AttendanceSessionDataContext';
 
 
 interface AttendanceTableProps {
     sessionId: number;
 }
 
-/**
- * Dummy attendance data
- * Replace with API later
- */
-const mockAttendance = [
-    {
-        attendanceId: 1,
-        rollNo: 1,
-        studentName: 'Amit Kale',
-        status: 'PRESENT',
-    },
-    {
-        attendanceId: 2,
-        rollNo: 2,
-        studentName: 'Sneha Joshi',
-        status: 'ABSENT',
-    },
-    {
-        attendanceId: 3,
-        rollNo: 3,
-        studentName: 'Rohan Patil',
-        status: 'LATE',
-    },
-    {
-        attendanceId: 4,
-        rollNo: 4,
-        studentName: 'Pooja Deshmukh',
-        status: 'PRESENT',
-    },
-];
-
-type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'LATE' | 'LEAVE';
+type AttendanceRow = {
+    attendanceId: number;
+    studentId: number;
+    rollNo: string | null;
+    studentName: string;
+    status: AttendanceStatus;
+};
 
 function StatusChip({
     label,
@@ -87,30 +67,30 @@ function StatusButtons({
         <Stack direction="row" spacing={0.5}>
             <StatusChip
                 label="Present"
-                value="PRESENT"
+                value="Present"
                 color="success"
-                selected={value === 'PRESENT'}
+                selected={value === 'Present'}
                 onClick={onChange}
             />
             <StatusChip
                 label="Absent"
-                value="ABSENT"
+                value="Absent"
                 color="error"
-                selected={value === 'ABSENT'}
+                selected={value === 'Absent'}
                 onClick={onChange}
             />
             <StatusChip
                 label="Late"
-                value="LATE"
+                value="Late"
                 color="warning"
-                selected={value === 'LATE'}
+                selected={value === 'Late'}
                 onClick={onChange}
             />
             <StatusChip
                 label="Leave"
-                value="LEAVE"
+                value="Leave"
                 color="info"
-                selected={value === 'LEAVE'}
+                selected={value === 'Leave'}
                 onClick={onChange}
             />
         </Stack>
@@ -121,32 +101,58 @@ function StatusButtons({
 export default function AttendanceTable({
     sessionId,
 }: AttendanceTableProps) {
-    const [rows, setRows] = useState(mockAttendance);
     const { filter, isLocked } = useAttendanceSession();
+    const {
+        data,
+        loading,
+        error,
+        updating,
+        updateError,
+        updateStatuses,
+    } = useAttendanceSessionData();
+
+    const [rows, setRows] = useState<AttendanceRow[]>([]);
+    const [originalRows, setOriginalRows] = useState<AttendanceRow[]>([]);
 
     const [auditOpen, setAuditOpen] = useState(false);
+
+    useEffect(() => {
+        if (!data?.studentAttendance) return;
+
+        const next: AttendanceRow[] = data.studentAttendance.map((a) => ({
+            attendanceId: a.attendanceId,
+            studentId: a.studentId,
+            rollNo: a.rollNo,
+            studentName: a.studentName,
+            status: a.status,
+        }));
+
+        setRows(next);
+        setOriginalRows(next);
+    }, [data?.studentAttendance]);
 
     // Track modified rows only
     const modifiedRows = useMemo(
         () =>
             rows.filter((r) => {
-                const original = mockAttendance.find(
+                const original = originalRows.find(
                     (o) => o.attendanceId === r.attendanceId
                 );
                 return original?.status !== r.status;
             }),
-        [rows]
+        [rows, originalRows]
     );
 
     const filteredRows = useMemo(() => {
         if (filter === 'ALL') return rows;
-        return rows.filter(r => r.status === filter);
+        return rows.filter((r) => r.status === filter);
     }, [rows, filter]);
 
     const handleStatusChange = (
         attendanceId: number,
         newStatus: AttendanceStatus
     ) => {
+        if (isLocked) return;
         setRows((prev) =>
             prev.map((row) =>
                 row.attendanceId === attendanceId
@@ -154,6 +160,23 @@ export default function AttendanceTable({
                     : row
             )
         );
+    };
+
+    const handleDiscard = () => {
+        setRows(originalRows);
+    };
+
+    const handleSave = async () => {
+        const updates = modifiedRows.map((r) => ({
+            attendanceId: r.attendanceId,
+            studentId: r.studentId,
+            status: r.status,
+        }));
+
+        const ok = await updateStatuses(updates);
+        if (ok) {
+            // provider refetches; effect will sync rows + originals
+        }
     };
 
     return (
@@ -176,6 +199,18 @@ export default function AttendanceTable({
                     View Audit Log
                 </Button>
             </Stack>
+
+            {error && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                    {error}
+                </Alert>
+            )}
+
+            {updateError && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                    {updateError}
+                </Alert>
+            )}
 
 
             {/* Unsaved changes banner */}
@@ -200,18 +235,16 @@ export default function AttendanceTable({
                             <Button
                                 size="small"
                                 variant="contained"
-                                onClick={() =>
-                                    alert(
-                                        `Saving ${modifiedRows.length} change(s)`
-                                    )
-                                }
+                                disabled={isLocked || updating}
+                                onClick={handleSave}
                             >
-                                Save
+                                {updating ? 'Saving...' : 'Save'}
                             </Button>
                             <Button
                                 size="small"
                                 variant="outlined"
-                                onClick={() => setRows(mockAttendance)}
+                                disabled={updating}
+                                onClick={handleDiscard}
                             >
                                 Discard
                             </Button>
@@ -231,35 +264,64 @@ export default function AttendanceTable({
                     </TableHead>
 
                     <TableBody>
-                        {filteredRows.map((row) => {
-                            const original = mockAttendance.find(
-                                (o) => o.attendanceId === row.attendanceId
-                            );
-                            const isModified =
-                                original?.status !== row.status;
-
-                            return (
-                                <TableRow
-                                    key={row.attendanceId}
-                                    sx={{
-                                        bgcolor: isModified
-                                            ? 'warning.lighter'
-                                            : undefined,
-                                    }}
-                                >
-                                    <TableCell>{row.rollNo}</TableCell>
-                                    <TableCell>{row.studentName}</TableCell>
+                        {loading &&
+                            Array.from({ length: 8 }).map((_, idx) => (
+                                <TableRow key={`sk-${idx}`}>
                                     <TableCell>
-                                        <StatusButtons
-                                            value={row.status as AttendanceStatus}
-                                            onChange={(status: AttendanceStatus) =>
-                                                handleStatusChange(row.attendanceId, status)
-                                            }
-                                        />
+                                        <Skeleton width={40} />
+                                    </TableCell>
+                                    <TableCell>
+                                        <Skeleton width={220} />
+                                    </TableCell>
+                                    <TableCell>
+                                        <Skeleton width={260} />
                                     </TableCell>
                                 </TableRow>
-                            );
-                        })}
+                            ))}
+
+                        {!loading &&
+                            filteredRows.map((row) => {
+                                const original = originalRows.find(
+                                    (o) => o.attendanceId === row.attendanceId
+                                );
+                                const isModified =
+                                    original?.status !== row.status;
+
+                                return (
+                                    <TableRow
+                                        key={row.attendanceId}
+                                        sx={{
+                                            bgcolor: isModified
+                                                ? 'warning.lighter'
+                                                : undefined,
+                                        }}
+                                    >
+                                        <TableCell>{row.rollNo || '—'}</TableCell>
+                                        <TableCell>{row.studentName}</TableCell>
+                                        <TableCell>
+                                            <StatusButtons
+                                                value={row.status}
+                                                onChange={(status) =>
+                                                    handleStatusChange(
+                                                        row.attendanceId,
+                                                        status
+                                                    )
+                                                }
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
+
+                        {!loading && filteredRows.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={3} align="center">
+                                    <Typography color="text.secondary">
+                                        No students found
+                                    </Typography>
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </TableContainer>

@@ -185,6 +185,37 @@ const API_ENDPOINTS = {
 
   },
 
+  ATTENDANCE_SESSIONS: {
+    GET_LIST_PAGINATED:
+      process.env.NEXT_PUBLIC_ATTENDANCE_SESSIONS_PAGINATED_ENDPOINT ||
+      "/AttendanceSession/paginated",
+    GET_LIST:
+      process.env.NEXT_PUBLIC_ATTENDANCE_SESSIONS_ENDPOINT ||
+      "/AttendanceSession",
+    GET_BY_ID:
+      process.env.NEXT_PUBLIC_ATTENDANCE_SESSIONS_ENDPOINT ||
+      "/AttendanceSession",
+    POST_CREATE:
+      process.env.NEXT_PUBLIC_ATTENDANCE_SESSIONS_ENDPOINT ||
+      "/AttendanceSession",
+    PUT_UPDATE:
+      process.env.NEXT_PUBLIC_ATTENDANCE_SESSIONS_ENDPOINT ||
+      "/AttendanceSession",
+    DELETE:
+      process.env.NEXT_PUBLIC_ATTENDANCE_SESSIONS_ENDPOINT ||
+      "/AttendanceSession",
+  },
+
+  // Attendance (session details + marking)
+  ATTENDANCE: {
+    GET_BY_SESSION:
+      (process.env.NEXT_PUBLIC_ATTENDANCE_ENDPOINT || "/Attendance") +
+      "/by-session",
+    PUT_UPDATE_STATUS:
+      (process.env.NEXT_PUBLIC_ATTENDANCE_ENDPOINT || "/Attendance") +
+      "/update-status",
+  },
+
   STUDENT_BATCH_ASSIGNMENTS: {
     GET_LIST_PAGINATED:
       process.env.NEXT_PUBLIC_STUDENT_BATCH_ASSIGNMENTS_ENDPOINT ||
