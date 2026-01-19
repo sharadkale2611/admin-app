@@ -119,6 +119,7 @@ export default function ViewExam() {
       if (!exam?.examId) return;
 
       try {
+        
         const query = new URLSearchParams({
           pageNumber: "1",
           pageSize: "1000",
