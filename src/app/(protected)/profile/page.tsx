@@ -187,7 +187,6 @@ export default function ProfilePage() {
                     </Card>
                 </Grid>
 
-
                 {/* SUBSCRIPTION */}
                 {/* <Grid size={{ xs: 12, md: 4 }}>
                     <Card>
