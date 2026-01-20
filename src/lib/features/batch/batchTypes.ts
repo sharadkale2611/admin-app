@@ -10,6 +10,7 @@ export interface Batch {
 
   moduleId: number | null;
   moduleName: string | null;
+  courseModuleId?: number | null;
 
   trainerId: number | null;
   trainerName: string | null;
