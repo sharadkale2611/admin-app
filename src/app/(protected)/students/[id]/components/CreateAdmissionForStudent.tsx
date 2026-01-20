@@ -252,17 +252,18 @@ export default function CreateAdmissionForStudent({
 
                 {error && (
                     <Alert severity="error" sx={{ mb: 2 }}>
-                        {error.error}
+                        {error}
                     </Alert>
                 )}
 
-            <Box
-                component="form"
-                onSubmit={(e) => {
-                    submitRef.current = true; // 🔐 mark submit
-                    handleSubmit(e);
-                }}
-            >
+                <Box
+                    component="form"
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        submitRef.current = true;
+                        handleSubmit();
+                    }}
+                >
                     <Grid container spacing={2}>
                         {/* ADMISSION DETAILS */}
                         <Grid size={{ xs: 12, md: 6 }}>

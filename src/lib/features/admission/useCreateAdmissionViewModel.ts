@@ -61,6 +61,10 @@ export default function useCreateAdmissionViewModel() {
         { code: string; discountType: string; discountValue: number }[]
     >([]);
 
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+
     const [formData, setFormData] = useState<AdmissionFormData>({
         studentId: null,
         courseId: null,
@@ -215,12 +219,46 @@ export default function useCreateAdmissionViewModel() {
     ]);
 
     
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSelectChange = (e: any) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async () => {
+        try {
+            setIsSubmitting(true);
+            setError(null);
+
+            // later: API call
+            console.log('Submitting admission:', formData);
+
+        } catch (err: any) {
+            setError(err.message ?? 'Failed to create admission');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
 
     return {
         formData,
         setFormData,
         discounts,
+
+        isSubmitting,
+        error,
+
+        handleChange,
+        handleSelectChange,
         handleDiscountChange,
         handlePaidAmountChange,
+        handleSubmit,
     };
 }
