@@ -12,7 +12,7 @@ export interface CourseFee {
     branchName?: string | null;
     branchCode?: string | null;
 }
-
+``
 export interface CourseFeeDto {
     courseFeeId?: number;
     courseId: number;
