@@ -65,10 +65,10 @@ export const fetchFirms = createAsyncThunk<
                 _: Date.now().toString()
             }).toString();
 
-            console.log(`${API_ENDPOINTS.FIRM.LIST}?${query}`);
+            console.log(`${API_ENDPOINTS.FIRM.GET_LIST_PAGINATED}?${query}`);
             
             const response = await api.get<PaginatedFirms>(
-                `${API_ENDPOINTS.FIRM.LIST}?${query}`,
+                `${API_ENDPOINTS.FIRM.GET_LIST_PAGINATED}?${query}`,
                 { withCredentials: true }
             );
 
@@ -102,7 +102,7 @@ export const createFirm = createAsyncThunk<
     async (createFirmDto, { rejectWithValue }) => {
         try {
             const response = await api.post<Firm>(
-                API_ENDPOINTS.FIRM.CREATE,
+                API_ENDPOINTS.FIRM.POST_CREATE,
                 { firmId: 0, ...createFirmDto },
                 { withCredentials: true }
             );
@@ -147,7 +147,7 @@ export const updateFirm = createAsyncThunk<
     async (updateFirmDto, { rejectWithValue, getState }) => {
         try {
             const response = await api.put<ApiResponse<Firm>>(
-                `${API_ENDPOINTS.FIRM.UPDATE}/${updateFirmDto.firmId}`,
+                `${API_ENDPOINTS.FIRM.PUT_UPDATE}/${updateFirmDto.firmId}`,
                 updateFirmDto,
                 { withCredentials: true, headers: { 'Content-Type': 'application/json' } }
             );
