@@ -1,7 +1,7 @@
 // src/lib/config/apiConfig.ts
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || '';
+  process.env.NEXT_PUBLIC_API_BASE_URL_API?.replace(/\/$/, '') || '';
 
 const API_ENDPOINTS = {
   /* ===================== BASE ===================== */
