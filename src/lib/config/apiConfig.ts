@@ -35,6 +35,8 @@ const API_ENDPOINTS = {
     CREATE: process.env.NEXT_PUBLIC_FIRMS_ENDPOINT || "/Firms", // create firm
     UPDATE: process.env.NEXT_PUBLIC_FIRMS_ENDPOINT || "/Firms", // update firm
     DELETE: process.env.NEXT_PUBLIC_FIRMS_ENDPOINT || "/Firms", // delete firm
+   UPLOAD_LOGO: (firmId: number) =>
+    `/Firms/${firmId}/upload-logo`,
   },
 
   STAFF: {
@@ -301,6 +303,11 @@ EXAMS: {
   USERS: {
     BASE: "/Users",
   },
+ DASHBOARD: {
+  ADMIN_SUMMARY: "/admin-dashboard/summary",
+  // STUDENT_ATTENDANCE_TODAY: "/api/admin-dashboard/student-attendance-today",
+  // RECENT_ACTIVITY: "/api/admin-dashboard/recent-activity",
+}
   // Add other endpoint categories here as needed
 };
 

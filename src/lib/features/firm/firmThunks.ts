@@ -255,3 +255,48 @@ export const fetchFirmById = createAsyncThunk<
         }
     }
 );
+
+/**
+ * Upload / Change Firm Logo
+ */
+
+
+/**
+ * Upload / Change Firm Logo
+ */
+export const uploadFirmLogo = createAsyncThunk<
+  string,
+  { firmId: number; file: File },
+  { rejectValue: ApiError }
+>(
+  'firms/uploadFirmLogo',
+  async ({ firmId, file }, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+      formData.append("File", file); // must match DTO
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/Firms/${firmId}/upload-logo`,
+        {
+          method: "PUT",
+          body: formData,
+          credentials: "include", // ✅ important
+        }
+      );
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Logo upload failed");
+      }
+
+      const json = await res.json();
+
+      return json.data.firmLogoImagePath as string;
+    } catch (error: any) {
+      return rejectWithValue({
+        error: error.message || "Logo upload failed",
+        errors: null,
+      });
+    }
+  }
+);

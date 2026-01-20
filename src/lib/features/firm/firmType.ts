@@ -4,6 +4,8 @@ export interface Firm {
     firmName: string;
     firmCode: string;
     isActive: boolean;
+   firmLogoImagePath?: string | null; // ✅ ADD THIS
+
 }
 
 export interface PaginatedFirms {
