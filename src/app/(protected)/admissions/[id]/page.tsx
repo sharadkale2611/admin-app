@@ -1,49 +1,46 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   Typography,
   Paper,
   Stack,
-  Divider,
   Button,
   Chip,
   CircularProgress,
 } from "@mui/material";
 import { ArrowBack, Edit } from "@mui/icons-material";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/lib/store";
 import { fetchAdmissionById } from "@/lib/features/admission/admissionThunks";
 import { clearCurrentAdmission } from "@/lib/features/admission/admissionSlice";
 
-interface Props {
-  params: { id: string };
-}
+const ViewAdmissionPage = () => {
+  const { id } = useParams<{ id: string }>();
+  const admissionId = Number(id);
 
-const ViewAdmissionPage: React.FC<Props> = ({ params }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { currentAdmission, loading } = useSelector(
     (state: RootState) => state.admissions
   );
 
-  const id = Number(params.id);
-
   useEffect(() => {
-    if (!isNaN(id)) {
-      dispatch(fetchAdmissionById(id));
+    if (!isNaN(admissionId)) {
+      dispatch(fetchAdmissionById(admissionId));
     }
 
     return () => {
       dispatch(clearCurrentAdmission());
     };
-  }, [id, dispatch]);
+  }, [admissionId, dispatch]);
 
   const formatDate = (dateStr: string | null) =>
     dateStr ? dateStr.split("T")[0] : "—";
 
-  if (loading || isNaN(id)) {
+  if (loading || isNaN(admissionId)) {
     return (
       <Box sx={{ p: 4, display: "flex", justifyContent: "center" }}>
         <CircularProgress />
@@ -63,14 +60,8 @@ const ViewAdmissionPage: React.FC<Props> = ({ params }) => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Header */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 3 }}
-      >
-        <Stack direction="row" alignItems="center" spacing={2}>
+      <Stack direction="row" justifyContent="space-between" sx={{ mb: 3 }}>
+        <Stack direction="row" spacing={2}>
           <Button
             startIcon={<ArrowBack />}
             component={Link}
@@ -92,7 +83,6 @@ const ViewAdmissionPage: React.FC<Props> = ({ params }) => {
         </Button>
       </Stack>
 
-      {/* Details */}
       <Paper sx={{ p: 3 }}>
         <Typography variant="h6" sx={{ mb: 2 }}>
           Basic Information
