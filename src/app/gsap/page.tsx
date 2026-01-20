@@ -1,3 +1,16 @@
+import React from 'react'
+
+function page() {
+  return (
+    <div>
+      testing
+    </div>
+  )
+}
+
+export default page
+
+/*
 "use client";
 // src/app/(auth)/login/LoginPage.tsx
 
@@ -93,10 +106,10 @@ export default function LoginPage() {
                     : "linear-gradient(135deg, #f8fafc, #eef2ff)",
             }}
         >
-            {/* 🔥 Animated Background */}
+            {/* 🔥 Animated Background * /}
             <AnimatedEducationBackground />
 
-            {/* Login Card */}
+            {/* Login Card * /}
             <Container maxWidth="sm" sx={{ zIndex: 1 }}>
                 <Paper
                     ref={cardRef}
@@ -216,3 +229,5 @@ export default function LoginPage() {
         </Suspense>
     );
 }
+
+*/
