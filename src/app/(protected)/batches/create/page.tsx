@@ -28,7 +28,7 @@ export default function CreateBatchPage() {
   const [trainers, setTrainers] = useState([]);
 
   const [form, setForm] = useState({
-    batchCode: "",
+    // batchCode: "",
     moduleId: "",
     trainerId: "",
     classRoomId: "",
@@ -68,7 +68,7 @@ const handleSubmit = async (e: any) => {
   e.preventDefault();
 
   const dto = {
-    BatchCode: form.batchCode,
+    // BatchCode: form.batchCode,
     IsActive: form.isActive,
 
     ModuleId: Number(form.moduleId),
@@ -108,14 +108,14 @@ const handleSubmit = async (e: any) => {
           sx={{ display: "grid", gap: 2 }}
         >
           {/* Batch Code */}
-          <TextField
+          {/* <TextField
             label="Batch Code"
             name="batchCode"
             value={form.batchCode}
             onChange={handleChange}
             required
             inputProps={{ maxLength: 30 }}
-          />
+          /> */}
 
           {/*            
           <TextField

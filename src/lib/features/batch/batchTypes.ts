@@ -64,7 +64,7 @@ export interface FetchBatchParams {
 }
 
 export interface CreateBatchDto {
-  BatchCode: string;
+  // BatchCode: string;
   IsActive: boolean;
 
   ModuleId: number;
@@ -85,7 +85,7 @@ export interface CreateBatchResponse {
 }
 
 export interface UpdateBatchDto {
-  batchCode: string;
+  // batchCode: string;
   branchId: number;
   moduleId: number;
   trainerId: number;
