@@ -22,7 +22,7 @@ import {
     OutlinedInput,
 } from '@mui/material';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import {
@@ -56,6 +56,7 @@ export default function IdentifyStudentPage() {
     const [notFound, setNotFound] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const router = useRouter();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const clearError = (field: string) => {
         setErrors(prev => ({ ...prev, [field]: '' }));
@@ -127,6 +128,37 @@ export default function IdentifyStudentPage() {
         });
     }, [draft.studentConfirmed, draft.student]);
 
+
+
+    const clearFormAll = () => {
+        setStudent(null);
+
+        setForm({
+            firstName: '',
+            lastName: '',
+            email: '',
+            dateOfBirth: '',
+            fatherName: '',
+            motherName: '',
+            alternateMobile: '',
+            gender: '',
+            reservationCategory: '',
+            fatherOccupation: '',
+            profileImagePath: '',
+        });
+
+        setAddress({
+            fullAddress: '',
+            pincode: '',
+            stateId: null,
+            cityId: null,
+            addressType: 'Residential',
+        });
+
+        setErrors({});
+        setSubmitted(false);
+    };
+   
     /* ---------------- MOBILE CHECK ---------------- */
     const checkMobile = async (value: string) => {
         if (value.length !== 10) return;
@@ -137,23 +169,52 @@ export default function IdentifyStudentPage() {
 
         try {
             const result = await dispatch(fetchStudentByMobile(value)).unwrap();
+            const data = result; // assuming thunk already returns data.data
+
             setStudent({
-                studentId: result.studentId,
-                firstName: result.firstName,
-                lastName: result.lastName,
-                email: result.email,
-                profileImagePath: result.profileImagePath,
+                studentId: data.studentId,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                email: data.email,
+                profileImagePath: data.profileImagePath,
             });
-            
-            setForm((prev) => ({
-                ...prev,
-                firstName: result.firstName,
-                lastName: result.lastName,
-                email: result.email ?? '',
-                profileImagePath: result.profileImagePath ?? '',
-            }));
+
+            /* ---------------- FORM ---------------- */
+            setForm({
+                firstName: data.firstName ?? '',
+                lastName: data.lastName ?? '',
+                email: data.email ?? '',
+                dateOfBirth: data.dateOfBirth
+                    ? data.dateOfBirth.split('T')[0] // ✅ FIX DATE
+                    : '',
+
+                fatherName: data.fatherName ?? '',
+                motherName: data.motherName ?? '',
+                alternateMobile: data.mobileNumber2 ?? '',
+                gender: data.gender ?? '',
+                reservationCategory: data.resevationCategory ?? '', // ⚠ typo handled
+                fatherOccupation: data.fathersOccupation ?? '', // ✅ CORRECT
+
+                profileImagePath: data.profileImagePath ?? '',
+            });
+
+            /* ---------------- ADDRESS ---------------- */
+            const addr = data.addresses?.find(a => a.isActive && !a.isDeleted)
+                ?? data.addresses?.[0];
+
+            if (addr) {
+                setAddress({
+                    fullAddress: addr.fullAddress ?? '',
+                    pincode: addr.pinCode ?? '',
+                    stateId: addr.stateId ?? null,
+                    cityId: addr.cityId ?? null,
+                    addressType: addr.addressType ?? 'Residential',
+                });
+            }
+
         } catch {
             setNotFound(true);
+            clearFormAll(); 
         } finally {
             setLoading(false);
         }
@@ -226,6 +287,7 @@ export default function IdentifyStudentPage() {
                 fatherName: form.fatherName,
                 motherName: form.motherName,
                 alternateMobile: form.alternateMobile,
+                dateOfBirth: form.dateOfBirth, 
 
                 gender: form.gender as 'Male' | 'Female',
                 reservationCategory: form.reservationCategory || undefined,
@@ -298,6 +360,10 @@ export default function IdentifyStudentPage() {
                         onChange={(e) => {
                             const val = e.target.value.replace(/\D/g, '');
                             setMobile(val);
+                            if (val.length < 10) {
+                                clearFormAll(); // 🔥 clear while editing
+                                setNotFound(false);
+                            }                            
                             if (val.length === 10) checkMobile(val);
                         }}
                         InputProps={{
@@ -412,7 +478,15 @@ export default function IdentifyStudentPage() {
                                                 <FormControlLabel
                                                     key={g}
                                                     value={g}
+                                                    tabIndex={0}
                                                     control={<Radio sx={{ display: 'none' }} />}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' || e.key === ' ') {
+                                                            e.preventDefault(); // 🔥 REQUIRED
+                                                            setForm({ ...form, gender: g });
+                                                            clearError('gender');
+                                                        }
+                                                    }}                                                    
                                                     label={g}
                                                     sx={{
                                                         m: 0,
@@ -600,6 +674,7 @@ export default function IdentifyStudentPage() {
                                             <FormControlLabel
                                                 key={cat}
                                                 value={cat}
+                                                tabIndex={0}
                                                 control={<Radio sx={{ display: 'none' }} />}
                                                 label={cat}
                                                 sx={{
@@ -646,20 +721,38 @@ export default function IdentifyStudentPage() {
                                                 bgcolor: '#f5f5f5',
                                             }}
                                         />
-                                        <IconButton
-                                            component="label"
-                                            sx={{
-                                                position: 'absolute',
-                                                bottom: -6,
-                                                right: -6,
-                                                bgcolor: 'background.paper',
-                                                boxShadow: 1,
-                                                '&:hover': { bgcolor: 'grey.100' },
-                                            }}
-                                        >
-                                            <PhotoCamera fontSize="small" />
-                                            <input hidden type="file" accept="image/*" onChange={handleImageUpload} />
-                                        </IconButton>
+                                    <IconButton
+                                        tabIndex={0}
+                                        onClick={() => fileInputRef.current?.click()}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                fileInputRef.current?.click();
+                                            }
+                                        }}
+                                        sx={{
+                                            position: 'absolute',
+                                            bottom: -6,
+                                            right: -6,
+                                            bgcolor: 'background.paper',
+                                            boxShadow: 1,
+                                            '&:hover': { bgcolor: 'grey.100' },
+                                            '&:focus-visible': {
+                                                outline: '2px solid',
+                                                outlineColor: 'primary.main',
+                                            },
+                                        }}
+                                    >
+                                        <PhotoCamera fontSize="small" />
+                                    </IconButton>
+
+                                    <input
+                                        ref={fileInputRef}
+                                        hidden
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                    />
                                     </Box>
 
                                 </Grid> 

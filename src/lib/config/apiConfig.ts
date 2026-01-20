@@ -55,6 +55,7 @@ const API_ENDPOINTS = {
     PUT_UPDATE: process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || "api/Students",
     DELETE: process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || "api/Students",
     GET_BY_MOBILE: "/students/by-mobile",
+    GET_BATCH_COURSE_ASSIGNMENTS: "/Students/batch-course-assignments",
 
   },
     EXAM_MARKS: {
