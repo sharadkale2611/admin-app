@@ -1,4 +1,5 @@
 "use client";
+// src/app/(auth)/login/LoginPage.tsx
 
 import { useLoginViewModel } from "@/lib/features/auth/useLoginViewModel";
 import { useAppSelector } from "@/lib/hooks";
@@ -17,7 +18,7 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import AnimatedEducationBackground from "../components/ui/AnimatedEducationBackground";
 
@@ -79,6 +80,7 @@ export default function LoginPage() {
     }
 
     return (
+        <Suspense fallback={<div />}>
         <Box
             sx={{
                 minHeight: "100vh",
@@ -211,5 +213,6 @@ export default function LoginPage() {
                 </Paper>
             </Container>
         </Box>
+        </Suspense>
     );
 }
