@@ -367,7 +367,7 @@ const BatchStudyWorkAttachmentsPage: React.FC = () => {
         ) : (
           <Stack spacing={1}>
             {attachments.map((att) => {
-              const fileUrl = `${API_ENDPOINTS.BASE_URL_FILES}${att.filePath}`;
+              const fileUrl = `${API_ENDPOINTS.BASE_URL}${att.filePath}`;
               const fileName = att.filePath.split("/").pop() || "download";
 
               return (
