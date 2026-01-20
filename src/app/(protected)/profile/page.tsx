@@ -129,7 +129,7 @@ export default function ProfilePage() {
               sx={{ width: 80, height: 80 }}
              src={
   currentFirm?.firmLogoImagePath
-    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${currentFirm.firmLogoImagePath}`
+    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${currentFirm.firmLogoImagePath}?v=${Date.now()}`
     : undefined
 }
             >
