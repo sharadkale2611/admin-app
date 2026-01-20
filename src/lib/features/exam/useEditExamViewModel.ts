@@ -21,12 +21,19 @@ export interface ExamFormData {
   examName: string;
   examDescription: string;
   examDurationHrs: string;
+  examDateTime: string;
   examTotalMarks: string;
   examPassingMarks: string;
   moduleId: string;
   courseId: string;
   isActive: boolean;
 }
+
+const toDateTimeLocalValue = (value?: string | null) => {
+  if (!value) return "";
+  // Supports "YYYY-MM-DDTHH:mm", "YYYY-MM-DDTHH:mm:ss", and ISO strings with timezone.
+  return value.length >= 16 ? value.slice(0, 16) : value;
+};
 
 /* ============================================================
    View Model
@@ -70,6 +77,7 @@ export default function useEditExamViewModel() {
     examName: "",
     examDescription: "",
     examDurationHrs: "",
+    examDateTime: "",
     examTotalMarks: "",
     examPassingMarks: "",
     moduleId: "",
@@ -101,6 +109,7 @@ export default function useEditExamViewModel() {
         examName: currentExam.examName || "",
         examDescription: currentExam.examDescription || "",
         examDurationHrs: String(currentExam.examDurationHrs ?? ""),
+        examDateTime: toDateTimeLocalValue(currentExam.examDateTime),
         examTotalMarks: String(currentExam.examTotalMarks ?? ""),
         examPassingMarks: String(currentExam.examPassingMarks ?? ""),
         moduleId: String(currentExam.moduleId ?? ""),
@@ -173,6 +182,7 @@ export default function useEditExamViewModel() {
         examName: formData.examName,
         examDescription: formData.examDescription,
         examDurationHrs: Number(formData.examDurationHrs),
+        examDateTime: formData.examDateTime,
         examTotalMarks: Number(formData.examTotalMarks),
         examPassingMarks: Number(formData.examPassingMarks),
         moduleId: Number(formData.moduleId),

@@ -4,6 +4,7 @@ import {
     setFilter,
     unlockSession,
 } from '@/lib/features/attendance/attendanceSessionSlice';
+import type { AttendanceFilter } from '@/lib/features/attendance/attendanceSessionSlice';
 
 export function useAttendanceSession() {
     const dispatch = useDispatch<AppDispatch>();
@@ -19,7 +20,7 @@ export function useAttendanceSession() {
     return {
         filter,
         isLocked,
-        setFilter: (f: any) => dispatch(setFilter(f)),
+        setFilter: (f: AttendanceFilter) => dispatch(setFilter(f)),
         unlockSession: (reason: string) =>
             dispatch(unlockSession({ reason })),
     };

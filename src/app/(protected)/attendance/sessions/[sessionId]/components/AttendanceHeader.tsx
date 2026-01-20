@@ -14,44 +14,40 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import { useAttendanceFilter } from '../_context/AttendanceFilterContext';
 import AttendanceOverrideDialog from './AttendanceOverrideDialog';
 import { useAttendanceSession } from '@/lib/features/attendance/useAttendanceSession';
+import { useAttendanceSessionData } from '../_context/AttendanceSessionDataContext';
 
 interface AttendanceHeaderProps {
     sessionId: number;
 }
-
-/**
- * Dummy session data
- * Replace with API later
- */
-const mockSession = {
-    sessionId: 101,
-    batchName: 'Batch 10-A',
-    staffName: 'Rahul Patil',
-    moduleName: 'Physics – Motion',
-    sessionDate: '12 Jan 2026',
-    sessionTime: '09:00 – 10:00',
-};
 
 export default function AttendanceHeader({
     sessionId,
 }: AttendanceHeaderProps) {
     const router = useRouter();
     const { isLocked, unlockSession } = useAttendanceSession();
+    const { data, error, loading } = useAttendanceSessionData();
 
     const [overrideOpen, setOverrideOpen] = useState(false);
 
-    const session = mockSession;
-
-    if (!session) {
+    if (loading) {
         return (
-            <Typography color="error">
-                Attendance session not found
+            <Typography color="text.secondary">
+                Loading session...
             </Typography>
         );
     }
+
+    if (error || !data?.session) {
+        return (
+            <Typography color="error">
+                {error || 'Attendance session not found'}
+            </Typography>
+        );
+    }
+
+    const session = data.session;
 
     return (
         <>
@@ -77,10 +73,10 @@ export default function AttendanceHeader({
 
                         <Stack direction="row" spacing={2} flexWrap="wrap">
                             <Typography variant="body2">
-                                📅 {session.sessionDate}
+                                📅 {session.date}
                             </Typography>
                             <Typography variant="body2">
-                                🕘 {session.sessionTime}
+                                🕘 {session.time}
                             </Typography>
                             <Typography variant="body2">
                                 👨‍🏫 {session.staffName}

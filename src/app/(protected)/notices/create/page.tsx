@@ -184,7 +184,7 @@ export default function CreateNoticePage() {
                             />
                         </Grid>
 
-                        <Grid size={{ xs: 12, sm: 6 }}>
+                        {/* <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="Created By"
@@ -195,7 +195,7 @@ export default function CreateNoticePage() {
                                 size="small"
                                 disabled={isSubmitting}
                             />
-                        </Grid>
+                        </Grid> */}
 
                         <Grid size={{ xs: 12, sm: 6 }}>
                             <FormControl

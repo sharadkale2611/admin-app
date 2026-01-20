@@ -323,6 +323,7 @@ export default function IdentifyStudentPage() {
     }, [wizardNextRef, handleNext]);
 
     const isLocked = draft.studentConfirmed && draft.student?.isExisting;
+    const isExistingStudent = !!student || isLocked;
 
     
         /* -------------------- RESET ALL -------------------- */
@@ -401,6 +402,7 @@ export default function IdentifyStudentPage() {
                                     size='small'
                                     required
                                     value={form.firstName}
+                                    disabled={isExistingStudent}
                                     error={submitted && !!errors.firstName}
                                     helperText={submitted ? errors.firstName : ''}
                                     onChange={(e) => {
@@ -417,6 +419,7 @@ export default function IdentifyStudentPage() {
                                     size='small'
                                     required
                                     value={form.lastName}
+                                    disabled={isExistingStudent}
                                     error={submitted && !!errors.lastName}
                                     helperText={submitted ? errors.lastName : ''}
                                     onChange={(e) => {
@@ -432,6 +435,7 @@ export default function IdentifyStudentPage() {
                                     size="small"
                                     type="email"
                                     value={form.email}
+                                    disabled={isExistingStudent}
                                     error={submitted && !!errors.email}
                                     helperText={submitted ? errors.email : ''}
                                     onChange={(e) => {
@@ -536,6 +540,7 @@ export default function IdentifyStudentPage() {
                                     size='small'
                                     required
                                     value={form.fatherName}
+                                    disabled={isExistingStudent}
                                     error={submitted && !!errors.fatherName}
                                     helperText={submitted ? errors.fatherName : ''}
                                     onChange={(e) => {
@@ -553,6 +558,7 @@ export default function IdentifyStudentPage() {
                                     size='small'
                                     required
                                     value={form.motherName}
+                                    disabled={isExistingStudent}
                                     error={submitted && !!errors.motherName}
                                     helperText={submitted ? errors.motherName : ''}
                                     onChange={(e) => {
@@ -569,6 +575,7 @@ export default function IdentifyStudentPage() {
                                     fullWidth
                                     size='small'
                                     value={form.alternateMobile}
+                                    disabled={isExistingStudent}
                                     onChange={(e) =>
                                         setForm({
                                             ...form,
@@ -627,6 +634,7 @@ export default function IdentifyStudentPage() {
                                 <AddressSelector
                                     value={address}
                                     onChange={setAddress}
+                                    disabled={isExistingStudent}
                                 />
                             </Grid>
                             <Grid size={{ xs: 12, md: 6 }}>
@@ -676,6 +684,7 @@ export default function IdentifyStudentPage() {
                                                 value={cat}
                                                 tabIndex={0}
                                                 control={<Radio sx={{ display: 'none' }} />}
+                                                    disabled={isExistingStudent}
                                                 label={cat}
                                                 sx={{
                                                     m: 0,

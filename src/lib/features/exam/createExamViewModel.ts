@@ -21,6 +21,7 @@ export interface ExamFormData {
   examName: string;
   examDescription: string;
   examDurationHrs: string;
+  examDateTime: string;
   examTotalMarks: string;
   examPassingMarks: string;
   moduleId: string;
@@ -70,6 +71,7 @@ export default function useCreateExamViewModel() {
     examName: "",
     examDescription: "",
     examDurationHrs: "",
+    examDateTime: "",
     examTotalMarks: "",
     examPassingMarks: "",
     moduleId: "",
@@ -133,6 +135,7 @@ export default function useCreateExamViewModel() {
       if (
         !formData.examName ||
         !formData.examDurationHrs ||
+        !formData.examDateTime ||
         !formData.examTotalMarks ||
         !formData.examPassingMarks ||
         !formData.moduleId
@@ -149,6 +152,7 @@ export default function useCreateExamViewModel() {
         examName: formData.examName,
         examDescription: formData.examDescription,
         examDurationHrs: Number(formData.examDurationHrs),
+        examDateTime: formData.examDateTime,
         examTotalMarks: Number(formData.examTotalMarks),
         examPassingMarks: Number(formData.examPassingMarks),
         isActive: formData.isActive

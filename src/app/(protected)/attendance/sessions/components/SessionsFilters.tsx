@@ -7,44 +7,98 @@ import {
     MenuItem,
     Button,
 } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-/**
- * Dummy filter values
- * Replace with API-driven dropdowns later
- */
+import api from '@/lib/services/apiService';
+import API_ENDPOINTS from '@/lib/config/apiConfig';
+import type { Batch } from '@/lib/features/batch/batchTypes';
+import type { Staff } from '@/lib/features/staff/staffTypes';
+
 const statusOptions = [
-    { label: 'All', value: 'ALL' },
-    { label: 'Pending', value: 'PENDING' },
-    { label: 'Partial', value: 'PARTIAL' },
-    { label: 'Completed', value: 'COMPLETED' },
-    { label: 'Locked', value: 'LOCKED' },
+    { label: 'All', value: 'all' },
+    { label: 'Pending', value: 'pending' },
+    { label: 'Partial', value: 'partial' },
+    { label: 'Completed', value: 'completed' },
 ];
 
-const batchOptions = [
-    { label: 'All Batches', value: 'ALL' },
-    { label: 'Batch 10-A', value: '10-A' },
-    { label: 'Batch 9-B', value: '9-B' },
-    { label: 'Batch 12-C', value: '12-C' },
-];
-
-const staffOptions = [
-    { label: 'All Staff', value: 'ALL' },
-    { label: 'Rahul Patil', value: 'Rahul' },
-    { label: 'Sneha Joshi', value: 'Sneha' },
-];
+const toIntOrEmpty = (value: string) => {
+    const n = Number(value);
+    return Number.isFinite(n) && n > 0 ? n : null;
+};
 
 export default function SessionsFilters() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+
+    const [batches, setBatches] = useState<Batch[]>([]);
+    const [staffList, setStaffList] = useState<Staff[]>([]);
     const [date, setDate] = useState('');
-    const [status, setStatus] = useState('ALL');
-    const [batch, setBatch] = useState('ALL');
-    const [staff, setStaff] = useState('ALL');
+    const [status, setStatus] = useState('all');
+    const [batchId, setBatchId] = useState('');
+    const [staffId, setStaffId] = useState('');
+
+    useEffect(() => {
+        setDate(searchParams.get('date') ?? '');
+        setStatus((searchParams.get('status') ?? 'all').toLowerCase());
+        setBatchId(searchParams.get('batchId') ?? '');
+        setStaffId(searchParams.get('staffId') ?? '');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams]);
+
+    useEffect(() => {
+        let active = true;
+
+        const load = async () => {
+            try {
+                const [batchesRes, staffRes] = await Promise.all([
+                    api.get<Batch[]>(API_ENDPOINTS.BATCHES.GET_LIST, { withCredentials: true }),
+                    api.get<Staff[]>(API_ENDPOINTS.STAFF.GET_LIST, { withCredentials: true }),
+                ]);
+
+                if (!active) return;
+
+                setBatches(batchesRes.data ?? []);
+                setStaffList(staffRes.data ?? []);
+            } catch {
+                // keep filters usable even if dropdown fetch fails
+                if (!active) return;
+                setBatches([]);
+                setStaffList([]);
+            }
+        };
+
+        load();
+
+        return () => {
+            active = false;
+        };
+    }, []);
+
+    const nextQueryString = useMemo(() => {
+        const params = new URLSearchParams();
+
+        if (date) params.set('date', date);
+        if (status && status !== 'all') params.set('status', status);
+
+        const bId = toIntOrEmpty(batchId);
+        const sId = toIntOrEmpty(staffId);
+        if (bId) params.set('batchId', String(bId));
+        if (sId) params.set('staffId', String(sId));
+
+        const qs = params.toString();
+        return qs ? `?${qs}` : '';
+    }, [batchId, date, staffId, status]);
+
+    useEffect(() => {
+        router.replace(`/attendance/sessions${nextQueryString}`);
+    }, [nextQueryString, router]);
 
     const handleReset = () => {
         setDate('');
-        setStatus('ALL');
-        setBatch('ALL');
-        setStaff('ALL');
+        setStatus('all');
+        setBatchId('');
+        setStaffId('');
     };
 
     return (
@@ -85,13 +139,14 @@ export default function SessionsFilters() {
                     select
                     size="small"
                     label="Batch"
-                    value={batch}
-                    onChange={(e) => setBatch(e.target.value)}
+                    value={batchId}
+                    onChange={(e) => setBatchId(e.target.value)}
                     sx={{ minWidth: 160 }}
                 >
-                    {batchOptions.map((opt) => (
-                        <MenuItem key={opt.value} value={opt.value}>
-                            {opt.label}
+                    <MenuItem value="">All Batches</MenuItem>
+                    {batches.map((b) => (
+                        <MenuItem key={b.batchId} value={String(b.batchId)}>
+                            {b.batchCode}
                         </MenuItem>
                     ))}
                 </TextField>
@@ -101,13 +156,14 @@ export default function SessionsFilters() {
                     select
                     size="small"
                     label="Staff"
-                    value={staff}
-                    onChange={(e) => setStaff(e.target.value)}
+                    value={staffId}
+                    onChange={(e) => setStaffId(e.target.value)}
                     sx={{ minWidth: 160 }}
                 >
-                    {staffOptions.map((opt) => (
-                        <MenuItem key={opt.value} value={opt.value}>
-                            {opt.label}
+                    <MenuItem value="">All Staff</MenuItem>
+                    {staffList.map((s) => (
+                        <MenuItem key={s.staffId} value={String(s.staffId)}>
+                            {(s.firstName && s.lastName ? s.firstName + ' ' + s.lastName : null) ?? `Staff #${s.staffId}`}
                         </MenuItem>
                     ))}
                 </TextField>

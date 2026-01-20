@@ -8,6 +8,7 @@ export interface Exam {
   examDescription?: string | null;
 
   examDurationHrs: number;
+  examDateTime?: string | null;
   examTotalMarks: number;
   examPassingMarks: number;
 
@@ -55,8 +56,11 @@ export interface CreateExamDto {
   examDescription?: string | null;
 
   examDurationHrs: number;
+  examDateTime: string;
   examTotalMarks: number;
   examPassingMarks: number;
+
+  isActive: boolean;
 }
 
 export interface UpdateExamDto extends Partial<CreateExamDto> {
