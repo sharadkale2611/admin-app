@@ -6,7 +6,7 @@ import { createStudent, fetchStudents } from "./studentThunks";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { AppDispatch } from "@/lib/store";
-import { ApiError, ApiResponse, CreateStudentResponse } from "./studentTypes";
+import { ApiError, ApiResponse, CreateStudentDto, CreateStudentResponse } from "./studentTypes";
 
 export interface CreateStudentResult {
   success: boolean;
@@ -26,7 +26,8 @@ export interface StudentFormData {
   firstName: string;
   lastName: string;
   dateOfBirth: string;
-  gender: string;
+  gender: CreateStudentDto['gender']; // ✅ exact union type
+
 }
 
 export default function useCreateStudentViewModel() {
@@ -42,7 +43,7 @@ export default function useCreateStudentViewModel() {
     firstName: "",
     lastName: "",
     dateOfBirth: "",
-    gender: "",
+    gender: undefined,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,11 +77,9 @@ export default function useCreateStudentViewModel() {
 
     try {
       const result = await dispatch(createStudent(formData)).unwrap();
-      console.log("Create student result:", result);
 
       if (result.success) {
         dispatch(fetchStudents({ page: 1 }));
-
         toast.success(result.message ?? "Student created successfully");
 
         return {
@@ -95,7 +94,6 @@ export default function useCreateStudentViewModel() {
         };
       }
 
-      // backend responded but failed
       return {
         success: false,
         error: result.error ?? "Failed to create student",
@@ -120,7 +118,6 @@ export default function useCreateStudentViewModel() {
       setIsSubmitting(false);
     }
   };
-
  
 
   return {
