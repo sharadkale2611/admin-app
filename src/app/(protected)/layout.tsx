@@ -24,6 +24,7 @@ import {
     MenuItem,
     Avatar,
     ListItemButton,
+   
     Button,
 } from "@mui/material";
 
@@ -42,6 +43,7 @@ import {
     Assignment as AssignmentIcon,
     AssignmentInd as AssignmentIndIcon,
     EventNote as EventNoteIcon,
+   
     SupervisedUserCircleSharp,
 } from "@mui/icons-material";
 
@@ -152,29 +154,38 @@ const ProtectedLayout = ({ children }: LayoutParams) => {
                     <Box sx={{ flexGrow: 1 }} />
 
                     {/* <IconButton>
+                    {/* <IconButton>
                         <Badge badgeContent={4} color="error">
                             <MailIcon />
                         </Badge>
                     </IconButton> */}
+                  
 
+                    {/* <IconButton>
                     {/* <IconButton>
                         <Badge badgeContent={3} color="error">
                             <NotificationsIcon />
                         </Badge>
                     </IconButton> */}
 
-                        <Button variant="outlined" color="primary" onClick={() => router.push(AppRoutes.NEW_ADMISSION)}>
-                            <SupervisedUserCircleSharp /> 
-                            <Typography sx={{ ml: 1 }}>New Admission</Typography>
-                        </Button>
+                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+  <Button
+    variant="outlined"
+    color="primary"
+    onClick={() => router.push(AppRoutes.NEW_ADMISSION)}
+  >
+    <SupervisedUserCircleSharp />
+    <Typography sx={{ ml: 1 }}>New Admission</Typography>
+  </Button>
 
-                    <IconButton>
-                        <SettingsIcon />
-                    </IconButton>
+  <IconButton onClick={() => router.push(AppRoutes.SETTINGS)}>
+    <SettingsIcon />
+  </IconButton>
 
-                    <IconButton onClick={handleUserMenuOpen} sx={{ ml: 1 }}>
-                        <Avatar />
-                    </IconButton>
+  <IconButton onClick={handleUserMenuOpen}>
+    <Avatar />
+  </IconButton>
+</Box>
 
                     <Menu
                         anchorEl={anchorEl}
@@ -184,8 +195,15 @@ const ProtectedLayout = ({ children }: LayoutParams) => {
                         <MenuItem onClick={() => router.push(AppRoutes.PROFILE)}>
                             Profile
                         </MenuItem>
-                        <MenuItem>Settings</MenuItem>
-                        <Divider />
+                    <MenuItem
+  onClick={() => {
+    setAnchorEl(null);
+    router.push(AppRoutes.SETTINGS);
+  }}
+>
+  Settings
+</MenuItem>
+                 <Divider />
                         <MenuItem onClick={handleLogout}>Logout</MenuItem>
                     </Menu>
                 </Toolbar>

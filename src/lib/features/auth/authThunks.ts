@@ -235,3 +235,28 @@ export const refreshToken = createAsyncThunk<
         }
     }
 );
+
+/**
+ * CHANGE PASSWORD
+ */
+export const changePassword = createAsyncThunk<
+  void,
+  { currentPassword: string; newPassword: string },
+  { state: RootState }
+>(
+  "auth/changePassword",
+  async (payload, { getState }) => {
+    // 1️⃣ get logged-in userId from redux
+    const userId = getState().auth.user?.userId;
+
+    if (!userId) {
+      throw new Error("User not logged in");
+    }
+
+    // 2️⃣ build API url
+    const url = `${API_ENDPOINTS.USERS.BASE}/${userId}/change-password`;
+
+    // 3️⃣ call backend API
+    await api.post(getApiUrl(url), payload);
+  }
+);

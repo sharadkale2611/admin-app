@@ -27,9 +27,17 @@ import {
     Verified,
     Security
 } from '@mui/icons-material';
+import { useAppDispatch } from '@/lib/hooks';
+import { changePassword } from '@/lib/features/auth/authThunks';
+import { useRouter } from 'next/navigation';
+import { useAppSelector } from '@/lib/hooks';
+
 
 export default function ProfilePage() {
     const [showChangePassword, setShowChangePassword] = useState(false);
+    const dispatch = useAppDispatch(); // ✅ ADD THIS
+   const router = useRouter();
+    const { user } = useAppSelector((state) => state.auth);
 
     const [passwordForm, setPasswordForm] = useState({
         currentPassword: '',
@@ -37,31 +45,30 @@ export default function ProfilePage() {
         confirmPassword: ''
     });
 
-    const handlePasswordChange = () => {
-        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-            alert('New password and confirm password do not match');
-            return;
-        }
+   const handlePasswordChange = async () => {
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+        alert('New password and confirm password do not match');
+        return;
+    }
 
-        // API CALL HERE
-        /*
-          POST /{userId}/change-password
-          {
-            currentPassword,
-            newPassword
-          }
-        */
+    try {
+        await dispatch(
+            changePassword({
+                currentPassword: passwordForm.currentPassword,
+                newPassword: passwordForm.newPassword,
+            })
+        ).unwrap();
 
-        console.log('Submitting password change', passwordForm);
+        alert('Password changed successfully');
 
-        // UX: collapse after success
-        setShowChangePassword(false);
-        setPasswordForm({
-            currentPassword: '',
-            newPassword: '',
-            confirmPassword: ''
-        });
-    };
+        // Redirect to login page
+        router.push('/login');
+
+    } catch (error: any) {
+        alert(error?.message || 'Failed to change password');
+    }
+};
+
 
     return (
         <Box component="main" sx={{ p: 3 }}>
@@ -71,7 +78,8 @@ export default function ProfilePage() {
                         <School />
                     </Avatar>
                     <Box>
-                        <Typography variant="h4">Shiva Training Institute</Typography>
+                        <Typography variant="h4">{user?.firmName || '—'}</Typography>
+                        {/* <Typography variant="h4">Shiva Training Institute</Typography> */}
                         <Stack direction="row" spacing={1} mt={1}>
                             <Chip label="Active" color="success" />
                             <Chip label="Verified" color="primary" icon={<Verified />} />
@@ -88,9 +96,13 @@ export default function ProfilePage() {
                             <Typography variant="h6" gutterBottom>
                                 <Security /> Admin Account
                             </Typography>
+                           
+                           <Typography><strong>Username:</strong> {user?.username || '—'}</Typography>
+                           <Typography><strong>FirmCode:</strong> {user?.firmCode || '—'}</Typography>
+                           <Typography><strong>Email:</strong> {user?.email || '—'}</Typography>
 
-                            <Typography><strong>Username:</strong> admin</Typography>
-                            <Typography><strong>Email:</strong> admin@shiva.edu</Typography>
+                            {/* <Typography><strong>Username:</strong> admin</Typography>
+                            <Typography><strong>Email:</strong> admin@shiva.edu</Typography> */}
 
                             <Divider sx={{ my: 2 }} />
 
