@@ -1,5 +1,8 @@
 // src/lib/config/apiConfig.ts
 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || '';
+
 const API_ENDPOINTS = {
   /* ===================== BASE ===================== */
   PARENT_URL: process.env.NEXT_PUBLIC_API_PARENT_URL || "",
@@ -246,4 +249,14 @@ const API_ENDPOINTS = {
   },
 };
 
+
+export const getApiUrl = (path: string) => {
+  if (!path.startsWith('/')) {
+    path = '/' + path;
+  }
+  return `${API_BASE_URL}${path}`;
+};
+
 export default API_ENDPOINTS;
+
+
