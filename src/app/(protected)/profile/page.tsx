@@ -98,6 +98,7 @@ export default function ProfilePage() {
                             </Typography>
                            
                            <Typography><strong>Username:</strong> {user?.username || '—'}</Typography>
+                           <Typography><strong>FirmCode:</strong> {user?.firmCode || '—'}</Typography>
                            <Typography><strong>Email:</strong> {user?.email || '—'}</Typography>
 
                             {/* <Typography><strong>Username:</strong> admin</Typography>
