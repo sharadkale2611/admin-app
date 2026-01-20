@@ -111,7 +111,7 @@ export default function SessionsTable() {
         const s = (status ?? '').toLowerCase();
         if (s === 'pending') return 'Mark Attendance';
         if (s === 'partial') return 'Continue';
-        return 'View';
+        return 'View Attendance';
     };
 
     return (

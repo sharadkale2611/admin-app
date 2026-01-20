@@ -15,6 +15,9 @@ import {
     Paper,
     Alert,
     Skeleton,
+    Radio,
+    RadioGroup,
+    FormControlLabel,
 } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import AttendanceAuditDrawer from './AttendanceAuditDrawer';
@@ -23,6 +26,7 @@ import {
     useAttendanceSessionData,
     type AttendanceStatus,
 } from '../_context/AttendanceSessionDataContext';
+import AttendanceSaveBar from './AttendanceSaveBar';
 
 
 interface AttendanceTableProps {
@@ -37,63 +41,78 @@ type AttendanceRow = {
     status: AttendanceStatus;
 };
 
-function StatusChip({
-    label,
-    value,
-    color,
-    selected,
-    onClick,
-}: StatusChipProps) {
+const filterToStatus = (filter: string): AttendanceStatus | null => {
+    switch ((filter ?? '').toUpperCase()) {
+        case 'PRESENT':
+            return 'Present';
+        case 'ABSENT':
+            return 'Absent';
+        case 'LATE':
+            return 'Late';
+        case 'LEAVE':
+            return 'Leave';
+        case 'ALL':
+        default:
+            return null;
+    }
+};
+
+const statusChipColor = (
+    status: AttendanceStatus
+): 'success' | 'error' | 'warning' | 'info' | 'default' => {
+    switch (status) {
+        case 'Present':
+            return 'success';
+        case 'Absent':
+            return 'error';
+        case 'Late':
+            return 'warning';
+        case 'Leave':
+            return 'info';
+        default:
+            return 'default';
+    }
+};
+
+function StatusReadOnly({ status }: { status: AttendanceStatus }) {
     return (
         <Chip
-            clickable
-            label={label}
-            color={selected ? color : 'default'}
-            onClick={() => onClick(value)}
             size="small"
-            sx={{
-                fontWeight: selected ? 600 : 400,
-            }}
+            label={status}
+            color={statusChipColor(status)}
+            variant={status === 'Pending' ? 'outlined' : 'filled'}
+            sx={{ fontWeight: 600 }}
         />
     );
 }
 
-
-function StatusButtons({
+function StatusRadioButtons({
     value,
     onChange,
-}: StatusButtonsProps) {
+    disabled,
+}: {
+    value: AttendanceStatus;
+    onChange: (value: AttendanceStatus) => void;
+    disabled: boolean;
+}) {
     return (
-        <Stack direction="row" spacing={0.5}>
-            <StatusChip
-                label="Present"
-                value="Present"
-                color="success"
-                selected={value === 'Present'}
-                onClick={onChange}
-            />
-            <StatusChip
-                label="Absent"
-                value="Absent"
-                color="error"
-                selected={value === 'Absent'}
-                onClick={onChange}
-            />
-            <StatusChip
-                label="Late"
-                value="Late"
-                color="warning"
-                selected={value === 'Late'}
-                onClick={onChange}
-            />
-            <StatusChip
-                label="Leave"
-                value="Leave"
-                color="info"
-                selected={value === 'Leave'}
-                onClick={onChange}
-            />
-        </Stack>
+        <RadioGroup
+            row
+            value={value}
+            onChange={(e) => onChange(e.target.value as AttendanceStatus)}
+        >
+            {(['Present', 'Absent', 'Late', 'Leave'] as AttendanceStatus[]).map(
+                (s) => (
+                    <FormControlLabel
+                        key={s}
+                        value={s}
+                        control={<Radio size="small" />}
+                        label={s}
+                        disabled={disabled}
+                    />
+                )
+            )}
+        </RadioGroup>
     );
 }
 
@@ -101,7 +120,7 @@ function StatusButtons({
 export default function AttendanceTable({
     sessionId,
 }: AttendanceTableProps) {
-    const { filter, isLocked } = useAttendanceSession();
+    const { filter } = useAttendanceSession();
     const {
         data,
         loading,
@@ -112,7 +131,9 @@ export default function AttendanceTable({
     } = useAttendanceSessionData();
 
     const [rows, setRows] = useState<AttendanceRow[]>([]);
-    const [originalRows, setOriginalRows] = useState<AttendanceRow[]>([]);
+    const [baseRows, setBaseRows] = useState<AttendanceRow[]>([]);
+
+    const [isEditing, setIsEditing] = useState(false);
 
     const [auditOpen, setAuditOpen] = useState(false);
 
@@ -127,46 +148,48 @@ export default function AttendanceTable({
             status: a.status,
         }));
 
+        setBaseRows(next);
         setRows(next);
-        setOriginalRows(next);
     }, [data?.studentAttendance]);
 
-    // Track modified rows only
-    const modifiedRows = useMemo(
-        () =>
-            rows.filter((r) => {
-                const original = originalRows.find(
-                    (o) => o.attendanceId === r.attendanceId
-                );
-                return original?.status !== r.status;
-            }),
-        [rows, originalRows]
-    );
+    const modifiedRows = useMemo(() => {
+        return rows.filter((r) => {
+            const original = baseRows.find(
+                (b) => b.attendanceId === r.attendanceId
+            );
+            return original?.status !== r.status;
+        });
+    }, [rows, baseRows]);
 
     const filteredRows = useMemo(() => {
-        if (filter === 'ALL') return rows;
-        return rows.filter((r) => r.status === filter);
+        const status = filterToStatus(filter);
+        if (!status) return rows;
+        return rows.filter((r) => r.status === status);
     }, [rows, filter]);
 
     const handleStatusChange = (
         attendanceId: number,
         newStatus: AttendanceStatus
     ) => {
-        if (isLocked) return;
+        const current = rows.find((r) => r.attendanceId === attendanceId);
+        if (!current) return;
+        if (current.status === newStatus) return;
+
         setRows((prev) =>
-            prev.map((row) =>
-                row.attendanceId === attendanceId
-                    ? { ...row, status: newStatus }
-                    : row
+            prev.map((r) =>
+                r.attendanceId === attendanceId ? { ...r, status: newStatus } : r
             )
         );
     };
 
     const handleDiscard = () => {
-        setRows(originalRows);
+        setRows(baseRows);
+        setIsEditing(false);
     };
 
-    const handleSave = async () => {
+    const handleSave = async (_reason: string) => {
+        if (!modifiedRows.length) return;
+
         const updates = modifiedRows.map((r) => ({
             attendanceId: r.attendanceId,
             studentId: r.studentId,
@@ -174,9 +197,21 @@ export default function AttendanceTable({
         }));
 
         const ok = await updateStatuses(updates);
-        if (ok) {
-            // provider refetches; effect will sync rows + originals
+        if (!ok) return;
+
+        // server data will refresh via provider; keep UI consistent immediately
+        setBaseRows(rows);
+        setIsEditing(false);
+    };
+
+    const handleToggleEdit = () => {
+        if (updating) return;
+        if (isEditing) {
+            setRows(baseRows);
+            setIsEditing(false);
+            return;
         }
+        setIsEditing(true);
     };
 
     return (
@@ -191,13 +226,25 @@ export default function AttendanceTable({
                     Student Attendance
                 </Typography>
 
-                <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() => setAuditOpen(true)}
-                >
-                    View Audit Log
-                </Button>
+                <Stack direction="row" spacing={1} alignItems="center">
+                    <Button
+                        size="small"
+                        variant={isEditing ? 'outlined' : 'contained'}
+                        onClick={handleToggleEdit}
+                        disabled={loading || !!error || updating}
+                    >
+                        {isEditing ? 'Cancel Edit' : 'Edit Attendance'}
+                    </Button>
+{/* 
+                    <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => setAuditOpen(true)}
+                        disabled={loading}
+                    >
+                        View Audit Log
+                    </Button> */}
+                </Stack>
             </Stack>
 
             {error && (
@@ -212,53 +259,12 @@ export default function AttendanceTable({
                 </Alert>
             )}
 
-
-            {/* Unsaved changes banner */}
-            {modifiedRows.length > 0 && (
-                <Box
-                    sx={{
-                        mb: 2,
-                        p: 1.5,
-                        bgcolor: 'warning.light',
-                        borderRadius: 1,
-                    }}
-                >
-                    <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="center"
-                    >
-                        <Typography fontWeight={600}>
-                            ⚠ {modifiedRows.length} unsaved change(s)
-                        </Typography>
-                        <Stack direction="row" spacing={1}>
-                            <Button
-                                size="small"
-                                variant="contained"
-                                disabled={isLocked || updating}
-                                onClick={handleSave}
-                            >
-                                {updating ? 'Saving...' : 'Save'}
-                            </Button>
-                            <Button
-                                size="small"
-                                variant="outlined"
-                                disabled={updating}
-                                onClick={handleDiscard}
-                            >
-                                Discard
-                            </Button>
-                        </Stack>
-                    </Stack>
-                </Box>
-            )}
-
-            <TableContainer component={Paper} variant="outlined">
+                        <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
                     <TableHead>
                         <TableRow>
-                            <TableCell width={80}>Roll</TableCell>
-                            <TableCell>Student</TableCell>
+                            <TableCell width={150}>Student Code</TableCell>
+                            <TableCell width={180}>Student</TableCell>
                             <TableCell>Status</TableCell>
                         </TableRow>
                     </TableHead>
@@ -268,10 +274,10 @@ export default function AttendanceTable({
                             Array.from({ length: 8 }).map((_, idx) => (
                                 <TableRow key={`sk-${idx}`}>
                                     <TableCell>
-                                        <Skeleton width={40} />
+                                        <Skeleton width={150} />
                                     </TableCell>
                                     <TableCell>
-                                        <Skeleton width={220} />
+                                        <Skeleton width={180} />
                                     </TableCell>
                                     <TableCell>
                                         <Skeleton width={260} />
@@ -280,27 +286,15 @@ export default function AttendanceTable({
                             ))}
 
                         {!loading &&
-                            filteredRows.map((row) => {
-                                const original = originalRows.find(
-                                    (o) => o.attendanceId === row.attendanceId
-                                );
-                                const isModified =
-                                    original?.status !== row.status;
-
-                                return (
-                                    <TableRow
-                                        key={row.attendanceId}
-                                        sx={{
-                                            bgcolor: isModified
-                                                ? 'warning.lighter'
-                                                : undefined,
-                                        }}
-                                    >
-                                        <TableCell>{row.rollNo || '—'}</TableCell>
-                                        <TableCell>{row.studentName}</TableCell>
-                                        <TableCell>
-                                            <StatusButtons
+                            filteredRows.map((row) => (
+                                <TableRow key={row.attendanceId} hover>
+                                    <TableCell>{row.rollNo || '—'}</TableCell>
+                                    <TableCell>{row.studentName}</TableCell>
+                                    <TableCell>
+                                        {isEditing ? (
+                                            <StatusRadioButtons
                                                 value={row.status}
+                                                disabled={updating}
                                                 onChange={(status) =>
                                                     handleStatusChange(
                                                         row.attendanceId,
@@ -308,10 +302,12 @@ export default function AttendanceTable({
                                                     )
                                                 }
                                             />
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })}
+                                        ) : (
+                                            <StatusReadOnly status={row.status} />
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
 
                         {!loading && filteredRows.length === 0 && (
                             <TableRow>
@@ -325,10 +321,17 @@ export default function AttendanceTable({
                     </TableBody>
                 </Table>
             </TableContainer>
-            <AttendanceAuditDrawer
+            {/* <AttendanceAuditDrawer
                 open={auditOpen}
                 onClose={() => setAuditOpen(false)}
                 sessionId={sessionId}
+            /> */}
+
+            <AttendanceSaveBar
+                open={isEditing && modifiedRows.length > 0}
+                modifiedCount={modifiedRows.length}
+                onDiscard={handleDiscard}
+                onSave={handleSave}
             />
 
         </Box>
@@ -339,22 +342,5 @@ export default function AttendanceTable({
    Status Buttons (Fast UX)
    ========================================================= */
 
-interface StatusButtonsProps {
-    value: AttendanceStatus;
-    onChange: (value: AttendanceStatus) => void;
-}
-
-
-
-interface StatusChipProps {
-    label: string;
-    value: AttendanceStatus;
-    color:
-    | 'success'
-    | 'error'
-    | 'warning'
-    | 'info';
-    selected: boolean;
-    onClick: (value: AttendanceStatus) => void;
-}
+// (radio buttons used in edit mode)
 

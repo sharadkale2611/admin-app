@@ -1,16 +1,14 @@
 'use client';
 
-import {
-    Box,
-    Chip,
-    Stack,
-    Typography,
-    Button,
-} from '@mui/material';
+import { Box, Button, Chip, Stack, Typography } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DownloadIcon from '@mui/icons-material/Download';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import PersonIcon from '@mui/icons-material/Person';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -72,26 +70,33 @@ export default function AttendanceHeader({
                         </Typography>
 
                         <Stack direction="row" spacing={2} flexWrap="wrap">
-                            <Typography variant="body2">
-                                📅 {session.date}
-                            </Typography>
-                            <Typography variant="body2">
-                                🕘 {session.time}
-                            </Typography>
-                            <Typography variant="body2">
-                                👨‍🏫 {session.staffName}
-                            </Typography>
-                            {session.moduleName && (
-                                <Typography variant="body2">
-                                    📘 {session.moduleName}
-                                </Typography>
+                            <Stack direction="row" spacing={0.75} alignItems="center">
+                                <CalendarTodayIcon fontSize="small" color="action" />
+                                <Typography variant="body2">{session.date}</Typography>
+                            </Stack>
+
+                            <Stack direction="row" spacing={0.75} alignItems="center">
+                                <AccessTimeIcon fontSize="small" color="action" />
+                                <Typography variant="body2">{session.time}</Typography>
+                            </Stack>
+
+                            <Stack direction="row" spacing={0.75} alignItems="center">
+                                <PersonIcon fontSize="small" color="action" />
+                                <Typography variant="body2">{session.staffName}</Typography>
+                            </Stack>
+
+                            {session.moduleName && session.moduleName !== 'N/A' && (
+                                <Stack direction="row" spacing={0.75} alignItems="center">
+                                    <MenuBookIcon fontSize="small" color="action" />
+                                    <Typography variant="body2">{session.moduleName}</Typography>
+                                </Stack>
                             )}
                         </Stack>
                     </Stack>
 
                     {/* ================= RIGHT ================= */}
                     <Stack direction="row" spacing={1} alignItems="center">
-                        <Chip
+                        {/* <Chip
                             icon={isLocked ? <LockIcon /> : <LockOpenIcon />}
                             label={isLocked ? 'Locked' : 'Editable'}
                             color={isLocked ? 'warning' : 'success'}
@@ -107,16 +112,16 @@ export default function AttendanceHeader({
                             >
                                 Override Lock
                             </Button>
-                        )}
+                        )} */}
 
-                        <Button
+                        {/* <Button
                             variant="outlined"
                             size="small"
                             startIcon={<DownloadIcon />}
                             onClick={() => alert('Export coming soon')}
                         >
                             Export
-                        </Button>
+                        </Button> */}
 
                         <Button
                             variant="outlined"
@@ -130,7 +135,6 @@ export default function AttendanceHeader({
                 </Stack>
             </Box>
 
-            {/* ================= OVERRIDE DIALOG ================= */}
             <AttendanceOverrideDialog
                 open={overrideOpen}
                 onClose={() => setOverrideOpen(false)}

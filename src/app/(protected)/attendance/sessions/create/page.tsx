@@ -123,7 +123,14 @@ export default function CreateAttendanceSessionPage() {
         if (batch?.moduleId) {
           next.moduleId = String(batch.moduleId);
         }
+
+         if (batch?.trainerId) {
+          next.staffId = String(batch.trainerId);
+        }
+
+
       }
+
 
       return next;
     });

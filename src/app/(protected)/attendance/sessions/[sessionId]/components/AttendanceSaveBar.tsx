@@ -16,7 +16,7 @@ import { useState } from 'react';
 interface AttendanceSaveBarProps {
     open: boolean;
     modifiedCount: number;
-    onSave: (reason: string) => void;
+    onSave: (note: string) => void;
     onDiscard: () => void;
 }
 
@@ -94,10 +94,9 @@ export default function AttendanceSaveBar({
                     </Typography>
 
                     <TextField
-                        label="Reason for change"
-                        placeholder="Required for audit"
+                        label="Note (optional)"
+                        placeholder="Add a note (optional)"
                         fullWidth
-                        required
                         multiline
                         rows={3}
                         value={reason}
@@ -112,7 +111,6 @@ export default function AttendanceSaveBar({
                     </Button>
                     <Button
                         variant="contained"
-                        disabled={!reason.trim()}
                         onClick={handleConfirmSave}
                     >
                         Confirm Save
