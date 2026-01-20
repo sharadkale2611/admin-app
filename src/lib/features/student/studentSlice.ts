@@ -5,8 +5,9 @@ import {
     createStudent,
     updateStudent,
     deleteStudent,
+    fetchStudentBatchCourseAssignments,
 } from "./studentThunks";
-import { Student, ApiError } from "./studentTypes";
+import { Student, ApiError, StudentBatchAssignment } from "./studentTypes";
 
 export interface StudentState {
     students: Student[];
@@ -20,6 +21,7 @@ export interface StudentState {
     searchTerm: string;
     activeOnly: boolean;
     page: number;
+    batchAssignments?: StudentBatchAssignment[];
 }
 
 const initialState: StudentState = {
@@ -34,6 +36,7 @@ const initialState: StudentState = {
     searchTerm: "",
     activeOnly: true,
     page: 1,
+    batchAssignments: [],
 };
 
 const studentSlice = createSlice({
@@ -164,7 +167,25 @@ const studentSlice = createSlice({
                 state.loading = false;
                 state.error =
                     (action.payload as ApiError) ?? { error: "Failed to delete student", errors: null };
+            })
+        builder
+            .addCase(fetchStudentBatchCourseAssignments.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchStudentBatchCourseAssignments.fulfilled, (state, action) => {
+                state.loading = false;
+                state.batchAssignments = action.payload;
+            })
+            .addCase(fetchStudentBatchCourseAssignments.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload ?? {
+                    error: "Failed to load batch assignments",
+                    errors: null,
+                };
+
+
             });
+
     },
 });
 

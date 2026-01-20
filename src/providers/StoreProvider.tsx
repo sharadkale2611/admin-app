@@ -9,8 +9,8 @@ function AuthBootstrap({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const state = store.getState();
 
-        if (!state.auth.initialCheckDone) {
-            console.log('🔥 dispatching checkAuth from StoreProvider');
+        if (!state.auth.initialCheckDone && !state.auth.hasLoggedOut) {
+            console.log('🔥 running checkAuth (cold start)');
             store.dispatch(checkAuth());
         }
     }, []);

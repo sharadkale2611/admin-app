@@ -9,7 +9,9 @@ import {
     FetchStudentParams,
     CreateStudentResponse,
     CreatedStudent,
-    StudentByMobileResponse
+    StudentByMobileResponse,
+    StudentBatchAssignment,
+    ApiError
 } from "./studentTypes";
 import API_ENDPOINTS from "@/lib/config/apiConfig";
 import api from "@/lib/services/apiService";
@@ -21,45 +23,32 @@ type UpdateStudentPayload = {
 
 
 /**
- * Error type for consistent error handling
- */
-export interface ApiError {
-    error: string | null;   // single error
-    errors: string[] | null; // list of errors
-}
-
-/**
  * Common error parser for API responses
  */
 
 function parseApiError(error: any): ApiError {
-  console.log("parseApiError from std_Thunk", error);
+    if (error?.response?.data) {
+        const data = error.response.data;
 
-  if (error?.response?.data) {
-    const data = error.response.data;
+        if (data.errors && typeof data.errors === "object") {
+            return {
+                error: null,
+                errors: data.errors
+            };
+        }
 
-    if (data.errors && typeof data.errors === "object") {
-      // flatten { field: [messages] } into string[]
-      const flattened = Object.entries(data.errors).flatMap(([field, msgs]) =>
-        (msgs as string[]).map((msg) => `${field}: ${msg}`)
-      );
-      return { error: null, errors: flattened };
+        if (data.error) {
+            return {
+                error: data.error,
+                errors: null
+            };
+        }
     }
 
-    if (data.error) {
-      return { error: data.error, errors: null };
-    }
-  }
-
-  if (error?.errors) {
-    return { error: error.message, errors: error?.errors };
-  }
-
-  if (error?.fieldErrors) {
-    return { error: error.message, errors: error?.fieldErrors };
-  }
-
-  return { error: "An unknown error occurred...from thunk", errors: null };
+    return {
+        error: "An unknown error occurred",
+        errors: null
+    };
 }
 
 
@@ -158,9 +147,7 @@ export const createStudent = createAsyncThunk<
             if (!response.success || !response.data) {
                 return rejectWithValue({
                     error: response.message || "Invalid server response",
-                    errors: response.errors
-                        ? Object.values(response.errors).flat()
-                        : null,
+                    errors: response.errors ?? null, // ✅ NO FLATTENING
                 });
             }
             const created = response.data;
@@ -290,8 +277,8 @@ export const updateStudent = createAsyncThunk<
  * Delete Student
  */
 export const deleteStudent = createAsyncThunk<
-    { success: boolean; message: string; id: string },
-    string,
+    { success: boolean; message: string; id: number },
+    number,
     { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
 >(
     "students/deleteStudent",
@@ -367,6 +354,37 @@ export const fetchStudentByMobile = createAsyncThunk<
 
         } catch (error: any) {
             return rejectWithValue(parseApiError(error));
+        }
+    }
+);
+
+
+export const fetchStudentBatchCourseAssignments = createAsyncThunk<
+    StudentBatchAssignment[],   // ✅ fulfilled payload
+    number,                     // batchId
+    { rejectValue: ApiError }   // ✅ IMPORTANT
+>(
+    "students/fetchStudentBatchCourseAssignments",
+    async (batchId, { rejectWithValue }) => {
+        try {
+            const response = await api.get<StudentBatchAssignment[]>(
+                `${API_ENDPOINTS.STUDENT.GET_BATCH_COURSE_ASSIGNMENTS}/${batchId}`,
+                { withCredentials: true }
+            );
+
+            if (!response.success || !response.data) {
+                return rejectWithValue({
+                    error: response.error || "No data returned from server",
+                    errors: null
+                });
+            }
+
+            return response.data;
+        } catch (err: any) {
+            return rejectWithValue({
+                error: err.message ?? "Failed to load batch assignments",
+                errors: null,
+            });
         }
     }
 );

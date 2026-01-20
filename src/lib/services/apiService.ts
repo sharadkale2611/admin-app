@@ -93,8 +93,7 @@ axiosInstance.interceptors.response.use(
 
             try {
                 // Attempt to refresh tokens
-                await axios.post(
-                    `${API_ENDPOINTS.BASE_URL_API}${API_ENDPOINTS.AUTH.REFRESH}`,
+                await axios.post(API_ENDPOINTS.AUTH.REFRESH,
                     {},
                     { withCredentials: true }
                 );
@@ -112,6 +111,7 @@ axiosInstance.interceptors.response.use(
                 });
             }
         }
+        
 
         // Standard error formatting
         const errorData = {

@@ -24,6 +24,7 @@ import {
     MenuItem,
     Avatar,
     ListItemButton,
+   
     Button,
 } from "@mui/material";
 
@@ -42,7 +43,9 @@ import {
     Assignment as AssignmentIcon,
     AssignmentInd as AssignmentIndIcon,
     EventNote as EventNoteIcon,
+   
     SupervisedUserCircleSharp,
+    Campaign,
 } from "@mui/icons-material";
 
 import { useTheme } from "@mui/material/styles";
@@ -106,11 +109,17 @@ const ProtectedLayout = ({ children }: LayoutParams) => {
         { text: "Exams", icon: <AssignmentIcon />, path: AppRoutes.EXAMS },
         { text: "Exam Marks", icon: <SchoolIcon />, path: AppRoutes.EXAM_MARKS },
         { text: "Attendance", icon: <EventNoteIcon />, path: AppRoutes.ATTENDANCE },
+        { text: "Notifications", icon: <Campaign />, path: AppRoutes.NOTICES },
     ];
 
     const menuItems = user?.roles?.includes("Administrator")
         ? adminMenu
         : firmAdminMenu;
+
+    const firmName = user?.firmName || "Guest";
+    const firmCode = (user?.firmCode || "-").toUpperCase();
+
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
     if (!isMounted) return null;
 
@@ -147,34 +156,45 @@ const ProtectedLayout = ({ children }: LayoutParams) => {
                         <MenuIcon />
                     </IconButton>
 
-                    <Typography variant="h6">Admin Panel</Typography>
+                    <Typography variant="h6" noWrap>
+                        {isSmallScreen ? firmCode : firmName}
+                    </Typography>
 
                     <Box sx={{ flexGrow: 1 }} />
 
+                    {/* <IconButton>
                     {/* <IconButton>
                         <Badge badgeContent={4} color="error">
                             <MailIcon />
                         </Badge>
                     </IconButton> */}
+                  
 
+                    {/* <IconButton>
                     {/* <IconButton>
                         <Badge badgeContent={3} color="error">
                             <NotificationsIcon />
                         </Badge>
                     </IconButton> */}
 
-                        <Button variant="outlined" color="primary" onClick={() => router.push(AppRoutes.NEW_ADMISSION)}>
-                            <SupervisedUserCircleSharp /> 
-                            <Typography sx={{ ml: 1 }}>New Admission</Typography>
-                        </Button>
+                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+  <Button
+    variant="outlined"
+    color="primary"
+    onClick={() => router.push(AppRoutes.NEW_ADMISSION)}
+  >
+    <SupervisedUserCircleSharp />
+    <Typography sx={{ ml: 1 }}>New Admission</Typography>
+  </Button>
 
-                    <IconButton>
-                        <SettingsIcon />
-                    </IconButton>
+  <IconButton onClick={() => router.push(AppRoutes.SETTINGS)}>
+    <SettingsIcon />
+  </IconButton>
 
-                    <IconButton onClick={handleUserMenuOpen} sx={{ ml: 1 }}>
-                        <Avatar />
-                    </IconButton>
+  <IconButton onClick={handleUserMenuOpen}>
+    <Avatar />
+  </IconButton>
+</Box>
 
                     <Menu
                         anchorEl={anchorEl}
@@ -184,8 +204,15 @@ const ProtectedLayout = ({ children }: LayoutParams) => {
                         <MenuItem onClick={() => router.push(AppRoutes.PROFILE)}>
                             Profile
                         </MenuItem>
-                        <MenuItem>Settings</MenuItem>
-                        <Divider />
+                    <MenuItem
+  onClick={() => {
+    setAnchorEl(null);
+    router.push(AppRoutes.SETTINGS);
+  }}
+>
+  Settings
+</MenuItem>
+                 <Divider />
                         <MenuItem onClick={handleLogout}>Logout</MenuItem>
                     </Menu>
                 </Toolbar>
