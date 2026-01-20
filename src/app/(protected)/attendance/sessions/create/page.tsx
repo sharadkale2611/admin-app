@@ -14,6 +14,7 @@ import {
   Select,
   SelectChangeEvent,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material';
 import Link from 'next/link';
@@ -26,8 +27,6 @@ import api from '@/lib/services/apiService';
 import API_ENDPOINTS from '@/lib/config/apiConfig';
 
 import type { Batch } from '@/lib/features/batch/batchTypes';
-import type { Staff } from '@/lib/features/staff/staffTypes';
-import type { ModuleResponseDto } from '@/lib/features/module/moduleTypes';
 
 type CreateAttendanceSessionDto = {
   batchId: number;
@@ -54,9 +53,6 @@ export default function CreateAttendanceSessionPage() {
   const router = useRouter();
 
   const [batches, setBatches] = useState<Batch[]>([]);
-  const [staff, setStaff] = useState<Staff[]>([]);
-  const [modules, setModules] = useState<ModuleResponseDto[]>([]);
-
   const [formData, setFormData] = useState({
     batchId: '',
     staffId: '',
@@ -73,23 +69,13 @@ export default function CreateAttendanceSessionPage() {
       try {
         setError(null);
 
-        const [batchesRes, staffRes, modulesRes] = await Promise.all([
-          api.get<Batch[]>(API_ENDPOINTS.BATCHES.GET_LIST, {
-            withCredentials: true,
-          }),
-          api.get<Staff[]>(API_ENDPOINTS.STAFF.GET_LIST, {
-            withCredentials: true,
-          }),
-          api.get<ModuleResponseDto[]>(API_ENDPOINTS.MODULES.GET_LIST, {
-            withCredentials: true,
-          }),
-        ]);
+        const batchesRes = await api.get<Batch[]>(API_ENDPOINTS.BATCHES.GET_LIST, {
+          withCredentials: true,
+        });
 
         if (!active) return;
 
         setBatches(batchesRes.data ?? []);
-        setStaff(staffRes.data ?? []);
-        setModules(modulesRes.data ?? []);
       } catch (e: any) {
         if (!active) return;
         setError(e?.message || 'Failed to load dropdown data');
@@ -109,6 +95,22 @@ export default function CreateAttendanceSessionPage() {
     return batches.find((b) => b.batchId === id) ?? null;
   }, [batches, formData.batchId]);
 
+  const selectedStaffName = useMemo(() => {
+    if (!selectedBatch) return '';
+    return (
+      selectedBatch.trainerName ??
+      (selectedBatch.trainerId ? `Staff #${selectedBatch.trainerId}` : '')
+    );
+  }, [selectedBatch]);
+
+  const selectedModuleName = useMemo(() => {
+    if (!selectedBatch) return '';
+    return (
+      selectedBatch.moduleName ??
+      (selectedBatch.moduleId ? `Module #${selectedBatch.moduleId}` : '')
+    );
+  }, [selectedBatch]);
+
   const handleChange = (e: SelectChangeEvent<string>) => {
     const { name, value } = e.target;
 
@@ -119,15 +121,9 @@ export default function CreateAttendanceSessionPage() {
         const batchId = Number(value);
         const batch = batches.find((b) => b.batchId === batchId);
 
-        // if batch has a moduleId, prefill it (still editable)
-        if (batch?.moduleId) {
-          next.moduleId = String(batch.moduleId);
-        }
-
-         if (batch?.trainerId) {
-          next.staffId = String(batch.trainerId);
-        }
-
+        // Auto-derive Staff + Module from selected batch (read-only in UI)
+        next.moduleId = batch?.moduleId ? String(batch.moduleId) : '';
+        next.staffId = batch?.trainerId ? String(batch.trainerId) : '';
 
       }
 
@@ -142,8 +138,16 @@ export default function CreateAttendanceSessionPage() {
     setError(null);
 
     try {
-      if (!formData.batchId || !formData.staffId || !formData.moduleId) {
-        throw new Error('Please select Batch, Staff, and Module');
+      if (!formData.batchId) {
+        throw new Error('Please select a Batch');
+      }
+
+      if (!formData.staffId) {
+        throw new Error('Selected batch has no Trainer/Staff assigned');
+      }
+
+      if (!formData.moduleId) {
+        throw new Error('Selected batch has no Module assigned');
       }
 
       const payload: CreateAttendanceSessionDto = {
@@ -251,48 +255,32 @@ export default function CreateAttendanceSessionPage() {
               </FormControl>
             </Grid>
 
-            {/* Staff */}
+            {/* Staff (read-only, derived from Batch) */}
             <Grid size={{ xs: 12, sm: 6 }}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Staff</InputLabel>
-                <Select
-                  name="staffId"
-                  label="Staff"
-                  value={formData.staffId}
-                  onChange={handleChange}
-                  disabled={loading}
-                  required
-                >
-                  <MenuItem value="">-- Select Staff --</MenuItem>
-                  {staff.map((s) => (
-                    <MenuItem key={s.staffId} value={String(s.staffId)}>
-                      {s.firstName} {s.lastName}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <TextField
+                fullWidth
+                size="small"
+                label="Staff"
+                value={formData.batchId ? (selectedStaffName || '—') : ''}
+                placeholder="Select Batch first"
+                InputLabelProps={{ shrink: true }}
+                InputProps={{ readOnly: true }}
+                disabled={loading || !formData.batchId}
+              />
             </Grid>
 
-            {/* Module */}
+            {/* Module (read-only, derived from Batch) */}
             <Grid size={{ xs: 12, sm: 6 }}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Module</InputLabel>
-                <Select
-                  name="moduleId"
-                  label="Module"
-                  value={formData.moduleId}
-                  onChange={handleChange}
-                  disabled={loading}
-                  required
-                >
-                  <MenuItem value="">-- Select Module --</MenuItem>
-                  {modules.map((m) => (
-                    <MenuItem key={m.moduleId} value={String(m.moduleId)}>
-                      {m.moduleName}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <TextField
+                fullWidth
+                size="small"
+                label="Module"
+                value={formData.batchId ? (selectedModuleName || '—') : ''}
+                placeholder="Select Batch first"
+                InputLabelProps={{ shrink: true }}
+                InputProps={{ readOnly: true }}
+                disabled={loading || !formData.batchId}
+              />
             </Grid>
 
             {/* Preview */}

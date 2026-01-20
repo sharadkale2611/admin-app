@@ -22,6 +22,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 // import { updateBatch } from '@/lib/features/batch/batchThunks';
 import { useUpdateBatch } from '@/lib/features/batch/useUpdateBatch';
 import { fetchBatchById } from '@/lib/features/batch/batchThunks';
+import { fetchModules } from '@/lib/features/module/moduleThunks';
 
 
 interface BatchDetailsTabProps {
@@ -52,21 +53,69 @@ export default function BatchDetailsTab({ batchId }: BatchDetailsTabProps) {
 
     const { currentBatch } = useAppSelector(state => state.batches);
     const staffList = useAppSelector(state => state.staff.dropdownStaff);
+    const modules = useAppSelector(state => state.modules.modules);
     const classRooms = useAppSelector(state => state.classRooms.classRooms);
+    const schedules = useAppSelector(state => state.batchSchedules.items);
 
     const [isEditing, setIsEditing] = React.useState(false);
     const { handleUpdateBatch } = useUpdateBatch();
+
+    React.useEffect(() => {
+        if (!modules?.length) {
+            dispatch(fetchModules());
+        }
+    }, [dispatch, modules?.length]);
+
+    const totalBatchDurationInHr = React.useMemo(() => {
+        if (!currentBatch) return null;
+
+        const relevant = (schedules ?? []).filter(
+            (s) => Number(s.batchId) === Number(batchId) && !!s.expectedDateTime
+        );
+
+        if (!relevant.length) return null;
+
+        const times = relevant
+            .map((s) => new Date(s.expectedDateTime).getTime())
+            .filter((t) => Number.isFinite(t));
+
+        if (!times.length) return null;
+
+        const minTs = Math.min(...times);
+        const maxTs = Math.max(...times);
+
+        const start = new Date(minTs);
+        const end = new Date(maxTs);
+
+        const startUtc = Date.UTC(
+            start.getFullYear(),
+            start.getMonth(),
+            start.getDate()
+        );
+        const endUtc = Date.UTC(
+            end.getFullYear(),
+            end.getMonth(),
+            end.getDate()
+        );
+
+        const totalDays = Math.floor((endUtc - startUtc) / 86400000) + 1;
+        const batchDurationPerDay = currentBatch.batchDurationInHr ?? 1;
+
+        return totalDays * batchDurationPerDay;
+    }, [batchId, currentBatch, schedules]);
 
 
     const [form, setForm] = React.useState({
         startTime: '',
         trainerId: '',
         classRoomId: '',
+        moduleId: '',
+        batchDurationInHr: '',
         isActive: true
     });
 
     /* ----------Compute isBatchStarted ---------- */
-    
+
     const isBatchStarted = React.useMemo(() => {
         if (!currentBatch) return false;
 
@@ -92,6 +141,8 @@ export default function BatchDetailsTab({ batchId }: BatchDetailsTabProps) {
             startTime: currentBatch.startTime?.slice(0, 5) ?? '',
             trainerId: String(currentBatch.trainerId ?? ''),
             classRoomId: String(currentBatch.classRoomId ?? ''),
+            moduleId: String(currentBatch.moduleId ?? ''),
+            batchDurationInHr: currentBatch.batchDurationInHr ? String(currentBatch.batchDurationInHr) : '',
             isActive: currentBatch.isActive
         });
     }, [currentBatch]);
@@ -108,6 +159,8 @@ export default function BatchDetailsTab({ batchId }: BatchDetailsTabProps) {
             startTime: form.startTime ? form.startTime + ':00' : null,
             trainerId: Number(form.trainerId),
             classRoomId: Number(form.classRoomId),
+            moduleId: Number(form.moduleId),
+            batchDurationInHr: form.batchDurationInHr ? Number(form.batchDurationInHr) : null,
             isActive: form.isActive
         };
 
@@ -127,6 +180,8 @@ export default function BatchDetailsTab({ batchId }: BatchDetailsTabProps) {
             startTime: currentBatch.startTime?.slice(0, 5) ?? '',
             trainerId: String(currentBatch.trainerId ?? ''),
             classRoomId: String(currentBatch.classRoomId ?? ''),
+            moduleId: String(currentBatch.moduleId ?? ''),
+            batchDurationInHr: currentBatch.batchDurationInHr ? String(currentBatch.batchDurationInHr) : '',
             isActive: currentBatch.isActive
         });
 
@@ -176,12 +231,13 @@ export default function BatchDetailsTab({ batchId }: BatchDetailsTabProps) {
 
                                 <Grid size={{ xs: 12, sm: 3 }}>
                                     <Typography variant="caption" color="text.secondary">
-                                        Total Hrs Duration
+                                        Batch Duration
                                     </Typography>
                                     <Typography>
                                         {currentBatch.batchDurationInHr} hours
                                     </Typography>
                                 </Grid>
+                                
                                 <Grid size={{ xs: 12, sm: 3 }}>
                                     <Typography variant="caption" color="text.secondary">
                                         Start Time
@@ -189,7 +245,7 @@ export default function BatchDetailsTab({ batchId }: BatchDetailsTabProps) {
                                     <Typography fontWeight={500}>
                                         {currentBatch.startTime ?? '-'}
                                     </Typography>
-                                </Grid>                        
+                                </Grid>
 
 
                             </Grid>
@@ -229,7 +285,16 @@ export default function BatchDetailsTab({ batchId }: BatchDetailsTabProps) {
                                     <Typography>
                                         {formatDate(currentBatch.actualEndDate)}
                                     </Typography>
-                                </Grid>                                
+                                </Grid>
+                                <Grid size={{ xs: 12, sm: 4 }}>
+                                    <Typography variant="caption" color="text.secondary">
+                                        Total Batch Duration
+                                    </Typography>
+                                    <Typography>
+                                        {totalBatchDurationInHr ?? '-'} hours
+                                    </Typography>
+                                </Grid>
+
                             </Grid>
                         </>
                     ) : (
@@ -251,6 +316,27 @@ export default function BatchDetailsTab({ batchId }: BatchDetailsTabProps) {
                                             setForm(prev => ({ ...prev, startTime: e.target.value }))
                                         }
                                     />
+                                </Grid>
+
+                                <Grid size={{ xs: 12, sm: 6 }}>
+                                    <TextField
+                                        select
+                                        fullWidth
+                                        size="small"
+                                        label="Module"
+                                        value={form.moduleId}
+                                        onChange={e =>
+                                            setForm(prev => ({ ...prev, moduleId: e.target.value }))
+                                        }
+                                        SelectProps={{ displayEmpty: true }}
+                                    >
+                                        <MenuItem value="">-- Select Module --</MenuItem>
+                                        {modules.map(m => (
+                                            <MenuItem key={m.moduleId} value={String(m.moduleId)}>
+                                                {m.moduleName}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
                                 </Grid>
 
                                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -291,6 +377,19 @@ export default function BatchDetailsTab({ batchId }: BatchDetailsTabProps) {
                                     </TextField>
                                 </Grid>
 
+                                <Grid size={{ xs: 12, sm: 6 }}>
+                                    <TextField
+                                        fullWidth
+                                        size="small"
+                                        type="number"
+                                        label="Batch Duration (hours)"
+                                        value={form.batchDurationInHr}
+                                        onChange={e =>
+                                            setForm(prev => ({ ...prev, batchDurationInHr: e.target.value }))
+                                        }
+                                    />
+                                </Grid>
+
                                 <Grid size={{ xs: 12 }}>
                                     <FormControlLabel
                                         control={
@@ -323,7 +422,7 @@ export default function BatchDetailsTab({ batchId }: BatchDetailsTabProps) {
                     <Stack spacing={2} sx={{ my: 3 }}>
                         {!isEditing ? (
                             <>
-                            {/* <Button
+                                {/* <Button
                                 variant="contained"
                                 startIcon={<Edit />}
                                 disabled={isBatchStarted}
@@ -363,13 +462,13 @@ export default function BatchDetailsTab({ batchId }: BatchDetailsTabProps) {
                             </>
                         ) : (
                             <>
-                                    <Button
-                                        variant="contained"
-                                        startIcon={<Save />}
-                                        onClick={handleSave}
-                                    >
-                                        Save Changes
-                                    </Button>
+                                <Button
+                                    variant="contained"
+                                    startIcon={<Save />}
+                                    onClick={handleSave}
+                                >
+                                    Save Changes
+                                </Button>
 
 
                                 <Button

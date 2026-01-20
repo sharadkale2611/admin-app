@@ -24,7 +24,6 @@ export interface Batch {
 
   startTime: string | null;          // "HH:mm:ss"
   batchDurationInHr: number | null;
-
   totalEnrolls: number | null;
 
   studentEnrollmentId: number;
@@ -66,19 +65,15 @@ export interface FetchBatchParams {
 
 export interface CreateBatchDto {
   BatchCode: string;
-  BranchId: number;
-  moduleId: number;
-  TrainerId: number;
-  ClassRoomId: number;
-
-  StartDate: string;         // yyyy-mm-dd
-  ActualStartDate: string | null;
-  EndDate: string;
-  ActualEndDate: string | null;
-
-  StartTime: string;         // HH:mm
-  BatchDurationInHr: number;
   IsActive: boolean;
+
+  ModuleId: number;
+  TrainerId?: number | null;
+  ClassRoomId?: number | null;
+
+  // TimeSpan? in backend. Send as "HH:mm" or "HH:mm:ss" (we use "HH:mm:ss" when provided).
+  StartTime?: string | null;
+  BatchDurationInHr?: number | null;
 }
 
 export interface CreateBatchResponse {
