@@ -120,7 +120,7 @@ export interface ApiResponse<T> {
     message?: string;
     data?: T;
     error?: string | null;
-    errors?: string[] | Record<string, string[]> | null;
+    errors?: Record<string, string[]> | null;
 }
 
 
@@ -151,11 +151,34 @@ export interface StudentByMobileResponse {
     resevationCategory?: string;
     profileImagePath?: string;
     dateOfBirth?: string;
+    fathersOccupation?: string;
 
     academicDetail?: any;
     addresses: any[];
 }
 
+export interface StudentBatchAssignment {
+    studentBatchAssignmentId: number | null;
+    firmId: number | null;
+
+    studentEnrollmentId: number;
+
+    studentName: string;
+    profileImagePath?: string;
+
+    batchId: number;
+    batchCode: string;
+
+    assignmentDate?: string;
+    assignmentType?: string;
+    remark?: string | null;
+
+    isActive: boolean;
+    isDeleted: boolean;
+
+    createdAt?: string;
+    updatedAt?: string | null;
+}
 
 
 export interface FetchStudentParams {
