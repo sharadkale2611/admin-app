@@ -1,4 +1,4 @@
-//  src/app/(protected) / attendance / sessions / [sessionId] / page.tsx
+// src/app/(protected)/attendance/sessions/[sessionId]/page.tsx
 
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
@@ -17,20 +17,14 @@ import { AttendanceFilterProvider } from "./_context/AttendanceFilterContext";
 import { AttendanceSessionDataProvider } from "./_context/AttendanceSessionDataContext";
 
 /**
- * Page Props
- */
-interface AttendanceDetailsPageProps {
-    params: {
-        sessionId: string;
-    };
-}
-
-/**
  * Attendance Details Page (Server Component)
+ * ✅ Next.js 15 compatible
  */
 export default async function AttendanceDetailsPage({
     params,
-}: AttendanceDetailsPageProps) {
+}: {
+    params: { sessionId: string };
+}) {
     const sessionId = Number(params.sessionId);
 
     if (isNaN(sessionId)) {
@@ -64,7 +58,7 @@ export default async function AttendanceDetailsPage({
 }
 
 /* =========================================================
-   Skeletons (keep UX smooth)
+   Skeletons
    ========================================================= */
 
 function HeaderSkeleton() {
@@ -97,14 +91,13 @@ function SummarySkeleton() {
 function TableSkeleton() {
     return (
         <AttendanceFilterProvider>
-
-        <Box
-            sx={{
-                height: 400,
-                bgcolor: "grey.100",
-                borderRadius: 1,
-            }}
-        />
+            <Box
+                sx={{
+                    height: 400,
+                    bgcolor: "grey.100",
+                    borderRadius: 1,
+                }}
+            />
         </AttendanceFilterProvider>
     );
 }
