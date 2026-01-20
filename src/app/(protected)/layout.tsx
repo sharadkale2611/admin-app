@@ -45,6 +45,7 @@ import {
     EventNote as EventNoteIcon,
    
     SupervisedUserCircleSharp,
+    Campaign,
 } from "@mui/icons-material";
 
 import { useTheme } from "@mui/material/styles";
@@ -108,11 +109,17 @@ const ProtectedLayout = ({ children }: LayoutParams) => {
         { text: "Exams", icon: <AssignmentIcon />, path: AppRoutes.EXAMS },
         { text: "Exam Marks", icon: <SchoolIcon />, path: AppRoutes.EXAM_MARKS },
         { text: "Attendance", icon: <EventNoteIcon />, path: AppRoutes.ATTENDANCE },
+        { text: "Notifications", icon: <Campaign />, path: AppRoutes.NOTICES },
     ];
 
     const menuItems = user?.roles?.includes("Administrator")
         ? adminMenu
         : firmAdminMenu;
+
+    const firmName = user?.firmName || "Guest";
+    const firmCode = (user?.firmCode || "-").toUpperCase();
+
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
     if (!isMounted) return null;
 
@@ -149,7 +156,9 @@ const ProtectedLayout = ({ children }: LayoutParams) => {
                         <MenuIcon />
                     </IconButton>
 
-                    <Typography variant="h6">Admin Panel</Typography>
+                    <Typography variant="h6" noWrap>
+                        {isSmallScreen ? firmCode : firmName}
+                    </Typography>
 
                     <Box sx={{ flexGrow: 1 }} />
 

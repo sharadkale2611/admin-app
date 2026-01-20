@@ -1,327 +1,238 @@
 // src/lib/config/apiConfig.ts
-// This file centralizes the API endpoint paths, using environment variables for flexibility.
 
-// Base URLs from environment variables, defaulting to empty strings if not set.
-const base_url = process.env.NEXT_PUBLIC_API_BASE_URL || "";
-const base_url_api = process.env.NEXT_PUBLIC_API_BASE_URL_API || "";
-
-// Define all API endpoints.
-// Each endpoint is constructed by concatenating the base_url_api with a specific path
-// derived from another environment variable, or a fallback path.
 const API_ENDPOINTS = {
-  PARENT_URL: process.env.NEXT_PUBLIC_API_PARENT_URL || "", // Parent URL, if applicable
-  BASE_URL_FILES:base_url,
-  BASE_URL: base_url, // General base URL
-  BASE_URL_API: base_url_api, // Base URL specifically for API calls
-  TIMEOUT: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || "5000", 10), // API timeout in milliseconds
+  /* ===================== BASE ===================== */
+  PARENT_URL: process.env.NEXT_PUBLIC_API_PARENT_URL || "",
+  BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || "",
+  BASE_URL_API: process.env.NEXT_PUBLIC_API_BASE_URL_API || "",
+  TIMEOUT: Number(process.env.NEXT_PUBLIC_API_TIMEOUT || 5000),
 
-  // Authentication related endpoints
+  /* ===================== AUTH ===================== */
   AUTH: {
-    LOGIN: process.env.NEXT_PUBLIC_AUTH_LOGIN_ENDPOINT || "api/login",
-    LOGOUT: process.env.NEXT_PUBLIC_AUTH_LOGOUT_ENDPOINT || "api/logout",
-    REFRESH: process.env.NEXT_PUBLIC_AUTH_REFRESH_ENDPOINT || "api/refresh",
-    ME: process.env.NEXT_PUBLIC_AUTH_ME_ENDPOINT || "api/me",
-    // Assuming a CHECK endpoint is needed for session validation, similar to ME or a dedicated one
-    CHECK: process.env.NEXT_PUBLIC_AUTH_CHECK_ENDPOINT || "api/check",
+    LOGIN: "/Auth/login",
+    LOGOUT: "/Auth/logout",
+    REVOKE: "/Auth/revoke",
+    REFRESH: "/Auth/refresh-token",
+    ME: "/Auth/me",
+    CHECK: "/Auth/check",
   },
-  // Firm-related endpoints
+
+  /* ===================== FIRMS ===================== */
   FIRM: {
-    LIST:
-      process.env.NEXT_PUBLIC_FIRMS_PAGINATED_ENDPOINT || "/Firms/paginated", // paginated list
-    GET_BY_ID:
-      `${base_url_api}${process.env.NEXT_PUBLIC_FIRMS_ENDPOINT}` ||
-      `${base_url_api}/Firms`,
-    // fetch single firm
-    CREATE: process.env.NEXT_PUBLIC_FIRMS_ENDPOINT || "/Firms", // create firm
-    UPDATE: process.env.NEXT_PUBLIC_FIRMS_ENDPOINT || "/Firms", // update firm
-    DELETE: process.env.NEXT_PUBLIC_FIRMS_ENDPOINT || "/Firms", // delete firm
+    GET_LIST_PAGINATED: "/Firms/paginated",
+    GET_LIST: "/Firms",
+    GET_BY_ID: "/Firms",
+    POST_CREATE: "/Firms",
+    PUT_UPDATE: "/Firms",
+    DELETE: "/Firms",
   },
 
+  /* ===================== STAFF ===================== */
   STAFF: {
-    GET_LIST_PAGINATED:
-      process.env.NEXT_PUBLIC_STAFFS_PAGINATED_ENDPOINT || "api/staffs",
-    GET_LIST: process.env.NEXT_PUBLIC_STAFFS_ENDPOINT || "api/staffs",
-    GET_BY_ID: process.env.NEXT_PUBLIC_STAFFS_ENDPOINT || "api/staffs",
-    POST_CREATE: process.env.NEXT_PUBLIC_STAFFS_ENDPOINT || "api/staffs",
-    PUT_UPDATE: process.env.NEXT_PUBLIC_STAFFS_ENDPOINT || "api/staffs",
-    DELETE: process.env.NEXT_PUBLIC_STAFFS_ENDPOINT || "api/staffs",
-    GET_BY_COURSE: process.env.NEXT_PUBLIC_TRAINERS_BY_COURSE_ENDPOINT || "Staffs/trainers/by-course",
+    GET_LIST_PAGINATED: "/Staffs/paginated",
+    GET_LIST: "/Staffs",
+    GET_BY_ID: "/Staffs",
+    POST_CREATE: "/Staffs",
+    PUT_UPDATE: "/Staffs",
+    DELETE: "/Staffs",
+    GET_BY_COURSE: "/Staffs/trainers/by-course",
   },
+
+  /* ===================== STUDENTS ===================== */
   STUDENT: {
-    GET_LIST_PAGINATED:
-      process.env.NEXT_PUBLIC_STUDENTS_PAGINATED_ENDPOINT || "api/Students",
-    GET_LIST: process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || "api/Students",
-    GET_BY_ID: process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || "api/Students",
-    POST_CREATE: process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || "api/Students",
-    PUT_UPDATE: process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || "api/Students",
-    DELETE: process.env.NEXT_PUBLIC_STUDENTS_ENDPOINT || "api/Students",
-    GET_BY_MOBILE: "/students/by-mobile",
+    GET_LIST_PAGINATED: "/Students/paginated",
+    GET_LIST: "/Students",
+    GET_BY_ID: "/Students",
+    POST_CREATE: "/Students",
+    PUT_UPDATE: "/Students",
+    DELETE: "/Students",
+    GET_BY_MOBILE: "/Students/by-mobile",
     GET_BATCH_COURSE_ASSIGNMENTS: "/Students/batch-course-assignments",
-
   },
-    EXAM_MARKS: {
-      GET_LIST_PAGINATED:
-        process.env.NEXT_PUBLIC_EXAM_MARKS_PAGINATED_ENDPOINT ||
-        "/ExamMarks/paginated",
-      GET_LIST:
-        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/ExamMarks",
-      GET_BY_ID:
-        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/ExamMarks",
-      POST_CREATE:
-        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/ExamMarks",
-      PUT_UPDATE:
-        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/ExamMarks",
-      DELETE:
-        process.env.NEXT_PUBLIC_EXAM_MARKS_ENDPOINT || "/ExamMarks",
-    },
+
+  /* ===================== EXAM MARKS ===================== */
+  EXAM_MARKS: {
+    GET_LIST_PAGINATED: "/ExamMarks/paginated",
+    GET_LIST: "/ExamMarks",
+    GET_BY_ID: "/ExamMarks",
+    POST_CREATE: "/ExamMarks",
+    PUT_UPDATE: "/ExamMarks",
+    DELETE: "/ExamMarks",
+  },
+
+  /* ===================== ADMISSIONS / ENROLLMENTS ===================== */
   ADMISSION: {
-    GET_LIST_PAGINATED:
-      process.env.NEXT_PUBLIC_ENROLLMENTS_PAGINATED_ENDPOINT ||
-      "api/Enrollments",
-    GET_BY_ID:
-      process.env.NEXT_PUBLIC_ENROLLMENTS_ENDPOINT || "api/Enrollments",
-    POST_CREATE:
-      process.env.NEXT_PUBLIC_ENROLLMENTS_ENDPOINT || "api/Enrollments",
-    POST_COMPLETE_CREATE:
-      process.env.NEXT_PUBLIC_ADMISSIONS_ENDPOINT || "/admissions",
-
-    PUT_UPDATE:
-      process.env.NEXT_PUBLIC_ENROLLMENTS_ENDPOINT || "api/Enrollments",
-    DELETE: process.env.NEXT_PUBLIC_ENROLLMENTS_ENDPOINT || "api/Enrollments",
+    GET_LIST_PAGINATED: "/Enrollments/paginated",
+    GET_BY_ID: "/Enrollments",
+    POST_CREATE: "/Enrollments",
+    POST_COMPLETE_CREATE: "/Admissions",
+    PUT_UPDATE: "/Enrollments",
+    DELETE: "/Enrollments",
   },
+
+  /* ===================== COURSE CATEGORIES ===================== */
   COURSE_CATEGORIES: {
-    GET_LIST:
-      process.env.NEXT_PUBLIC_COURSE_CATEGORIES_ENDPOINT ||
-      "/api/CourseCategories",
-    GET_TREE:
-      process.env.NEXT_PUBLIC_COURSE_CATEGORIES_ENDPOINT ||
-      "/api/CourseCategories/tree",
-    GET_BY_ID:
-      process.env.NEXT_PUBLIC_COURSE_CATEGORIES_ENDPOINT ||
-      "/api/CourseCategories",
-    POST_CREATE:
-      process.env.NEXT_PUBLIC_COURSE_CATEGORIES_ENDPOINT ||
-      "/api/CourseCategories",
-    PUT_UPDATE:
-      process.env.NEXT_PUBLIC_COURSE_CATEGORIES_ENDPOINT ||
-      "/api/CourseCategories",
-    DELETE:
-      process.env.NEXT_PUBLIC_COURSE_CATEGORIES_ENDPOINT ||
-      "/api/CourseCategories",
+    GET_LIST: "/CourseCategories",
+    GET_TREE: "/CourseCategories/tree",
+    GET_BY_ID: "/CourseCategories",
+    POST_CREATE: "/CourseCategories",
+    PUT_UPDATE: "/CourseCategories",
+    DELETE: "/CourseCategories",
   },
+
+  /* ===================== DISCOUNT CODES ===================== */
   DISCOUNT_CODES: {
-    GET_LIST:
-      process.env.NEXT_PUBLIC_DISCOUNT_CODES_ENDPOINT || "/api/DiscountCodes",
-    GET_BY_ID:
-      process.env.NEXT_PUBLIC_DISCOUNT_CODES_ENDPOINT || "/api/DiscountCodes",
-    POST_CREATE:
-      process.env.NEXT_PUBLIC_DISCOUNT_CODES_ENDPOINT || "/api/DiscountCodes",
-    PUT_UPDATE:
-      process.env.NEXT_PUBLIC_DISCOUNT_CODES_ENDPOINT || "/api/DiscountCodes",
-    DELETE:
-      process.env.NEXT_PUBLIC_DISCOUNT_CODES_ENDPOINT || "/api/DiscountCodes",
+    GET_LIST: "/DiscountCodes",
+    GET_BY_ID: "/DiscountCodes",
+    POST_CREATE: "/DiscountCodes",
+    PUT_UPDATE: "/DiscountCodes",
+    DELETE: "/DiscountCodes",
   },
+
+  /* ===================== COURSES ===================== */
   COURSES: {
-    GET_LIST_PAGINATED:
-      process.env.NEXT_PUBLIC_COURSES_PAGINATED_ENDPOINT ||
-      "/Courses/paginated",
-    GET_LIST: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",
-    GET_BY_ID: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",
-    POST_CREATE: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",
-    PUT_UPDATE: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",
-    DELETE: process.env.NEXT_PUBLIC_COURSES_ENDPOINT || "/api/Courses",
+    GET_LIST_PAGINATED: "/Courses/paginated",
+    GET_LIST: "/Courses",
+    GET_BY_ID: "/Courses",
+    POST_CREATE: "/Courses",
+    PUT_UPDATE: "/Courses",
+    DELETE: "/Courses",
   },
+
+  /* ===================== COURSE FEES ===================== */
   COURSE_FEES: {
-    GET_LIST: process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || "/api/CourseFees",
-    GET_BY_ID:
-      process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || "/api/CourseFees",
-    POST_CREATE:
-      process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || "/api/CourseFees",
-    PUT_UPDATE:
-      process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || "/api/CourseFees",
-    DELETE: process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || "/api/CourseFees",
-    // GET_BY_FIRM: (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || '/api/CourseFees') + "/CourseFeeByFirmId"
-    GET_BY_FIRM:
-      (process.env.NEXT_PUBLIC_COURSE_FEES_ENDPOINT || "/api/CourseFees") +
-      "/by-firm",
+    GET_LIST: "/CourseFees",
+    GET_BY_ID: "/CourseFees",
+    POST_CREATE: "/CourseFees",
+    PUT_UPDATE: "/CourseFees",
+    DELETE: "/CourseFees",
+    GET_BY_FIRM: "/CourseFees/by-firm",
   },
+
+  /* ===================== CLASS ROOMS ===================== */
   CLASS_ROOMS: {
-    GET_LIST: process.env.NEXT_PUBLIC_CLASS_ROOMS_ENDPOINT || "/ClassRooms",
-    GET_BY_ID: process.env.NEXT_PUBLIC_CLASS_ROOMS_ENDPOINT || "/ClassRooms",
-    POST_CREATE: process.env.NEXT_PUBLIC_CLASS_ROOMS_ENDPOINT || "/ClassRooms",
-    PUT_UPDATE: process.env.NEXT_PUBLIC_CLASS_ROOMS_ENDPOINT || "/ClassRooms",
-    DELETE: process.env.NEXT_PUBLIC_CLASS_ROOMS_ENDPOINT || "/ClassRooms",
+    GET_LIST: "/ClassRooms",
+    GET_BY_ID: "/ClassRooms",
+    POST_CREATE: "/ClassRooms",
+    PUT_UPDATE: "/ClassRooms",
+    DELETE: "/ClassRooms",
   },
+
+  /* ===================== MODULES ===================== */
   MODULES: {
-    GET_LIST: process.env.NEXT_PUBLIC_MODULES_ENDPOINT || "/Modules",
-    GET_BY_ID: process.env.NEXT_PUBLIC_MODULES_ENDPOINT || "/Modules",
-    POST_CREATE: process.env.NEXT_PUBLIC_MODULES_ENDPOINT || "/Modules",
-    PUT_UPDATE: process.env.NEXT_PUBLIC_MODULES_ENDPOINT || "/Modules",
-    DELETE: process.env.NEXT_PUBLIC_MODULES_ENDPOINT || "/Modules",
+    GET_LIST: "/Modules",
+    GET_BY_ID: "/Modules",
+    POST_CREATE: "/Modules",
+    PUT_UPDATE: "/Modules",
+    DELETE: "/Modules",
   },
+
+  /* ===================== COURSE MODULES ===================== */
   COURSE_MODULES: {
-    GET_LIST:
-      process.env.NEXT_PUBLIC_COURSE_MODULES_ENDPOINT || "/CourseModules",
-    GET_BY_ID:
-      process.env.NEXT_PUBLIC_COURSE_MODULES_ENDPOINT || "/CourseModules",
-    POST_CREATE:
-      process.env.NEXT_PUBLIC_COURSE_MODULES_ENDPOINT || "/CourseModules",
-    PUT_UPDATE:
-      process.env.NEXT_PUBLIC_COURSE_MODULES_ENDPOINT || "/CourseModules",
-    DELETE: process.env.NEXT_PUBLIC_COURSE_MODULES_ENDPOINT || "/CourseModules",
-    // Returns CourseModuleResponseDto[] for a given course
-    GET_BY_COURSE:
-      (process.env.NEXT_PUBLIC_COURSE_MODULES_ENDPOINT || "/CourseModules") +
-      "/course",
+    GET_LIST: "/CourseModules",
+    GET_BY_ID: "/CourseModules",
+    POST_CREATE: "/CourseModules",
+    PUT_UPDATE: "/CourseModules",
+    DELETE: "/CourseModules",
+    GET_BY_COURSE: "/CourseModules/course",
   },
+
+  /* ===================== BATCHES ===================== */
   BATCHES: {
-    GET_LIST_PAGINATED: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches/paginated",
-    GET_LIST: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
-    GET_BY_ID: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
-    POST_CREATE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
-    PUT_UPDATE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
-    DELETE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches",
-    GET_BY_STUDENT: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches/by-student",
-    GET_BY_COURSE: process.env.NEXT_PUBLIC_BATCHES_ENDPOINT || "/Batches/by-course",
-
+    GET_LIST_PAGINATED: "/Batches/paginated",
+    GET_LIST: "/Batches",
+    GET_BY_ID: "/Batches",
+    POST_CREATE: "/Batches",
+    PUT_UPDATE: "/Batches",
+    DELETE: "/Batches",
+    GET_BY_STUDENT: "/Batches/by-student",
+    GET_BY_COURSE: "/Batches/by-course",
   },
 
+  /* ===================== ATTENDANCE SESSIONS ===================== */
   ATTENDANCE_SESSIONS: {
-    GET_LIST_PAGINATED:
-      process.env.NEXT_PUBLIC_ATTENDANCE_SESSIONS_PAGINATED_ENDPOINT ||
-      "/AttendanceSession/paginated",
-    GET_LIST:
-      process.env.NEXT_PUBLIC_ATTENDANCE_SESSIONS_ENDPOINT ||
-      "/AttendanceSession",
-    GET_BY_ID:
-      process.env.NEXT_PUBLIC_ATTENDANCE_SESSIONS_ENDPOINT ||
-      "/AttendanceSession",
-    POST_CREATE:
-      process.env.NEXT_PUBLIC_ATTENDANCE_SESSIONS_ENDPOINT ||
-      "/AttendanceSession",
-    PUT_UPDATE:
-      process.env.NEXT_PUBLIC_ATTENDANCE_SESSIONS_ENDPOINT ||
-      "/AttendanceSession",
-    DELETE:
-      process.env.NEXT_PUBLIC_ATTENDANCE_SESSIONS_ENDPOINT ||
-      "/AttendanceSession",
+    GET_LIST_PAGINATED: "/AttendanceSession/paginated",
+    GET_LIST: "/AttendanceSession",
+    GET_BY_ID: "/AttendanceSession",
+    POST_CREATE: "/AttendanceSession",
+    PUT_UPDATE: "/AttendanceSession",
+    DELETE: "/AttendanceSession",
   },
 
-  // Attendance (session details + marking)
+  /* ===================== ATTENDANCE ===================== */
   ATTENDANCE: {
-    GET_BY_SESSION:
-      (process.env.NEXT_PUBLIC_ATTENDANCE_ENDPOINT || "/Attendance") +
-      "/by-session",
-    PUT_UPDATE_STATUS:
-      (process.env.NEXT_PUBLIC_ATTENDANCE_ENDPOINT || "/Attendance") +
-      "/update-status",
+    GET_BY_SESSION: "/Attendance/by-session",
+    PUT_UPDATE_STATUS: "/Attendance/update-status",
   },
 
+  /* ===================== STUDENT BATCH ASSIGNMENTS ===================== */
   STUDENT_BATCH_ASSIGNMENTS: {
-    GET_LIST_PAGINATED:
-      process.env.NEXT_PUBLIC_STUDENT_BATCH_ASSIGNMENTS_ENDPOINT ||
-      "/StudentBatchAssignments/paginated",
-    GET_LIST:
-      process.env.NEXT_PUBLIC_STUDENT_BATCH_ASSIGNMENTS_ENDPOINT ||
-      "/StudentBatchAssignments",
-    GET_BY_ID:
-      process.env.NEXT_PUBLIC_STUDENT_BATCH_ASSIGNMENTS_ENDPOINT ||
-      "/StudentBatchAssignments",
-    POST_CREATE:
-      process.env.NEXT_PUBLIC_STUDENT_BATCH_ASSIGNMENTS_ENDPOINT ||
-      "/StudentBatchAssignments",
-
-    POST_CREATE_BULK: "/StudentBatchAssignments/bulk",  
-    
-    
-    PUT_UPDATE:
-      process.env.NEXT_PUBLIC_STUDENT_BATCH_ASSIGNMENTS_ENDPOINT ||
-      "/StudentBatchAssignments",
-    DELETE:
-      process.env.NEXT_PUBLIC_STUDENT_BATCH_ASSIGNMENTS_ENDPOINT ||
-      "/StudentBatchAssignments",
-
+    GET_LIST_PAGINATED: "/StudentBatchAssignments/paginated",
+    GET_LIST: "/StudentBatchAssignments",
+    GET_BY_ID: "/StudentBatchAssignments",
+    POST_CREATE: "/StudentBatchAssignments",
+    POST_CREATE_BULK: "/StudentBatchAssignments/bulk",
+    PUT_UPDATE: "/StudentBatchAssignments",
+    DELETE: "/StudentBatchAssignments",
     GET_BY_BATCH: "/StudentBatchAssignments/by-batch",
-
   },
+
+  /* ===================== BRANCHES ===================== */
   BRANCHES: {
-    GET_LIST: process.env.NEXT_PUBLIC_BRANCHES_ENDPOINT || "/Branches",
+    GET_LIST: "/Branches",
   },
 
-    BATCH_STUDY_WORKS: {
-    GET_LIST_PAGINATED:
-      process.env.NEXT_PUBLIC_BATCH_STUDY_WORKS_PAGINATED_ENDPOINT ||
-      "/BatchStudyWorks/paginated",
-
-    GET_LIST:
-      process.env.NEXT_PUBLIC_BATCH_STUDY_WORKS_ENDPOINT ||
-      "/BatchStudyWorks",
-
-    GET_BY_ID:
-      process.env.NEXT_PUBLIC_BATCH_STUDY_WORKS_ENDPOINT ||
-      "/BatchStudyWorks",
-
-    POST_CREATE:
-      process.env.NEXT_PUBLIC_BATCH_STUDY_WORKS_ENDPOINT ||
-      "/BatchStudyWorks",
-
-    PUT_UPDATE:
-      process.env.NEXT_PUBLIC_BATCH_STUDY_WORKS_ENDPOINT ||
-      "/BatchStudyWorks",
-
-    DELETE:
-      process.env.NEXT_PUBLIC_BATCH_STUDY_WORKS_ENDPOINT ||
-      "/BatchStudyWorks",
+  /* ===================== BATCH STUDY WORKS ===================== */
+  BATCH_STUDY_WORKS: {
+    GET_LIST_PAGINATED: "/BatchStudyWorks/paginated",
+    GET_LIST: "/BatchStudyWorks",
+    GET_BY_ID: "/BatchStudyWorks",
+    POST_CREATE: "/BatchStudyWorks",
+    PUT_UPDATE: "/BatchStudyWorks",
+    DELETE: "/BatchStudyWorks",
   },
 
-
-
+  /* ===================== BATCH STUDY WORK ATTACHMENTS ===================== */
   BATCH_STUDY_WORK_ATTACHMENTS: {
     GET_BY_BATCH: "/BatchStudyWorkAttachements/by-batch",
     UPLOAD: "/BatchStudyWorkAttachements/upload",
     DELETE: "/BatchStudyWorkAttachements",
   },
 
-
-    BATCH_SCHEDULES: {
-    GET_BY_BATCH:
-      process.env.NEXT_PUBLIC_BATCH_SCHEDULES_BY_BATCH_ENDPOINT ||
-      "/BatchSchedules/by-batch",
-    POST_CREATE_BULK:
-      process.env.NEXT_PUBLIC_BATCH_SCHEDULES_BULK_ENDPOINT ||
-      "/BatchSchedules/bulk-create",
-    POST_CREATE_SINGLE:
-      process.env.NEXT_PUBLIC_BATCH_SCHEDULES_ENDPOINT ||
-      "/BatchSchedules/create",
+  /* ===================== BATCH SCHEDULES ===================== */
+  BATCH_SCHEDULES: {
+    GET_BY_BATCH: "/BatchSchedules/by-batch",
+    POST_CREATE_BULK: "/BatchSchedules/bulk-create",
+    POST_CREATE_SINGLE: "/BatchSchedules/create",
   },
 
-   NOTICES: {
-    GET_LIST: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
-    GET_BY_ID: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
-    POST_CREATE: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
-    PUT_UPDATE: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
-    DELETE: process.env.NEXT_PUBLIC_NOTICES_ENDPOINT || "/Notices",
+  /* ===================== NOTICES ===================== */
+  NOTICES: {
+    GET_LIST: "/Notices",
+    GET_BY_ID: "/Notices",
+    POST_CREATE: "/Notices",
+    PUT_UPDATE: "/Notices",
+    DELETE: "/Notices",
   },
-  
+
+  /* ===================== STUDENT PAYMENTS ===================== */
   STUDENT_PAYMENTS: {
     GET_BY_STUDENT_ID: "/StudentPayments/student-id",
-    UPDATE_PAYMENT: "/StudentPayments/updatePayment"
+    UPDATE_PAYMENT: "/StudentPayments/updatePayment",
   },
-EXAMS: {
-    GET_LIST_PAGINATED:
-      "/Exams/paginated",
-    GET_LIST:
-      process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
-    GET_BY_ID:
-      process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
-    POST_CREATE:
-      process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
-    PUT_UPDATE:
-      process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
-    DELETE:
-      process.env.NEXT_PUBLIC_EXAMS_ENDPOINT || "/Exams",
+
+  /* ===================== EXAMS ===================== */
+  EXAMS: {
+    GET_LIST_PAGINATED: "/Exams/paginated",
+    GET_LIST: "/Exams",
+    GET_BY_ID: "/Exams",
+    POST_CREATE: "/Exams",
+    PUT_UPDATE: "/Exams",
+    DELETE: "/Exams",
     GET_STUDENTS_BY_MODULE: "/Exams/students-by-module",
-  },  
+  },
+
+  /* ===================== STATES / CITIES ===================== */
   STATES: {
     GET_LIST: "/states",
   },
@@ -329,28 +240,10 @@ EXAMS: {
     GET_LIST: "/cities",
   },
 
+  /* ===================== USERS ===================== */
   USERS: {
     BASE: "/Users",
   },
-  // Add other endpoint categories here as needed
-};
-
-/**
- * A utility function to construct a full API URL.
- * While the `API_ENDPOINTS` object already provides full URLs for many cases,
- * this function can be used for dynamic endpoints or if a different base URL is needed.
- * @param endpoint The specific path or a full URL segment to append to BASE_URL_API.
- * @returns The complete API URL.
- */
-export const getApiUrl = (endpoint: string): string => {
-  // Ensure no double slashes if endpoint already starts with one
-  const trimmedBase = API_ENDPOINTS.BASE_URL_API.endsWith("/")
-    ? API_ENDPOINTS.BASE_URL_API.slice(0, -1)
-    : API_ENDPOINTS.BASE_URL_API;
-  const trimmedEndpoint = endpoint.startsWith("/")
-    ? endpoint.slice(1)
-    : endpoint;
-  return `${trimmedBase}/${trimmedEndpoint}`;
 };
 
 export default API_ENDPOINTS;

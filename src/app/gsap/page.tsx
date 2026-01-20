@@ -19,7 +19,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
-import AnimatedEducationBackground from "@/app/components/ui/AnimatedEducationBackground";
+import AnimatedEducationBackground from "../components/ui/AnimatedEducationBackground";
 
 export default function LoginPage() {
     const { handleSubmit, loading, error, validationErrors } =
