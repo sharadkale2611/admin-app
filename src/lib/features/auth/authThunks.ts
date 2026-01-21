@@ -3,7 +3,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { loginFailure, loginStart, loginSuccess, logout } from './authSlice';
 import api from '@/lib/services/apiService';
 import { User } from './authTypes';
-import API_ENDPOINTS, { getApiUrl } from '@/lib/config/apiConfig';
+import API_ENDPOINTS from '@/lib/config/apiConfig';
 import { setSessionExpiry, setRefreshing, clearTokens } from '../session/sessionSlice';
 import { AppDispatch, RootState } from '@/lib/store';
 import { setFirmId } from "../staff/staffSlice";
@@ -34,6 +34,8 @@ interface ThunkRejectValue {
     fieldErrors?: Record<string, string[]>;
 }
 
+const baseUrl = API_ENDPOINTS.BASE_URL_API;
+
 /**
  * LOGIN
  */
@@ -46,10 +48,10 @@ export const login = createAsyncThunk<
     async (credentials, { rejectWithValue, dispatch }) => {
         dispatch(loginStart());
         try {
-            console.log(`before call ${getApiUrl(API_ENDPOINTS.AUTH.LOGIN)} `, credentials);
+            console.log(`before call ${baseUrl}${API_ENDPOINTS.AUTH.LOGIN} `, credentials);
 
             // The response here is already transformed to just the data by the interceptor
-            const userData = await api.post<User>(getApiUrl(API_ENDPOINTS.AUTH.LOGIN), credentials) as unknown as User;
+            const userData = await api.post<User>(`${baseUrl}${API_ENDPOINTS.AUTH.LOGIN}`, credentials) as unknown as User;
 
             console.log('Login successful, user data:', userData);
             console.log('Cookies:', document.cookie);
@@ -106,7 +108,7 @@ export const logoutUser = createAsyncThunk<void, void, { dispatch: AppDispatch }
     'auth/logout',
     async (_, { dispatch }) => {
         try {
-            await api.post(getApiUrl(API_ENDPOINTS.AUTH.LOGOUT));
+            await api.post(`${baseUrl}${API_ENDPOINTS.AUTH.LOGOUT}`);
             console.log('logout done!');
             
         } finally {
@@ -137,7 +139,7 @@ export const checkAuth = createAsyncThunk<
                 isAuthenticated: boolean;
                 user?: User;
                 expiresIn?: number;
-            }>(getApiUrl(API_ENDPOINTS.AUTH.CHECK), {
+            }>(`${baseUrl}${API_ENDPOINTS.AUTH.CHECK}`, {
                 withCredentials: true,
                 validateStatus: (status) => status < 500 // Don't throw for 401
             });
@@ -155,7 +157,7 @@ export const checkAuth = createAsyncThunk<
                         isAuthenticated: boolean;
                         user?: User;
                         expiresIn?: number;
-                    }>(getApiUrl(API_ENDPOINTS.AUTH.CHECK), { withCredentials: true });
+                    }>(`${baseUrl}${API_ENDPOINTS.AUTH.CHECK}`, { withCredentials: true });
 
                     if (retryResponse.data?.isAuthenticated && retryResponse.data.user) {
                         return { user: retryResponse.data.user };
@@ -211,7 +213,7 @@ export const refreshToken = createAsyncThunk<
         try {
             dispatch(setRefreshing(true));
 
-            const response = await api.post<{ expiresIn?: number }>(getApiUrl(API_ENDPOINTS.AUTH.REFRESH));
+            const response = await api.post<{ expiresIn?: number }>(`${baseUrl}${API_ENDPOINTS.AUTH.REFRESH}`);
 
             if (response.data?.expiresIn) {
                 const expiryTime = Date.now() + response.data.expiresIn * 1000;
@@ -257,6 +259,6 @@ export const changePassword = createAsyncThunk<
     const url = `${API_ENDPOINTS.USERS.BASE}/${userId}/change-password`;
 
     // 3️⃣ call backend API
-    await api.post(getApiUrl(url), payload);
+    await api.post(`${baseUrl}${url}`, payload);
   }
 );

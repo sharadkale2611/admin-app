@@ -13,7 +13,7 @@ const API_ENDPOINTS = {
   PARENT_URL: 'https://rsa.ysaasinfotech.com',
   BASE_URL: 'https://apirsa.ysaasinfotech.com',
   BASE_URL_API: 'https://apirsa.ysaasinfotech.com/api',
-  TIMEOUT: Number(process.env.NEXT_PUBLIC_API_TIMEOUT || 5000),
+  TIMEOUT: 5000,
 
 
 
@@ -256,14 +256,6 @@ const API_ENDPOINTS = {
   },
 };
 
-
-export const getApiUrl = (path: string) => {
-  if (!path.startsWith('/')) {
-    path = '/' + path;
-  }
-  console.log('API URL:', `${API_BASE_URL}---${path}`);
-  return `${API_BASE_URL}${path}`;
-};
 
 export default API_ENDPOINTS;
 
