@@ -261,6 +261,7 @@ export const getApiUrl = (path: string) => {
   if (!path.startsWith('/')) {
     path = '/' + path;
   }
+  console.log('API URL:', `${API_BASE_URL}---${path}`);
   return `${API_BASE_URL}${path}`;
 };
 
