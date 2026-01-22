@@ -10,10 +10,10 @@ interface AttendanceSummaryProps {
 
 type AttendanceFilter =
     | 'ALL'
-    | 'Present'
-    | 'Absent'
-    | 'Late'
-    | 'Leave';
+    | 'PRESENT'
+    | 'ABSENT'
+    | 'LATE'
+    | 'LEAVE';
 
 export default function AttendanceSummary({
     sessionId,
@@ -42,32 +42,32 @@ export default function AttendanceSummary({
                     label="Present"
                     count={data?.summary.present ?? 0}
                     color="success"
-                    active={filter === 'Present'}
-                    onClick={() => handleFilterChange('Present')}
+                    active={filter === 'PRESENT'}
+                    onClick={() => handleFilterChange('PRESENT')}
                 />
 
                 <SummaryChip
                     label="Absent"
                     count={data?.summary.absent ?? 0}
                     color="error"
-                    active={filter === 'Absent'}
-                    onClick={() => handleFilterChange('Absent')}
+                    active={filter === 'ABSENT'}
+                    onClick={() => handleFilterChange('ABSENT')}
                 />
 
                 <SummaryChip
                     label="Late"
                     count={data?.summary.late ?? 0}
                     color="warning"
-                    active={filter === 'Late'}
-                    onClick={() => handleFilterChange('Late')}
+                    active={filter === 'LATE'}
+                    onClick={() => handleFilterChange('LATE')}
                 />
 
                 <SummaryChip
                     label="Leave"
                     count={data?.summary.leave ?? 0}
                     color="info"
-                    active={filter === 'Leave'}
-                    onClick={() => handleFilterChange('Leave')}
+                    active={filter === 'LEAVE'}
+                    onClick={() => handleFilterChange('LEAVE')}
                 />
 
                 <SummaryChip

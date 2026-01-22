@@ -28,19 +28,19 @@ export default function CreateBatchPage() {
   const [trainers, setTrainers] = useState([]);
 
   const [form, setForm] = useState({
-    batchCode: "",
-    branchId: "",
+    // batchCode: "",
     moduleId: "",
     trainerId: "",
     classRoomId: "",
-    startDate: "",
-    actualStartDate: "",
-    endDate: "",
-    actualEndDate: "",
     startTime: "",
-    batchDurationInHr: 1,
+    batchDurationInHr: "",
     isActive: true,
   });
+
+  const toOptionalNumber = (value: string) => {
+    const n = Number(value);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  };
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -68,20 +68,15 @@ const handleSubmit = async (e: any) => {
   e.preventDefault();
 
   const dto = {
-    BatchCode: form.batchCode,
-    BranchId: form.branchId ? Number(form.branchId) : null,
-    ModuleId: Number(form.moduleId),
-    TrainerId: Number(form.trainerId),
-    ClassRoomId: Number(form.classRoomId),
-
-    StartDate: form.startDate || null,
-    ActualStartDate: form.actualStartDate || null,
-    EndDate: form.endDate || null,
-    ActualEndDate: form.actualEndDate || null,
-
-    StartTime: form.startTime ? form.startTime + ":00" : null, 
-    BatchDurationInHr: Number(form.batchDurationInHr),
+    // BatchCode: form.batchCode,
     IsActive: form.isActive,
+
+    ModuleId: Number(form.moduleId),
+    TrainerId: toOptionalNumber(form.trainerId),
+    ClassRoomId: toOptionalNumber(form.classRoomId),
+    StartTime: form.startTime ? `${form.startTime}:00` : null,
+    BatchDurationInHr:
+      form.batchDurationInHr === "" ? null : Number(form.batchDurationInHr),
   };
 
   const ok = await handleCreateBatch(dto);
@@ -113,13 +108,14 @@ const handleSubmit = async (e: any) => {
           sx={{ display: "grid", gap: 2 }}
         >
           {/* Batch Code */}
-          <TextField
+          {/* <TextField
             label="Batch Code"
             name="batchCode"
             value={form.batchCode}
             onChange={handleChange}
             required
-          />
+            inputProps={{ maxLength: 30 }}
+          /> */}
 
           {/*            
           <TextField
@@ -147,6 +143,7 @@ const handleSubmit = async (e: any) => {
             onChange={handleChange}
             required
           >
+            <MenuItem value="">-- Select Module --</MenuItem>
             {modules.map((m: any) => (
               <MenuItem key={m.moduleId} value={m.moduleId}>
                 {m.moduleName}
@@ -161,8 +158,8 @@ const handleSubmit = async (e: any) => {
             name="trainerId"
             value={form.trainerId}
             onChange={handleChange}
-            required
           >
+            <MenuItem value="">None</MenuItem>
             {trainers.map((t: any) => (
               <MenuItem key={t.staffId} value={t.staffId}>
                 {t.firstName} {t.lastName}
@@ -177,8 +174,8 @@ const handleSubmit = async (e: any) => {
             name="classRoomId"
             value={form.classRoomId}
             onChange={handleChange}
-            required
           >
+            <MenuItem value="">None</MenuItem>
             {classRooms.map((c: any) => (
               <MenuItem key={c.classRoomId} value={c.classRoomId}>
                 {c.classRoomName}
@@ -234,13 +231,14 @@ const handleSubmit = async (e: any) => {
           />
 
           {/* Duration */}
-          {/* <TextField
+          <TextField
             type="number"
-            label="Duration (hours)"
+            label="Batch Duration (hours)"
             name="batchDurationInHr"
             value={form.batchDurationInHr}
             onChange={handleChange}
-          /> */}
+            inputProps={{ min: 1, max: 24 }}
+          />
 
           <FormControlLabel
             control={

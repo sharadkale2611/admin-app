@@ -86,7 +86,7 @@ export default function BatchCard({ batch, onDelete, isDeleting }: Props) {
 
                 {/* Duration */}
                 <Typography variant="body2" sx={{ mt: 0.5 }}>
-                    Total Hrs Duration: {batch.batchDurationInHr ?? "-"} Hrs
+                    Batch Duration: {batch.batchDurationInHr ?? "-"} Hrs
                 </Typography>
 
                 {/* Trainer */}
