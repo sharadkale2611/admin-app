@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export type AttendanceFilter =
-    | 'ALL'
+    | 'All'
     | 'Present'
     | 'Absent'
     | 'Late'
@@ -13,7 +13,7 @@ interface AttendanceSessionState {
 }
 
 const initialState: AttendanceSessionState = {
-    filter: 'ALL',
+    filter: 'All',
     isLocked: true, // dummy (API later)
 };
 

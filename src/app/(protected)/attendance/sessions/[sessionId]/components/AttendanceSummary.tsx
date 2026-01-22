@@ -3,17 +3,12 @@
 import { Box, Chip, Stack, Typography } from '@mui/material';
 import { useAttendanceSession } from '@/lib/features/attendance/useAttendanceSession';
 import { useAttendanceSessionData } from '../_context/AttendanceSessionDataContext';
+import { AttendanceFilter } from '@/lib/features/attendance/attendanceSessionSlice';
 
 interface AttendanceSummaryProps {
     sessionId: number;
 }
 
-type AttendanceFilter =
-    | 'ALL'
-    | 'PRESENT'
-    | 'ABSENT'
-    | 'LATE'
-    | 'LEAVE';
 
 export default function AttendanceSummary({
     sessionId,
@@ -42,40 +37,40 @@ export default function AttendanceSummary({
                     label="Present"
                     count={data?.summary.present ?? 0}
                     color="success"
-                    active={filter === 'PRESENT'}
-                    onClick={() => handleFilterChange('PRESENT')}
+                    active={filter === 'Present'}
+                    onClick={() => handleFilterChange('Present')}
                 />
 
                 <SummaryChip
                     label="Absent"
                     count={data?.summary.absent ?? 0}
                     color="error"
-                    active={filter === 'ABSENT'}
-                    onClick={() => handleFilterChange('ABSENT')}
+                    active={filter === 'Absent'}
+                    onClick={() => handleFilterChange('Absent')}
                 />
 
                 <SummaryChip
                     label="Late"
                     count={data?.summary.late ?? 0}
                     color="warning"
-                    active={filter === 'LATE'}
-                    onClick={() => handleFilterChange('LATE')}
+                    active={filter === 'Late'}
+                    onClick={() => handleFilterChange('Late')}
                 />
 
                 <SummaryChip
                     label="Leave"
                     count={data?.summary.leave ?? 0}
                     color="info"
-                    active={filter === 'LEAVE'}
-                    onClick={() => handleFilterChange('LEAVE')}
+                    active={filter === 'Leave'}
+                    onClick={() => handleFilterChange('Leave')}
                 />
 
                 <SummaryChip
                     label="Total"
                     count={data?.summary.total ?? 0}
                     color="default"
-                    active={filter === 'ALL'}
-                    onClick={() => handleFilterChange('ALL')}
+                    active={filter === 'All'}
+                    onClick={() => handleFilterChange('All')}
                 />
             </Stack>
         </Box>
