@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import api from '@/lib/services/apiService';
 
 export default function ApiTestPage() {
     const [loading, setLoading] = useState(true);
@@ -10,20 +11,12 @@ export default function ApiTestPage() {
     useEffect(() => {
         const testApi = async () => {
             try {
-                const res = await fetch(
-                    'https://apirsa.ysaasinfotech.com/api/test',
-                    {
-                        method: 'GET',
-                        credentials: 'include', // 🔥 important (cookies)
-                    }
+                const response = await api.get<any>(
+                    'https://apirsa.ysaasinfotech.com/api/test'
                 );
 
-                if (!res.ok) {
-                    throw new Error(`HTTP ${res.status}`);
-                }
-
-                const json = await res.json();
-                setData(json);
+                // 🔥 IMPORTANT: actual payload is in response.data
+                setData(response.data);
             } catch (err: any) {
                 setError(err.message || 'Failed to call API');
             } finally {
