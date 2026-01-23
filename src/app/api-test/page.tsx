@@ -11,7 +11,7 @@ export default function ApiTestPage() {
     useEffect(() => {
         const testApi = async () => {
             try {
-                const response = await api.get<any>(
+                const response = await api.post<any>(
                     'https://apirsa.ysaasinfotech.com/api/test'
                 );
 
