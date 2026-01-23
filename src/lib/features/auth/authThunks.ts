@@ -34,17 +34,13 @@ export const login = createAsyncThunk<
         dispatch(loginStart());
 
         try {
-            // IMPORTANT: no baseUrl here
             const response = await api.post<User>(
                 API_ENDPOINTS.AUTH.LOGIN,
                 credentials
             );
 
-            if (!response.data) {
-                return rejectWithValue({ message: 'No data received from server' });
-            }
-
-            const userData = response.data;
+            // 🔥 response itself IS the data
+            const userData = response as unknown as User;
 
             if (!userData.userId || !userData.username) {
                 return rejectWithValue({ message: 'Invalid user data received' });
@@ -72,6 +68,8 @@ export const login = createAsyncThunk<
         }
     }
 );
+
+
 
 /**
  * ============================
