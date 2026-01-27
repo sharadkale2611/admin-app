@@ -246,4 +246,16 @@ const API_ENDPOINTS = {
   },
 };
 
+export const getApiUrl = (endpoint: string): string => {
+  // Ensure no double slashes if endpoint already starts with one
+  const trimmedBase = API_ENDPOINTS.BASE_URL_API.endsWith("/")
+    ? API_ENDPOINTS.BASE_URL_API.slice(0, -1)
+    : API_ENDPOINTS.BASE_URL_API;
+  const trimmedEndpoint = endpoint.startsWith("/")
+    ? endpoint.slice(1)
+    : endpoint;
+  return `${trimmedBase}/${trimmedEndpoint}`;
+};
+
+
 export default API_ENDPOINTS;
