@@ -40,6 +40,7 @@ import attendanceSessionReducer from '@/lib/features/attendance/attendanceSessio
 import admissionDraftReducer from '@/lib/features/admission/admissionDraftSlice';
 import sessionStorageEngine from '@/lib/utils/sessionStorage';
 import locationReducer from "@/lib/features/location/locationSlice";
+import permissionReducer  from "@/lib/features/permission/permissionSlice";
 
 
 const admissionDraftPersistConfig = {
@@ -76,6 +77,7 @@ const rootReducer = combineReducers({
         admissionDraftReducer
     ),
     location: locationReducer,
+    permissions: permissionReducer,
 
 });
 

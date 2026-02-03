@@ -17,9 +17,9 @@ export interface CourseFee {
     courseFeeId: number;
     courseId: number;
     courseName: string | null;
-    feeAmount: number | '';
-    gstPercentage: number | '';
-    totalInstallments: number | '';
+    feeAmount: number;
+    gstPercentage: number;
+    totalInstallments: number;
     totalFee: number;
     createdAt: string;
     updatedAt?: string | null;

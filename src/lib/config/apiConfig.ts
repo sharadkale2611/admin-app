@@ -1,11 +1,21 @@
 // src/lib/config/apiConfig.ts
 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL_API?.replace(/\/$/, '') || '';
+
 const API_ENDPOINTS = {
   /* ===================== BASE ===================== */
-  PARENT_URL: process.env.NEXT_PUBLIC_API_PARENT_URL || "",
-  BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || "",
-  BASE_URL_API: process.env.NEXT_PUBLIC_API_BASE_URL_API || "",
-  TIMEOUT: Number(process.env.NEXT_PUBLIC_API_TIMEOUT || 5000),
+  // PARENT_URL: process.env.NEXT_PUBLIC_API_PARENT_URL || "",
+  // BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || "",
+  // BASE_URL_API: process.env.NEXT_PUBLIC_API_BASE_URL_API || "",
+  // TIMEOUT: Number(process.env.NEXT_PUBLIC_API_TIMEOUT || 5000),
+
+  PARENT_URL: 'https://rsa.ysaasinfotech.com',
+  BASE_URL: 'https://apirsa.ysaasinfotech.com',
+  BASE_URL_API: 'https://apirsa.ysaasinfotech.com/api',
+  TIMEOUT: 5000,
+
+
 
   /* ===================== AUTH ===================== */
   AUTH: {
@@ -244,18 +254,22 @@ const API_ENDPOINTS = {
   USERS: {
     BASE: "/Users",
   },
-};
 
-export const getApiUrl = (endpoint: string): string => {
-  // Ensure no double slashes if endpoint already starts with one
-  const trimmedBase = API_ENDPOINTS.BASE_URL_API.endsWith("/")
-    ? API_ENDPOINTS.BASE_URL_API.slice(0, -1)
-    : API_ENDPOINTS.BASE_URL_API;
-  const trimmedEndpoint = endpoint.startsWith("/")
-    ? endpoint.slice(1)
-    : endpoint;
-  return `${trimmedBase}/${trimmedEndpoint}`;
+  /* ===================== PERMISSIONS ===================== */
+  PERMISSIONS: {
+  GET_LIST: "/permissions",
+  GET_PAGINATED: "/permissions/paginated",
+  GET_BY_ID: "/permissions",
+  POST_CREATE: "/permissions",
+  PUT_UPDATE: "/permissions",
+  DELETE: "/permissions",
+}
+
+
+
 };
 
 
 export default API_ENDPOINTS;
+
+

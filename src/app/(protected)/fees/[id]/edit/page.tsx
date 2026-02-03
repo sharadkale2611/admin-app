@@ -25,6 +25,7 @@ import { ArrowBack } from '@mui/icons-material';
 import Link from 'next/link';
 import { useCourseFeesEditViewModel } from '@/lib/features/fees/useCourseFeesEditViewModel';
 import Swal from 'sweetalert2';
+import { useAppSelector } from '@/lib/hooks';
 
 export default function CourseFeeEdit() {
     const { id } = useParams();
@@ -38,14 +39,17 @@ export default function CourseFeeEdit() {
         isSubmitting,
         submitError,
         submitSuccess,
-        courses,
-        coursesLoading,
         handleSelectChange,
         handleNumberChange,
         handleFetchCourseFeeById,
         handleUpdateCourseFee,
     } = useCourseFeesEditViewModel(id as string);
 
+
+    const { courses, loading: coursesLoading } = useAppSelector(
+        (state) => state.courses
+    );
+  
     // Load data on mount
     useEffect(() => {
         if (id) {
@@ -256,7 +260,8 @@ export default function CourseFeeEdit() {
                                         </Grid>
                                         <Grid size={{ xs: 6 }} sx={{ textAlign: 'right' }}>
                                             <Typography variant="body2">
-                                                ₹{(((formData.feeAmount ?? 0) * (formData.gstPercentage ?? 0)) / 100).toLocaleString('en-IN')}
+                                                ₹{(((Number(formData.feeAmount) || 0) * (Number(formData.gstPercentage) || 0)) / 100)
+                                                    .toLocaleString('en-IN')}
                                             </Typography>
                                         </Grid>
 

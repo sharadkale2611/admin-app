@@ -129,7 +129,7 @@ export interface CreateStudentResponse {
     studentCode: string;
     userName: string;
     firmId?: number;
-    inviteSent: boolean;
+    // inviteSent: boolean;
 }
 
 

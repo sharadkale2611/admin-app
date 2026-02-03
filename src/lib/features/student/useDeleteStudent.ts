@@ -6,23 +6,22 @@ import { deleteStudent } from './studentThunks';
 export const useDeleteStudent = () => {
     const dispatch = useAppDispatch();
 
-    const handleDelete = useCallback(async (studentId: string, studentName: string) => {
-        const result = await Swal.fire({
-            title: 'Are you sure?',
-            text: `You are about to delete ${studentName}. This action cannot be undone.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'Cancel',
-            reverseButtons: true,
-            customClass: {
-                popup: 'sweetalert-popup'
-            }
-        });
+    const handleDelete = useCallback(
+        async (studentId: number, studentName: string) => {
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: `You are about to delete ${studentName}. This action cannot be undone.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true,
+            });
 
-        if (result.isConfirmed) {
+            if (!result.isConfirmed) return false;
+
             try {
                 const actionResult = await dispatch(deleteStudent(studentId));
 
@@ -32,24 +31,28 @@ export const useDeleteStudent = () => {
                         text: 'Student has been deleted successfully.',
                         icon: 'success',
                         timer: 2000,
-                        showConfirmButton: false
+                        showConfirmButton: false,
                     });
                     return true;
-                } else {
-                    // throw new Error(actionResult.payload || 'Failed to delete student');
                 }
+
+                throw new Error(
+                    typeof actionResult.payload === 'string'
+                        ? actionResult.payload
+                        : 'Failed to delete student'
+                );
             } catch (error: any) {
                 await Swal.fire({
                     title: 'Error!',
-                    text: error.message || 'Failed to delete student',
+                    text: error?.message || 'Failed to delete student',
                     icon: 'error',
-                    confirmButtonText: 'OK'
+                    confirmButtonText: 'OK',
                 });
                 return false;
             }
-        }
-        return false;
-    }, [dispatch]);
+        },
+        [dispatch]
+    );
 
     return { handleDelete };
 };
