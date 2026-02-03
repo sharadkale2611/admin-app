@@ -46,19 +46,19 @@ export const fetchPermissions = createAsyncThunk<
   "permissions/fetchAll",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get<ApiResponse<Permission[]>>(
+      const response = await api.get<Permission[]>(
         API_ENDPOINTS.PERMISSIONS.GET_LIST,
         { withCredentials: true }
       );
 
-      if (!response?.data?.success || !response.data.data) {
+      if (!response?.success || !response.data) {
         return rejectWithValue({
-          error: response?.data?.message || "No data returned",
+          error: response?.message || "No data returned",
           errors: null,
         });
       }
 
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       return rejectWithValue(parseApiError(error));
     }
@@ -83,7 +83,7 @@ export const fetchPermissionsPaginated = createAsyncThunk<
   "permissions/fetchPaginated",
   async (params, { rejectWithValue }) => {
     try {
-      const response = await api.get<ApiResponse<PaginatedPermissions>>(
+      const response = await api.get<PaginatedPermissions>(
         API_ENDPOINTS.PERMISSIONS.GET_PAGINATED,
         {
           params,
@@ -91,14 +91,14 @@ export const fetchPermissionsPaginated = createAsyncThunk<
         }
       );
 
-      if (!response?.data?.success || !response.data.data) {
+      if (!response?.success || !response.data) {
         return rejectWithValue({
-          error: response?.data?.message || "Failed to load permissions",
+          error: response?.message || "Failed to load permissions",
           errors: null,
         });
       }
 
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       return rejectWithValue(parseApiError(error));
     }
@@ -117,19 +117,19 @@ export const fetchPermissionById = createAsyncThunk<
   "permissions/fetchById",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await api.get<ApiResponse<Permission>>(
+      const response = await api.get<Permission>(
         `${API_ENDPOINTS.PERMISSIONS.GET_BY_ID}/${id}`,
         { withCredentials: true }
       );
 
-      if (!response?.data?.success || !response.data.data) {
+      if (!response?.success || !response.data) {
         return rejectWithValue({
           error: "Permission not found",
           errors: null,
         });
       }
 
-      return response.data.data;
+      return response.data;
     } catch (error: any) {
       return rejectWithValue(parseApiError(error));
     }
@@ -148,7 +148,7 @@ export const createPermission = createAsyncThunk<
   "permissions/create",
   async (dto, { rejectWithValue }) => {
     try {
-      const response = await api.post<ApiResponse<Permission>>(
+      const response = await api.post<Permission >(
         API_ENDPOINTS.PERMISSIONS.POST_CREATE,
         dto,
         {
@@ -157,17 +157,17 @@ export const createPermission = createAsyncThunk<
         }
       );
 
-      if (!response?.data?.success) {
+      if (!response?.success) {
         return rejectWithValue({
-          error: response?.data?.message || "Create failed",
+          error: response?.message || "Create failed",
           errors: null,
         });
       }
 
       return {
         success: true,
-        message: response.data.message || "Permission created",
-        permission: response.data.data ?? null,
+        message: response.message || "Permission created",
+        permission: response.data  ?? null,
       };
     } catch (error: any) {
       return rejectWithValue(parseApiError(error));
@@ -187,23 +187,23 @@ export const updatePermission = createAsyncThunk<
   "permissions/update",
   async (dto, { rejectWithValue }) => {
     try {
-      const response = await api.put<ApiResponse<Permission>>(
+      const response = await api.put<Permission>(
         `${API_ENDPOINTS.PERMISSIONS.PUT_UPDATE}/${dto.id}`,
         dto,
         { withCredentials: true }
       );
 
-      if (!response?.data?.success) {
+      if (!response?.success) {
         return rejectWithValue({
-          error: response?.data?.message || "Update failed",
+          error: response?.message || "Update failed",
           errors: null,
         });
       }
 
       return {
         success: true,
-        message: response.data.message || "Permission updated",
-        permission: response.data.data ?? null,
+        message: response.message || "Permission updated",
+        permission: response.data ?? null,
       };
     } catch (error: any) {
       return rejectWithValue(parseApiError(error));
