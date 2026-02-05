@@ -235,7 +235,7 @@ export default function AdmissionStep3PricingPage() {
 
     /* -------------------- PAID AMOUNT -------------------- */
     const handlePaidChange = (value: number | null) => {
-        const firstInstallment = formData.installments?.[0]?.amount ?? 0;
+        const firstInstallment = formData.installments?.[0]?.amount ?? formData.finalAmount;
 
         if (value && value > firstInstallment) {
             setErrors(prev => ({
@@ -370,7 +370,7 @@ export default function AdmissionStep3PricingPage() {
                                     label="Paid Amount"
                                     type="number"
                                     size="small"
-                                    value={formData.paidAmount ?? '0'}
+                                    value={formData.paidAmount ?? ''}
                                     error={!!errors.paidAmount}
                                     helperText={errors.paidAmount}
                                     onChange={(e) =>
