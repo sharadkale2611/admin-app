@@ -52,6 +52,7 @@ import {
 
 import { useTheme } from "@mui/material/styles";
 import { useLogout } from '@/lib/features/auth/useLogout';
+import AnimatedEducationBackgroundLight from '../components/ui/AnimatedEducationBackgroundLight';
 
 const drawerWidth = 240;
 
@@ -123,6 +124,10 @@ const ProtectedLayout = ({ children }: LayoutParams) => {
     const firmName = user?.firmName || "Guest";
     const firmCode = (user?.firmCode || "-").toUpperCase();
 
+    useEffect(()=>{
+        console.log('current User: ', user)
+    }, [user])
+
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
     if (!isMounted) return null;
@@ -148,13 +153,13 @@ const ProtectedLayout = ({ children }: LayoutParams) => {
                 position="fixed"
                 sx={{
                     zIndex: (theme) => theme.zIndex.drawer + 1,
-                    backgroundColor: "background.paper",
+                    backgroundColor: "#e8f0f0",
                     color: "text.primary",
                     borderBottom: "1px solid",
                     borderColor: "divider",
                     boxShadow: "none",
                 }}
-            >
+            > 
                 <Toolbar>
                     <IconButton edge="start" onClick={handleDrawerToggle} sx={{ mr: 2 }}>
                         <MenuIcon />
@@ -182,14 +187,27 @@ const ProtectedLayout = ({ children }: LayoutParams) => {
                     </IconButton> */}
 
                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-  <Button
-    variant="outlined"
-    color="primary"
-    onClick={() => router.push(AppRoutes.NEW_ADMISSION)}
-  >
-    <SupervisedUserCircleSharp />
-    <Typography sx={{ ml: 1 }}>New Admission</Typography>
-  </Button>
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            onClick={() => router.push(AppRoutes.NEW_ADMISSION)}
+                            sx={{
+                                minWidth: { xs: 40, sm: "auto" },
+                                padding: { xs: "6px", sm: "6px 12px" },
+                                fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                            }}
+                        >
+                            <SupervisedUserCircleSharp fontSize="small" />
+
+                            <Typography
+                                sx={{
+                                    ml: 1,
+                                    display: { xs: "none", sm: "block" },
+                                }}
+                            >
+                                New Admission
+                            </Typography>
+                        </Button>
 
   <IconButton onClick={() => router.push(AppRoutes.SETTINGS)}>
     <SettingsIcon />
@@ -231,11 +249,14 @@ const ProtectedLayout = ({ children }: LayoutParams) => {
                     width: open ? drawerWidth : theme.spacing(7),
                     "& .MuiDrawer-paper": {
                         width: open ? drawerWidth : theme.spacing(7),
+                        backgroundColor:"#f3f3f3",
+                        borderRight: "1px solid rgba(0,0,0,0.08)",
                         overflowX: "hidden",
                         transition: theme.transitions.create("width"),
                     },
                 }}
             >
+                <AnimatedEducationBackgroundLight />
                 <Toolbar />
 
                 <List>

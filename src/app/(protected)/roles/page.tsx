@@ -53,7 +53,7 @@ export default function RolesPage() {
     }
 
     return (
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Container maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
             {/* Header */}
             <Box
                 sx={{
@@ -128,14 +128,14 @@ export default function RolesPage() {
                                         <TableCell align="right">
                                             <Stack direction="row" spacing={1} justifyContent="flex-end">
                                                 {/* View Role */}
-                                                <Tooltip title="View role details">
+                                                {/* <Tooltip title="View role details">
                                                     <Link href={`/roles/${role.roleId}`} passHref>
                                                         <IconButton size="small" color="primary">
                                                             <Visibility />
                                                         </IconButton>
                                                     </Link>
                                                 </Tooltip>
-
+ */}
                                                 {/* Manage Permissions (EXTENSION POINT) */}
                                                 <Tooltip title="Manage permissions">
                                                     <Link href={`/roles/${role.roleId}/permissions`} passHref>
