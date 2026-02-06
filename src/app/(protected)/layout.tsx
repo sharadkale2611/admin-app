@@ -46,6 +46,8 @@ import {
    
     SupervisedUserCircleSharp,
     Campaign,
+    Shield,
+    VerifiedUser,
 } from "@mui/icons-material";
 
 import { useTheme } from "@mui/material/styles";
@@ -97,6 +99,8 @@ const ProtectedLayout = ({ children }: LayoutParams) => {
     const adminMenu = [
         { text: "Dashboard", icon: <DashboardIcon />, path: AppRoutes.DASHBOARD },
         { text: "Firms", icon: <BusinessIcon />, path: AppRoutes.FIRMS },
+        { text: "Permissions", icon: <Shield />, path: AppRoutes.PERMISSIONS },
+        { text: "Roles", icon: <VerifiedUser />, path: AppRoutes.ROLES },        
     ];
 
     const firmAdminMenu = [

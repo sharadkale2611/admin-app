@@ -37,6 +37,12 @@ const API_ENDPOINTS = {
     DELETE: "/Firms",
   },
 
+
+  ROLES: {
+    GET_LIST: "/roles",
+    GET_BY_ID: "/roles",
+  },
+
   DASHBOARD: {
     ADMIN_SUMMARY: "/admin-dashboard/summary",
     // STUDENT_ATTENDANCE_TODAY: "/api/admin-dashboard/student-attendance-today",
