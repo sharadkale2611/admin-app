@@ -36,7 +36,6 @@ export default function LoginPage() {
         isAuthenticated,
         isAuthChecking,
         initialCheckDone,
-        hasLoggedOut,
     } = useAppSelector((state) => state.auth);
 
     const [mounted, setMounted] = useState(false);
@@ -48,10 +47,20 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (!mounted) return;
-        if (isAuthenticated && !hasLoggedOut) {
-            router.replace(searchParams?.get("redirect") || "/dashboard");
+        if (!initialCheckDone || isAuthChecking) return;
+
+        if (isAuthenticated) {
+            const redirectTo = searchParams?.get("redirect") || "/dashboard";
+            router.replace(redirectTo);
         }
-    }, [mounted, isAuthenticated, hasLoggedOut, router, searchParams]);
+    }, [
+        mounted,
+        initialCheckDone,
+        isAuthChecking,
+        isAuthenticated,
+        router,
+        searchParams,
+    ]);
 
     const readyForAnimation =
         mounted && initialCheckDone && !isAuthChecking;
