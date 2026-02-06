@@ -79,6 +79,7 @@ const rootReducer = combineReducers({
         admissionDraftReducer
     ),
     location: locationReducer,
+    permissions: permissionReducer,
 
 });
 
