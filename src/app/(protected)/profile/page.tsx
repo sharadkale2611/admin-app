@@ -1,7 +1,8 @@
 'use client';
-import { useEffect } from "react";
-import { fetchFirmById } from "@/lib/features/firm/firmThunks";
-import { useRef, useState } from 'react';
+
+import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+
 import {
   Avatar,
   Box,
@@ -28,25 +29,31 @@ import {
   PhotoCamera,
 } from '@mui/icons-material';
 
-import { useRouter } from 'next/navigation';
+import { useSnackbar } from 'notistack';
+
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { changePassword } from '@/lib/features/auth/authThunks';
-import { uploadFirmLogo } from '@/lib/features/firm/firmThunks';
+import {
+  fetchFirmById,
+  uploadFirmLogo,
+} from '@/lib/features/firm/firmThunks';
 
 export default function ProfilePage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
 
   const { user } = useAppSelector((state) => state.auth);
   const { currentFirm } = useAppSelector((state) => state.firms);
 
+  /* ================= FETCH FIRM ================= */
   useEffect(() => {
-  if (!user?.firmId) return;
+    if (!user?.firmId) return;
+    dispatch(fetchFirmById(user.firmId.toString()));
+  }, [user?.firmId, dispatch]);
 
-  dispatch(fetchFirmById(user.firmId.toString()));
-}, [user?.firmId, dispatch]);
-
-  /* ---------------- PASSWORD ---------------- */
+ 
+  /* ================= PASSWORD ================= */
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
@@ -54,52 +61,11 @@ export default function ProfilePage() {
     confirmPassword: '',
   });
 
-  /* ---------------- FIRM LOGO ---------------- */
-  const [uploading, setUploading] = useState(false);
-  const logoInputRef = useRef<HTMLInputElement>(null);
-
-  const handleLogoChange = async (
-  e: React.ChangeEvent<HTMLInputElement>
-) => {
-  console.log("handleLogoChange fired");
-
-  if (!e.target.files?.[0]) {
-    console.log("No file selected");
-    return;
-  }
-
-  console.log("Selected file:", e.target.files[0].name);
-
-  if (!currentFirm) {
-    console.log("No currentFirm");
-    return;
-  }
-
-  const file = e.target.files[0];
-
-  try {
-    setUploading(true);
-
-    await dispatch(
-      uploadFirmLogo({
-        firmId: currentFirm.firmId,
-        file,
-      })
-    ).unwrap();
-
-    alert("Firm logo updated successfully");
-  } catch (err: any) {
-    alert(err?.message || "Failed to upload logo");
-  } finally {
-    setUploading(false);
-  }
-};
-
-
-  /* ---------------- PASSWORD CHANGE ---------------- */
   const handlePasswordChange = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      alert('New password and confirm password do not match');
+      enqueueSnackbar('New password and confirm password do not match', {
+        variant: 'error',
+      });
       return;
     }
 
@@ -111,10 +77,46 @@ export default function ProfilePage() {
         })
       ).unwrap();
 
-      alert('Password changed successfully');
+      enqueueSnackbar('Password updated successfully', {
+        variant: 'success',
+      });
+
       router.push('/login');
-    } catch (error: any) {
-      alert(error?.message || 'Failed to change password');
+    } catch (err: any) {
+      enqueueSnackbar(err?.message || 'Failed to change password', {
+        variant: 'error',
+      });
+    }
+  };
+
+  /* ================= FIRM LOGO ================= */
+  const [uploading, setUploading] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+
+  const handleLogoChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (!e.target.files?.[0] || !currentFirm) return;
+
+    try {
+      setUploading(true);
+
+      await dispatch(
+        uploadFirmLogo({
+          firmId: currentFirm.firmId,
+          file: e.target.files[0],
+        })
+      ).unwrap();
+
+      enqueueSnackbar('Firm logo updated successfully', {
+        variant: 'success',
+      });
+    } catch (err: any) {
+      enqueueSnackbar(err?.message || 'Failed to upload logo', {
+        variant: 'error',
+      });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -123,15 +125,15 @@ export default function ProfilePage() {
       {/* ================= HEADER ================= */}
       <Paper sx={{ p: 3, mb: 3 }}>
         <Stack direction="row" spacing={3} alignItems="center">
-          {/* -------- Firm Logo -------- */}
+          {/* ---------- LOGO ---------- */}
           <Box sx={{ position: 'relative', width: 80, height: 80 }}>
             <Avatar
               sx={{ width: 80, height: 80 }}
-             src={
-  currentFirm?.firmLogoImagePath
-    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${currentFirm.firmLogoImagePath}?v=${Date.now()}`
-    : undefined
-}
+              src={
+                currentFirm?.firmLogoImagePath
+                  ? `${process.env.NEXT_PUBLIC_API_BASE_URL}${currentFirm.firmLogoImagePath}?v=${Date.now()}`
+                  : undefined
+              }
             >
               {!currentFirm?.firmLogoImagePath && <School />}
             </Avatar>
@@ -160,7 +162,7 @@ export default function ProfilePage() {
             />
           </Box>
 
-          {/* -------- Firm Info -------- */}
+          {/* ---------- INFO ---------- */}
           <Box>
             <Typography variant="h4">
               {user?.firmName || '—'}
@@ -168,16 +170,19 @@ export default function ProfilePage() {
 
             <Stack direction="row" spacing={1} mt={1}>
               <Chip label="Active" color="success" />
-              <Chip label="Verified" color="primary" icon={<Verified />} />
+              <Chip
+                label="Verified"
+                color="primary"
+                icon={<Verified />}
+              />
             </Stack>
           </Box>
         </Stack>
       </Paper>
 
       <Grid container spacing={3}>
-        {/* ================= ADMIN ACCOUNT ================= */}
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Card>
+        {/* ================= ADMIN ================= */}
+<Grid size={{ xs: 12, md: 4 }}>          <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 <Security /> Admin Account
@@ -261,7 +266,9 @@ export default function ProfilePage() {
                       </Button>
                       <Button
                         variant="text"
-                        onClick={() => setShowChangePassword(false)}
+                        onClick={() =>
+                          setShowChangePassword(false)
+                        }
                       >
                         Cancel
                       </Button>
@@ -274,8 +281,7 @@ export default function ProfilePage() {
         </Grid>
 
         {/* ================= FIRM DETAILS ================= */}
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Card>
+<Grid size={{ xs: 12, md: 4 }}>          <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 <School /> Firm Details

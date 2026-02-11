@@ -38,13 +38,15 @@ export default function RootLayout({
   return (
     <html lang="en" className={roboto.variable}>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <StoreProvider>
-          <AppRouterCacheProvider options={{ key: 'css' }}>
-            <ThemeProvider theme={theme}>
+        {/* ✅ MUI providers FIRST */}
+        <AppRouterCacheProvider options={{ key: 'css' }}>
+          <ThemeProvider theme={theme}>
+            {/* ✅ StoreProvider contains SnackbarProvider */}
+            <StoreProvider>
               {children}
-            </ThemeProvider>
-          </AppRouterCacheProvider>
-        </StoreProvider>
+            </StoreProvider>
+          </ThemeProvider>
+        </AppRouterCacheProvider>
       </body>
     </html>
   );

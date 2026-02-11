@@ -278,6 +278,15 @@ const API_ENDPOINTS = {
     GET_BY_STUDENT_ID: "/StudentPayments/student-id",
     UPDATE_PAYMENT: "/StudentPayments/updatePayment"
   },
+
+  COURSE_MODULE_CONTENTS: {
+  GET_LIST: "/CourseModuleContents",
+  GET_BY_ID: "/CourseModuleContents",
+  POST_CREATE: "/CourseModuleContents",
+  PUT_UPDATE: "/CourseModuleContents",
+  DELETE: "/CourseModuleContents",
+},
+
 EXAMS: {
     GET_LIST_PAGINATED:
       "/Exams/paginated",

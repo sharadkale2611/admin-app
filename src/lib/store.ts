@@ -41,6 +41,7 @@ import admissionDraftReducer from '@/lib/features/admission/admissionDraftSlice'
 import sessionStorageEngine from '@/lib/utils/sessionStorage';
 import locationReducer from "@/lib/features/location/locationSlice";
 import dashboardReducer from "@/lib/features/dashboard/dashboardSlice";
+import courseModuleContentReducer from "@/lib/features/courseModuleContent/courseModuleContentSlice";
 
 
 const admissionDraftPersistConfig = {
@@ -73,6 +74,8 @@ const rootReducer = combineReducers({
     examMarks: examMarksReducer,
     attendanceSession: attendanceSessionReducer,
     dashboard: dashboardReducer,
+    courseModuleContents: courseModuleContentReducer,
+
 
     admissionDraft: persistReducer(
         admissionDraftPersistConfig,
