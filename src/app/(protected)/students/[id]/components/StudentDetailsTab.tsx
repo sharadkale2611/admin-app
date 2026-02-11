@@ -31,6 +31,16 @@ import {
 import { ApiError } from "@/lib/features/student/studentTypes";
 import Link from 'next/link';
 
+import { useRef, useState } from "react";
+import { useAppDispatch } from "@/lib/hooks";
+import { updateStudentProfileImage } from "@/lib/features/student/studentThunks";
+import CameraAltIcon from "@mui/icons-material/CameraAlt";
+import IconButton from "@mui/material/IconButton";
+import CircularProgress from "@mui/material/CircularProgress";
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert, { AlertColor } from "@mui/material/Alert";
+
+
 interface Props {
     student: any;
     isLoading: boolean;
@@ -51,6 +61,69 @@ export default function StudentDetailsTab({
         });
     };
 
+    const dispatch = useAppDispatch();
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>("success");
+
+    const handleImageClick = () => {
+        fileInputRef.current?.click();
+    };
+
+
+    const handleFileChange = async (
+        event: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        const file = event.target.files?.[0];
+        if (!file || !student?.studentId) return;
+
+        if (!file.type.startsWith("image/")) {
+            setSnackbarSeverity("error");
+            setSnackbarMessage("Please upload a valid image file");
+            setSnackbarOpen(true);
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            setSnackbarSeverity("error");
+            setSnackbarMessage("Image must be less than 2MB");
+            setSnackbarOpen(true);
+            return;
+        }
+
+        const previewUrl = URL.createObjectURL(file);
+        setPreviewImage(previewUrl);
+
+        try {
+            setIsUploading(true);
+
+            await dispatch(
+                updateStudentProfileImage({ 
+                    studentId: student.studentId,
+                    file,
+                })
+            ).unwrap();
+
+            setSnackbarSeverity("success");
+            setSnackbarMessage("Profile image updated successfully");
+            setSnackbarOpen(true);
+
+        } catch (error: any) {
+            setPreviewImage(null); // revert preview on error
+
+            setSnackbarSeverity("error");
+            setSnackbarMessage(error?.error || "Upload failed");
+            setSnackbarOpen(true);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+
     if (isLoading) {
         return <Skeleton variant="rectangular" height={350} />;
     }
@@ -66,20 +139,77 @@ export default function StudentDetailsTab({
             {/* ================= LEFT : PROFILE ================= */}
             <Grid size={{ xs: 12, md: 4 }}>
                 <Paper sx={{ p: 3, textAlign: 'center' }} elevation={2}>
-                    <Avatar
-                        src={student.profileImagePath || undefined}
-                        sx={{
-                            width: 96,
-                            height: 96,
-                            mx: 'auto',
-                            mb: 2,
-                            fontSize: '2rem',
-                            bgcolor: 'secondary.main',
-                        }}
+                    <Box position="relative" display="inline-block">
+                        <Avatar
+                            src={previewImage || student.profileImagePath || undefined}
+                            sx={{
+                                width: 96,
+                                height: 96,
+                                mx: "auto",
+                                mb: 2,
+                                fontSize: "2rem",
+                                bgcolor: "secondary.main",
+                            }}
+                        >
+                            {!student.profileImagePath &&
+                                `${student.firstName?.[0] ?? ""}${student.lastName?.[0] ?? ""}`}
+                        </Avatar>
+
+                        {isUploading && (
+                            <CircularProgress
+                                size={96}
+                                sx={{
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    zIndex: 2,
+                                }}
+                            />
+                        )}
+
+                        <IconButton
+                            size="small"
+                            onClick={handleImageClick}
+                            sx={{
+                                position: "absolute",
+                                bottom: 8,
+                                right: 8,
+                                bgcolor: "primary.main",
+                                color: "white",
+                                "&:hover": {
+                                    bgcolor: "primary.dark",
+                                },
+                            }}
+                        >
+                            <CameraAltIcon fontSize="small" />
+                        </IconButton>
+
+                        <input
+                            type="file"
+                            accept="image/*"
+                            ref={fileInputRef}
+                            hidden
+                            onChange={handleFileChange}
+                        />
+                    </Box>
+
+                    <Snackbar
+                        open={snackbarOpen}
+                        autoHideDuration={4000}
+                        onClose={() => setSnackbarOpen(false)}
+                        anchorOrigin={{ vertical: "top", horizontal: "right" }}
                     >
-                        {!student.profileImagePath &&
-                            `${student.firstName?.[0] ?? ''}${student.lastName?.[0] ?? ''}`}
-                    </Avatar>
+                        <MuiAlert
+                            elevation={6}
+                            variant="filled"
+                            onClose={() => setSnackbarOpen(false)}
+                            severity={snackbarSeverity}
+                        >
+                            {snackbarMessage}
+                        </MuiAlert>
+                    </Snackbar>
+
+
 
                     <Typography variant="h6">
                         {student.firstName} {student.lastName}
@@ -88,8 +218,8 @@ export default function StudentDetailsTab({
                     <Typography variant="body2" color="text.secondary">
                         {student.studentCode}
                     </Typography>
-                    
-        
+
+
                     <Divider sx={{ my: 2 }} />
 
                     <Stack spacing={1} alignItems="flex-start">
@@ -143,6 +273,8 @@ export default function StudentDetailsTab({
                     </Link>
                 </Paper>
             </Grid>
+
+
 
             {/* ================= RIGHT : DETAILS ================= */}
             <Grid size={{ xs: 12, md: 8 }}>
@@ -229,9 +361,23 @@ export default function StudentDetailsTab({
                     </Grid>
                 </Paper>
             </Grid>
+
+
+
         </Grid>
+
+
+
+
     );
+
+
+
+
+
 }
+
+
 
 function InfoItem({
     label,

@@ -238,7 +238,7 @@ export const updateStudent = createAsyncThunk<
 
             const existingStudent =
                 state.students.currentStudent ||
-                state.students.students.find((s) => s.studentId === id);
+                state.students.students.find((s: Student) => s.studentId === id);
 
             if (!existingStudent) {
                 return rejectWithValue({
@@ -415,6 +415,60 @@ export const fetchStudentBatchCourseAssignments = createAsyncThunk<
             return rejectWithValue({
                 error: err.message ?? "Failed to load batch assignments",
                 errors: null,
+            });
+        }
+    }
+);
+
+
+
+
+
+type UpdateProfileImageResponse = {
+    studentId: number;
+    profileImagePath: string;
+};
+
+export const updateStudentProfileImage = createAsyncThunk<
+    UpdateProfileImageResponse,
+    { studentId: number; file: File },
+    { rejectValue: ApiError }
+>(
+    "students/updateStudentProfileImage",
+    async ({ studentId, file }, { rejectWithValue }) => {
+        try {
+            const formData = new FormData();
+            formData.append("ProfileImage", file); // Must match DTO property name
+
+            const response = await api.put<UpdateProfileImageResponse>(
+                `${API_ENDPOINTS.STUDENT.GET_BY_ID}/${studentId}/profile-image`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                    withCredentials: true,
+                }
+
+            );
+
+            if (!response.success || !response.data) {
+                return rejectWithValue({
+                    error:
+                        typeof response.data === "string"
+                            ? response.data
+                            : response.message || "Failed to update profile image",
+                    errors: null,
+                });
+            }
+
+            // Always return a value (never undefined)
+            return response.data as UpdateProfileImageResponse;
+
+        } catch (error: any) {
+            return rejectWithValue({
+                error: error?.response?.data?.message || "Upload failed",
+                errors: error?.response?.data?.errors || null,
             });
         }
     }
