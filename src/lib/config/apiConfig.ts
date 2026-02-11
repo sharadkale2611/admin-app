@@ -185,6 +185,7 @@ const API_ENDPOINTS = {
   ATTENDANCE: {
     GET_BY_SESSION: "/Attendance/by-session",
     PUT_UPDATE_STATUS: "/Attendance/update-status",
+    GET_BY_STUDENT_ID: "/Attendance/student",
   },
 
   /* ===================== STUDENT BATCH ASSIGNMENTS ===================== */

@@ -189,6 +189,28 @@ export interface FetchStudentParams {
     activeOnly?: boolean;
 }
 
+
+export interface ModuleWiseAttendanceItem {
+    moduleId: number;
+    moduleName: string | null;
+    courseName: string | null;
+    batchName: string;
+    staffName: string;
+    totalMarkedSessions: number;
+    presentSessions: number;
+    absentSessions: number;
+    leaveSessions: number;
+    lateSessions: number;
+    percentage: number;
+}
+
+export interface ModuleWiseAttendanceResponse {
+    from: string;
+    to: string;
+    items: ModuleWiseAttendanceItem[];
+}
+
+
 export interface ApiError {
     error: string | null;       // single error
     errors: Record<string, string[]> | null;

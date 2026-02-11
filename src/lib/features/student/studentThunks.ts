@@ -11,6 +11,7 @@ import {
     CreatedStudent,
     StudentByAadharResponse,
     StudentBatchAssignment,
+    ModuleWiseAttendanceResponse,
     ApiError
 } from "./studentTypes";
 import API_ENDPOINTS from "@/lib/config/apiConfig";
@@ -468,6 +469,62 @@ export const updateStudentProfileImage = createAsyncThunk<
         } catch (error: any) {
             return rejectWithValue({
                 error: error?.response?.data?.message || "Upload failed",
+                errors: error?.response?.data?.errors || null,
+            });
+        }
+    }
+);
+
+
+export const fetchStudentModuleWiseAttendance = createAsyncThunk<
+    ModuleWiseAttendanceResponse,
+    {
+        studentId: number;
+        from?: string;
+        to?: string;
+    },
+    { rejectValue: ApiError }
+>(
+    "students/fetchStudentModuleWiseAttendance",
+    async ({ studentId, from, to }, { rejectWithValue }) => {
+        try {
+            const queryParams = new URLSearchParams();
+            if (from) queryParams.append("from", from);
+            if (to) queryParams.append("to", to);
+
+            const response = await api.get<
+                ApiResponse<ModuleWiseAttendanceResponse>
+            >(
+                `${API_ENDPOINTS.ATTENDANCE.GET_BY_STUDENT_ID}/${studentId}/module-wise?${queryParams.toString()}`,
+                { withCredentials: true }
+            );
+
+            // ❗ Only check success
+            if (!response.success) {
+                return rejectWithValue({
+                    error:
+                        response.message ||
+                        "Failed to fetch module-wise attendance",
+                    errors: response.errors || null,
+                });
+            }
+
+            // ❗ Make sure data exists
+            if (!response.data) {
+                return rejectWithValue({
+                    error: "No attendance data returned",
+                    errors: null,
+                });
+            }
+
+            return response.data;
+
+        } catch (error: any) {
+            return rejectWithValue({
+                error:
+                    error?.response?.data?.message ||
+                    error?.response?.data?.error ||
+                    "Something went wrong",
                 errors: error?.response?.data?.errors || null,
             });
         }
