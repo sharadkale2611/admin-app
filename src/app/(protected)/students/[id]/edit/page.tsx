@@ -61,7 +61,8 @@ export default function EditStudentPage() {
                             Basic Details
                         </Typography>
 
-                        <Grid container spacing={2}>
+
+                        <Grid container spacing={2} alignItems="center">
                             <Grid size={{ xs: 12, md: 3 }}>
                                 <TextField
                                     label="First Name"
@@ -99,27 +100,36 @@ export default function EditStudentPage() {
                             </Grid>
 
                             <Grid size={{ xs: 12, md: 3 }}>
-                                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                                    <Typography fontWeight={500}>Gender *</Typography>
-
-                                    <RadioGroup
-                                        row
+                                <FormControl fullWidth size="small">
+                                    <InputLabel>Gender *</InputLabel>
+                                    <Select
                                         name="gender"
                                         value={formData.gender}
+                                        label="Gender *"
                                         onChange={handleSelectChange}
                                     >
                                         {['Male', 'Female', 'Other'].map((g) => (
-                                            <FormControlLabel
-                                                key={g}
-                                                value={g}
-                                                control={<Radio />}
-                                                label={g}
-                                            />
+                                            <MenuItem key={g} value={g}>
+                                                {g}
+                                            </MenuItem>
                                         ))}
-                                    </RadioGroup>
-                                </Box>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+
+                            <Grid size={{ xs: 12, md: 3 }}>
+                                <TextField
+                                    label="Aadhar Number"
+                                    name="aadharNumber"
+                                    value={formData.aadharNumber}
+                                    onChange={handleChange}
+                                    fullWidth
+                                    size="small"
+                                />
                             </Grid>
                         </Grid>
+
+
 
                         <Divider sx={{ my: 2 }} />
 

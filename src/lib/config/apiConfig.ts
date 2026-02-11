@@ -5,15 +5,15 @@ const API_BASE_URL =
 
 const API_ENDPOINTS = {
   /* ===================== BASE ===================== */
-  // PARENT_URL: process.env.NEXT_PUBLIC_API_PARENT_URL || "",
-  // BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || "",
-  // BASE_URL_API: process.env.NEXT_PUBLIC_API_BASE_URL_API || "",
-  // TIMEOUT: Number(process.env.NEXT_PUBLIC_API_TIMEOUT || 5000),
+  PARENT_URL: process.env.NEXT_PUBLIC_API_PARENT_URL || "",
+  BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || "",
+  BASE_URL_API: process.env.NEXT_PUBLIC_API_BASE_URL_API || "",
+  TIMEOUT: Number(process.env.NEXT_PUBLIC_API_TIMEOUT || 5000),
 
-  PARENT_URL: 'https://rsa.ysaasinfotech.com',
-  BASE_URL: 'https://apirsa.ysaasinfotech.com',
-  BASE_URL_API: 'https://apirsa.ysaasinfotech.com/api',
-  TIMEOUT: 5000,
+  // PARENT_URL: 'https://rsa.ysaasinfotech.com',
+  // BASE_URL: 'https://apirsa.ysaasinfotech.com',
+  // BASE_URL_API: 'https://apirsa.ysaasinfotech.com/api',
+  // TIMEOUT: 5000,
 
 
 
@@ -57,6 +57,7 @@ const API_ENDPOINTS = {
     PUT_UPDATE: "/Students",
     DELETE: "/Students",
     GET_BY_MOBILE: "/Students/by-mobile",
+    GET_BY_AADHAR: "/Students/by-aadhar",
     GET_BATCH_COURSE_ASSIGNMENTS: "/Students/batch-course-assignments",
   },
 

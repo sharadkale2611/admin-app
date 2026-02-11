@@ -12,6 +12,7 @@ export type BoardType = "MSBSHSE" | "CBSE" | "ICSE" | "Other";
 /* ---------------- STUDENT ---------------- */
 export interface DraftStudent {
     studentId?: number;
+    aadharNumber: string;
     mobile: string;
     dateOfBirth?: string;
     

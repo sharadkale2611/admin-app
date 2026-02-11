@@ -7,6 +7,7 @@ export interface Student {
     firmName?: string;
 
     studentCode: string;
+    aadharNumber: string;
 
     firstName: string;
     motherName?: string;
@@ -133,9 +134,10 @@ export interface CreateStudentResponse {
 }
 
 
-export interface StudentByMobileResponse {
+export interface StudentByAadharResponse {
     studentId: number;
     studentCode: string;
+    aadharNumber: string;
 
     firstName: string;
     lastName: string;

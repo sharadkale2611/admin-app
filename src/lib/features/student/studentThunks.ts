@@ -9,7 +9,7 @@ import {
     FetchStudentParams,
     CreateStudentResponse,
     CreatedStudent,
-    StudentByMobileResponse,
+    StudentByAadharResponse,
     StudentBatchAssignment,
     ApiError
 } from "./studentTypes";
@@ -326,21 +326,52 @@ export const fetchStudentById = createAsyncThunk<
 );
 
 
-export const fetchStudentByMobile = createAsyncThunk<
-    StudentByMobileResponse,
+// export const fetchStudentByMobile = createAsyncThunk<
+//     StudentByMobileResponse,
+//     string,
+//     { rejectValue: ApiError }
+// >(
+//     "students/fetchStudentByMobile",
+//     async (mobile, { rejectWithValue }) => {
+//         try {
+//             // ✅ api.get<T>() already returns ApiResponse<T>
+//             const response = await api.get<StudentByMobileResponse>(
+//                 `${API_ENDPOINTS.STUDENT.GET_BY_MOBILE}/${mobile}`,
+//                 { withCredentials: true }
+//             );
+
+//             // response is ApiResponse<StudentByMobileResponse>
+//             if (!response.success || !response.data) {
+//                 return rejectWithValue({
+//                     error: "Student not found",
+//                     errors: null,
+//                 });
+//             }
+
+//             // ✅ Explicitly return payload
+//             const payload: StudentByMobileResponse = response.data;
+//             return payload;
+
+//         } catch (error: any) {
+//             return rejectWithValue(parseApiError(error));
+//         }
+//     }
+// );
+
+
+export const fetchStudentByAadhar = createAsyncThunk<
+    StudentByAadharResponse,
     string,
     { rejectValue: ApiError }
 >(
-    "students/fetchStudentByMobile",
-    async (mobile, { rejectWithValue }) => {
+    "students/fetchStudentByAadhar",
+    async (aadharNumber, { rejectWithValue }) => {
         try {
-            // ✅ api.get<T>() already returns ApiResponse<T>
-            const response = await api.get<StudentByMobileResponse>(
-                `${API_ENDPOINTS.STUDENT.GET_BY_MOBILE}/${mobile}`,
+            const response = await api.get<StudentByAadharResponse>(
+                `${API_ENDPOINTS.STUDENT.GET_BY_AADHAR}/${aadharNumber}`,
                 { withCredentials: true }
             );
 
-            // response is ApiResponse<StudentByMobileResponse>
             if (!response.success || !response.data) {
                 return rejectWithValue({
                     error: "Student not found",
@@ -348,8 +379,7 @@ export const fetchStudentByMobile = createAsyncThunk<
                 });
             }
 
-            // ✅ Explicitly return payload
-            const payload: StudentByMobileResponse = response.data;
+            const payload: StudentByAadharResponse = response.data;
             return payload;
 
         } catch (error: any) {
@@ -357,6 +387,7 @@ export const fetchStudentByMobile = createAsyncThunk<
         }
     }
 );
+
 
 
 export const fetchStudentBatchCourseAssignments = createAsyncThunk<

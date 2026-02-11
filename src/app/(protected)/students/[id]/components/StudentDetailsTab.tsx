@@ -88,7 +88,8 @@ export default function StudentDetailsTab({
                     <Typography variant="body2" color="text.secondary">
                         {student.studentCode}
                     </Typography>
-
+                    
+        
                     <Divider sx={{ my: 2 }} />
 
                     <Stack spacing={1} alignItems="flex-start">
@@ -117,6 +118,13 @@ export default function StudentDetailsTab({
                             <Person fontSize="small" />
                             <Typography variant="body2">
                                 @{student.userName}
+                            </Typography>
+                        </Box>
+
+                        <Box display="flex" alignItems="center" gap={1}>
+                            <Code fontSize="small" />
+                            <Typography variant="body2">
+                                <b>Aadhar No:</b> {student.aadharNumber || 'Not specified'}
                             </Typography>
                         </Box>
                     </Stack>

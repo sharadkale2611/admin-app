@@ -8,6 +8,7 @@ export const mapCreatedStudentToStudent = (
 
     studentCode: cs.studentCode,
     userName: cs.userName,
+    aadharNumber: '',              
 
     // optional / fallback values
     firmId: undefined,

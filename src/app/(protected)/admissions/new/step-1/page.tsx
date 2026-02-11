@@ -30,7 +30,7 @@ import {
     resetStudentSelection,
     resetAdmissionDraft,
 } from '@/lib/features/admission/admissionDraftSlice';
-import { fetchStudentByMobile } from '@/lib/features/student/studentThunks';
+import { fetchStudentByAadhar } from '@/lib/features/student/studentThunks';
 import { useWizardNext } from '../components/wizard/WizardNextContext';
 import AddressSelector, {
     AddressValue,
@@ -50,7 +50,9 @@ export default function IdentifyStudentPage() {
     const draft = useAppSelector((s) => s.admissionDraft);
     const wizardNextRef = useWizardNext();
 
-    const [mobile, setMobile] = useState('');
+    // const [mobile, setMobile] = useState('');
+    const [aadharNumber, setAadharNumber] = useState('');
+
     const [loading, setLoading] = useState(false);
     const [student, setStudent] = useState<ExistingStudent | null>(null);
     const [notFound, setNotFound] = useState(false);
@@ -94,7 +96,8 @@ export default function IdentifyStudentPage() {
     useEffect(() => {
         if (!draft.studentConfirmed || !draft.student) return;
 
-        setMobile(draft.student.mobile);
+        // setMobile(draft.student.mobile);
+        setAadharNumber(draft.student.aadharNumber);
 
         setForm({
             firstName: draft.student.firstName ?? '',
@@ -160,65 +163,124 @@ export default function IdentifyStudentPage() {
     };
    
     /* ---------------- MOBILE CHECK ---------------- */
-    const checkMobile = async (value: string) => {
-        if (value.length !== 10) return;
+    // const checkMobile = async (value: string) => {
+    //     if (value.length !== 10) return;
 
-        setLoading(true);
-        setStudent(null);
-        setNotFound(false);
+    //     setLoading(true);
+    //     setStudent(null);
+    //     setNotFound(false);
 
-        try {
-            const result = await dispatch(fetchStudentByMobile(value)).unwrap();
-            const data = result; // assuming thunk already returns data.data
+    //     try {
+    //         const result = await dispatch(fetchStudentByMobile(value)).unwrap();
+    //         const data = result; // assuming thunk already returns data.data
 
-            setStudent({
-                studentId: data.studentId,
-                firstName: data.firstName,
-                lastName: data.lastName,
-                email: data.email,
-                profileImagePath: data.profileImagePath,
+    //         setStudent({
+    //             studentId: data.studentId,
+    //             firstName: data.firstName,
+    //             lastName: data.lastName,
+    //             email: data.email,
+    //             profileImagePath: data.profileImagePath,
+    //         });
+
+    //         /* ---------------- FORM ---------------- */
+    //         setForm({
+    //             firstName: data.firstName ?? '',
+    //             lastName: data.lastName ?? '',
+    //             email: data.email ?? '',
+    //             dateOfBirth: data.dateOfBirth
+    //                 ? data.dateOfBirth.split('T')[0] // ✅ FIX DATE
+    //                 : '',
+
+    //             fatherName: data.fatherName ?? '',
+    //             motherName: data.motherName ?? '',
+    //             alternateMobile: data.mobileNumber2 ?? '',
+    //             gender: data.gender ?? '',
+    //             reservationCategory: data.resevationCategory ?? '', // ⚠ typo handled
+    //             fatherOccupation: data.fathersOccupation ?? '', // ✅ CORRECT
+
+    //             profileImagePath: data.profileImagePath ?? '',
+    //         });
+
+    //         /* ---------------- ADDRESS ---------------- */
+    //         const addr = data.addresses?.find(a => a.isActive && !a.isDeleted)
+    //             ?? data.addresses?.[0];
+
+    //         if (addr) {
+    //             setAddress({
+    //                 fullAddress: addr.fullAddress ?? '',
+    //                 pincode: addr.pinCode ?? '',
+    //                 stateId: addr.stateId ?? null,
+    //                 cityId: addr.cityId ?? null,
+    //                 addressType: addr.addressType ?? 'Residential',
+    //             });
+    //         }
+
+    //     } catch {
+    //         setNotFound(true);
+    //         clearFormAll(); 
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
+
+    const checkAadhar = async (value: string) => {
+    if (value.length !== 12) return;
+
+    setLoading(true);
+    setStudent(null);
+    setNotFound(false);
+
+    try {
+        const result = await dispatch(fetchStudentByAadhar(value)).unwrap();
+        const data = result;
+
+        setStudent({
+            studentId: data.studentId,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            profileImagePath: data.profileImagePath,
+        });
+
+        setForm({
+            firstName: data.firstName ?? '',
+            lastName: data.lastName ?? '',
+            email: data.email ?? '',
+            dateOfBirth: data.dateOfBirth
+                ? data.dateOfBirth.split('T')[0]
+                : '',
+            fatherName: data.fatherName ?? '',
+            motherName: data.motherName ?? '',
+            alternateMobile: data.mobileNumber2 ?? '',
+            gender: data.gender ?? '',
+            reservationCategory: data.resevationCategory ?? '',
+            fatherOccupation: data.fathersOccupation ?? '',
+            profileImagePath: data.profileImagePath ?? '',
+        });
+
+        const addr =
+            data.addresses?.find(a => a.isActive && !a.isDeleted)
+            ?? data.addresses?.[0];
+
+        if (addr) {
+            setAddress({
+                fullAddress: addr.fullAddress ?? '',
+                pincode: addr.pinCode ?? '',
+                stateId: addr.stateId ?? null,
+                cityId: addr.cityId ?? null,
+                addressType: addr.addressType ?? 'Residential',
             });
-
-            /* ---------------- FORM ---------------- */
-            setForm({
-                firstName: data.firstName ?? '',
-                lastName: data.lastName ?? '',
-                email: data.email ?? '',
-                dateOfBirth: data.dateOfBirth
-                    ? data.dateOfBirth.split('T')[0] // ✅ FIX DATE
-                    : '',
-
-                fatherName: data.fatherName ?? '',
-                motherName: data.motherName ?? '',
-                alternateMobile: data.mobileNumber2 ?? '',
-                gender: data.gender ?? '',
-                reservationCategory: data.resevationCategory ?? '', // ⚠ typo handled
-                fatherOccupation: data.fathersOccupation ?? '', // ✅ CORRECT
-
-                profileImagePath: data.profileImagePath ?? '',
-            });
-
-            /* ---------------- ADDRESS ---------------- */
-            const addr = data.addresses?.find(a => a.isActive && !a.isDeleted)
-                ?? data.addresses?.[0];
-
-            if (addr) {
-                setAddress({
-                    fullAddress: addr.fullAddress ?? '',
-                    pincode: addr.pinCode ?? '',
-                    stateId: addr.stateId ?? null,
-                    cityId: addr.cityId ?? null,
-                    addressType: addr.addressType ?? 'Residential',
-                });
-            }
-
-        } catch {
-            setNotFound(true);
-            clearFormAll(); 
-        } finally {
-            setLoading(false);
         }
-    };
+
+    } catch {
+        setNotFound(true);
+        clearFormAll();
+    } finally {
+        setLoading(false);
+    }
+};
+
 
     /* ---------------- IMAGE UPLOAD (OPTIONAL) ---------------- */
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -240,7 +302,10 @@ export default function IdentifyStudentPage() {
     const validate = () => {
         const e: Record<string, string> = {};
 
-        if (!mobile || mobile.length !== 10) e.mobile = 'Valid mobile is required';
+        // if (!mobile || mobile.length !== 10) e.mobile = 'Valid mobile is required';
+        if (!aadharNumber || aadharNumber.length !== 12)
+    e.aadharNumber = 'Valid Aadhar is required';
+
         if (!form.firstName) e.firstName = 'First name is required';
         if (!form.lastName) e.lastName = 'Last name is required';
         if (!form.gender) e.gender = 'Gender is required';
@@ -278,7 +343,8 @@ export default function IdentifyStudentPage() {
         dispatch(
             setDraftStudent({
                 studentId: student?.studentId,
-                mobile,
+                aadharNumber,
+                mobile: form.alternateMobile || '',
 
                 firstName: form.firstName,
                 lastName: form.lastName,
@@ -310,7 +376,7 @@ export default function IdentifyStudentPage() {
 
 
         return true;
-    }, [student, form, mobile, address, dispatch]);
+    }, [student, form, aadharNumber, address, dispatch]);
 
 
 
@@ -349,30 +415,35 @@ export default function IdentifyStudentPage() {
                         {/* Student Mobile Number */}
                     </Typography>
 
-                    <TextField
-                        label="Mobile Number"
-                        required
-                        value={mobile}
-                        size="small"
-                        error={!!errors.mobile}
-                        helperText={errors.mobile}
-                        disabled={isLocked}
-                        inputProps={{ maxLength: 10 }}
-                        onChange={(e) => {
-                            const val = e.target.value.replace(/\D/g, '');
-                            setMobile(val);
-                            if (val.length < 10) {
-                                clearFormAll(); // 🔥 clear while editing
-                                setNotFound(false);
-                            }                            
-                            if (val.length === 10) checkMobile(val);
-                        }}
-                        InputProps={{
-                            endAdornment: loading ? (
-                                <CircularProgress size={20} />
-                            ) : null,
-                        }}
-                    />
+                   <TextField
+    label="Aadhar Number"
+    required
+    value={aadharNumber}
+    size="small"
+    error={!!errors.aadharNumber}
+    helperText={errors.aadharNumber}
+    disabled={isLocked}
+    inputProps={{ maxLength: 12 }}
+    onChange={(e) => {
+        const val = e.target.value.replace(/\D/g, '');
+        setAadharNumber(val);
+
+        if (val.length < 12) {
+            clearFormAll();
+            setNotFound(false);
+        }
+
+        if (val.length === 12) {
+            checkAadhar(val);
+        }
+    }}
+    InputProps={{
+        endAdornment: loading ? (
+            <CircularProgress size={20} />
+        ) : null,
+    }}
+/>
+
                 </Box>
 
                 {/* RIGHT SIDE */}
