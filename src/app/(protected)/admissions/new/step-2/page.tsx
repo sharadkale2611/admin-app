@@ -496,7 +496,7 @@ export default function AdmissionStep2Page() {
                 {/* PREVIOUS ACADEMIC */}
                         <Typography fontWeight={600}>Previous Academic Details</Typography>
 
-                        <Grid container spacing={3}>
+                        <Grid container spacing={2}>
                             <Grid size={{ xs: 12, md: 4 }}>
                                 <Typography variant="caption">Previous Class</Typography>
                                 <ToggleButtonGroup
