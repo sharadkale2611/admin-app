@@ -6,6 +6,7 @@ import {
     updateFirm,
     deleteFirm,
     fetchFirmById,
+    uploadFirmLogo,
 } from "./firmThunks";
 
 import { Firm, FirmsState } from "./firmType"; 
@@ -132,6 +133,27 @@ const firmSlice = createSlice({
                     state.currentFirm = action.payload.firm;
                 }
             })
+// -------------------------------
+// UPLOAD / CHANGE FIRM LOGO
+// -------------------------------
+.addCase(uploadFirmLogo.pending, (state) => {
+  state.loading = true;
+  state.error = null;
+})
+.addCase(uploadFirmLogo.fulfilled, (state, action) => {
+  state.loading = false;
+
+  if (state.currentFirm) {
+    // ✅ payload is STRING
+    state.currentFirm.firmLogoImagePath = action.payload;
+  }
+})
+.addCase(uploadFirmLogo.rejected, (state, action) => {
+  state.loading = false;
+  state.error = action.payload?.error ?? "Logo upload failed";
+})
+
+
 
             // -------------------------------
             // DELETE FIRM
@@ -145,8 +167,12 @@ const firmSlice = createSlice({
             .addCase(deleteFirm.rejected, (state, action) => {
                 state.error = action.payload?.error ?? "Failed to delete firm";
             });
-    },
+         },
+    
 });
+
+
+
 
 export const {
     setSearchTerm,

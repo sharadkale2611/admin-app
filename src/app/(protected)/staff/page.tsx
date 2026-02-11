@@ -112,8 +112,8 @@ const StaffList: React.FC = () => {
   };
 
   // Calculate current page data
-  const startIndex = (page - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
+  // const startIndex = (page - 1) * rowsPerPage;
+  // const endIndex = startIndex + rowsPerPage;
 
   // Sort data
   // Sort data with better error handling
@@ -153,41 +153,20 @@ const StaffList: React.FC = () => {
             : bString.localeCompare(aString);
         })
       : [];
-  const currentStaff = sortedStaff.slice(startIndex, endIndex);
+  // const currentStaff = sortedStaff.slice(startIndex, endIndex);
+  const currentStaff = sortedStaff;
 
   // Columns configuration with proper error handling
   const columns: GridColDef<Staff>[] = [
     {
-      field: "staffId",
-      headerName: "ID",
-      width: 80,
-      valueGetter: (value, row) => row?.staffId ?? "", // Use the correct signature
-      renderHeader: () => {
-        const isActive = sortModel[0]?.field === "staffId";
-        const direction = isActive
-          ? (sortModel[0]?.sort as "asc" | "desc")
-          : undefined;
-
-        return (
-          <TableSortLabel
-            active={isActive}
-            direction={direction}
-            onClick={() => {
-              setSortModel([
-                {
-                  field: "staffId",
-                  sort: isActive
-                    ? sortModel[0]?.sort === "asc"
-                      ? "desc"
-                      : "asc"
-                    : "asc",
-                },
-              ]);
-            }}
-          >
-            ID
-          </TableSortLabel>
-        );
+      field: "srNo",
+      headerName: "Sr. No.",
+      width: 90,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => {
+        const index = params.api.getRowIndexRelativeToVisibleRows(params.id);
+        return (page - 1) * rowsPerPage + index + 1;
       },
     },
     {

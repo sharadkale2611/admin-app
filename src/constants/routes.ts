@@ -25,6 +25,8 @@ export const AppRoutes = {
     ADMISSIONS: '/admissions',
     NEW_ADMISSION: '/admissions/new',
     FIRMS: '/firms',
+    PERMISSIONS: '/permissions',
+    ROLES: '/roles',
 
     COURSES: '/courses',
     FEES: '/fees',

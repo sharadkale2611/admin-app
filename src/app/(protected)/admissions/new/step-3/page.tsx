@@ -122,7 +122,7 @@ export default function AdmissionStep3PricingPage() {
                     : [],
         };
     };
- 
+
 
     /* -------------------- LOCAL ERRORS -------------------- */
     const [errors, setErrors] = useState<{
@@ -253,7 +253,7 @@ export default function AdmissionStep3PricingPage() {
     /* -------------------- VALIDATE BEFORE NEXT -------------------- */
     const validate = () => {
         const e: typeof errors = {};
-        if(formData.paidAmount !== null && formData.paidAmount < 0) {
+        if (formData.paidAmount !== null && formData.paidAmount < 0) {
             e.paidAmount = 'Paid amount cannot be negative';
         }
 
@@ -275,7 +275,7 @@ export default function AdmissionStep3PricingPage() {
     };
 
     /* -------------------- NEXT -------------------- */
- 
+
     const handleNext = useCallback((): boolean => {
         if (!validate()) return false;
         if (formData.finalAmount <= 0) return false;
@@ -285,7 +285,7 @@ export default function AdmissionStep3PricingPage() {
         dispatch(setPricingDetails(pricingPayload));
         return true;
     }, [dispatch, formData]);
- 
+
 
     useEffect(() => {
         if (!wizardNextRef) return;
@@ -311,7 +311,7 @@ export default function AdmissionStep3PricingPage() {
                             <Grid size={{ xs: 12, md: 4 }}>
                                 <TextField
                                     label="Base Course Fee"
-                                    sx={{backgroundColor: '#c6c6c677'}}
+                                    sx={{ backgroundColor: '#c6c6c677' }}
                                     value={`₹ ${formData.feeAmount}`}
                                     size="small"
                                     InputProps={{ readOnly: true }}

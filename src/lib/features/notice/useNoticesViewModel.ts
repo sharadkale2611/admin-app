@@ -1,3 +1,5 @@
+// src/lib/features/notice/useNoticesViewModel.ts
+
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { useEffect, useCallback } from "react";
 import type { RootState } from "@/lib/store";

@@ -1,4 +1,5 @@
 "use client";
+// src/app/(protected)/notices/page.tsx
 
 import React from "react";
 import {

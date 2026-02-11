@@ -34,11 +34,14 @@ export const useLoginViewModel = () => {
         setValidationErrors([]);
 
         try {
+            // await dispatch(login(values)).unwrap();
+
+            // // ✅ redirect after successful login
+            // const redirectTo = searchParams.get('redirect') || '/dashboard';
+            // router.replace(redirectTo);
+
             await dispatch(login(values)).unwrap();
 
-            // ✅ redirect after successful login
-            const redirectTo = searchParams.get('redirect') || '/dashboard';
-            router.replace(redirectTo);
 
         } catch (err: unknown) {
             const error = err as ThunkRejectValue;

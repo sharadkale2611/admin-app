@@ -191,7 +191,7 @@ export default function PermissionsPage() {
                           </IconButton>
                         </Link>
 
-                        <IconButton
+                        {/* <IconButton
                           size="small"
                           color="error"
                           onClick={async () => {
@@ -203,7 +203,7 @@ export default function PermissionsPage() {
                           }}
                         >
                           <Delete />
-                        </IconButton>
+                        </IconButton> */}
                       </Stack>
                     </TableCell>
                   </TableRow>

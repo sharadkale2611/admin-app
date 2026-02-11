@@ -5,15 +5,15 @@ const API_BASE_URL =
 
 const API_ENDPOINTS = {
   /* ===================== BASE ===================== */
-  PARENT_URL: process.env.NEXT_PUBLIC_API_PARENT_URL || "",
-  BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || "",
-  BASE_URL_API: process.env.NEXT_PUBLIC_API_BASE_URL_API || "",
-  TIMEOUT: Number(process.env.NEXT_PUBLIC_API_TIMEOUT || 5000),
+  // PARENT_URL: process.env.NEXT_PUBLIC_API_PARENT_URL || "",
+  // BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || "",
+  // BASE_URL_API: process.env.NEXT_PUBLIC_API_BASE_URL_API || "",
+  // TIMEOUT: Number(process.env.NEXT_PUBLIC_API_TIMEOUT || 5000),
 
-  // PARENT_URL: 'https://rsa.ysaasinfotech.com',
-  // BASE_URL: 'https://apirsa.ysaasinfotech.com',
-  // BASE_URL_API: 'https://apirsa.ysaasinfotech.com/api',
-  // TIMEOUT: 5000,
+  PARENT_URL: 'https://rsa.ysaasinfotech.com',
+  BASE_URL: 'https://apirsa.ysaasinfotech.com',
+  BASE_URL_API: 'https://apirsa.ysaasinfotech.com/api',
+  TIMEOUT: 5000,
 
 
 
@@ -37,6 +37,17 @@ const API_ENDPOINTS = {
     DELETE: "/Firms",
   },
 
+
+  ROLES: {
+    GET_LIST: "/roles",
+    GET_BY_ID: "/roles",
+  },
+
+  DASHBOARD: {
+    ADMIN_SUMMARY: "/admin-dashboard/summary",
+    // STUDENT_ATTENDANCE_TODAY: "/api/admin-dashboard/student-attendance-today",
+    // RECENT_ACTIVITY: "/api/admin-dashboard/recent-activity",
+  },
   /* ===================== STAFF ===================== */
   STAFF: {
     GET_LIST_PAGINATED: "/Staffs/paginated",

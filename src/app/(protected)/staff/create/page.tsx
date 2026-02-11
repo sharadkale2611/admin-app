@@ -1,4 +1,5 @@
-'use client'
+'use client';
+
 import React from 'react';
 import {
     Container,
@@ -21,6 +22,7 @@ import useCreateStaffViewModel from '@/lib/features/staff/createStaffViewModel';
 export default function CreateStaff() {
     const {
         formData,
+        errors,
         isSubmitting,
         error,
         handleChange,
@@ -41,103 +43,85 @@ export default function CreateStaff() {
             )}
 
             <Paper elevation={0} sx={{ p: 3, border: '1px solid #e0e0e0' }}>
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} noValidate>
                     <Grid container spacing={2}>
-                        {/* User Account Section */}
-                        <Grid  size={{ xs: 12 }}>
-                            <Typography variant="subtitle1" sx={{ mb: 1, color: 'text.secondary' }}>
+                        {/* Account Information */}
+                        <Grid size={{ xs: 12 }}>
+                            <Typography variant="subtitle1" color="text.secondary">
                                 Account Information
                             </Typography>
                         </Grid>
 
-                        {/* <Grid  size={{ xs: 12, sm: 6 }}>
-                            <TextField
-                                fullWidth
-                                label="Username"
-                                name="userName"
-                                value={formData.userName}
-                                onChange={handleChange}
-                                required
-                                size="small"
-                                disabled={isSubmitting}
-                            />
-                        </Grid> */}
-
-                        {/* <Grid  size={{ xs: 12, sm: 6 }}>
-                            <TextField
-                                fullWidth
-                                label="Password"
-                                name="password"
-                                type="password"
-                                value={formData.password}
-                                onChange={handleChange}
-                                required
-                                size="small"
-                                disabled={isSubmitting}
-                            />
-                        </Grid> */}
-
-                        <Grid  size={{ xs: 12, sm: 6 }}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="Email"
                                 name="email"
-                                type="email"
                                 value={formData.email}
                                 onChange={handleChange}
+                                error={!!errors.email}
+                                helperText={errors.email}
                                 required
                                 size="small"
                                 disabled={isSubmitting}
                             />
                         </Grid>
 
-                        <Grid  size={{ xs: 12, sm: 6 }}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="Mobile Number"
                                 name="mobileNumber"
                                 value={formData.mobileNumber}
                                 onChange={handleChange}
+                                error={!!errors.mobileNumber}
+                                helperText={errors.mobileNumber}
+                                inputProps={{ maxLength: 10 }}
                                 required
                                 size="small"
                                 disabled={isSubmitting}
                             />
                         </Grid>
 
-                        {/* Staff Information Section */}
-                        <Grid  size={{ xs: 12 }} sx={{ mt: 2 }}>
-                            <Typography variant="subtitle1" sx={{ mb: 1, color: 'text.secondary' }}>
+                        {/* Staff Details */}
+                        <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
+                            <Typography variant="subtitle1" color="text.secondary">
                                 Staff Details
                             </Typography>
                         </Grid>
 
-                        <Grid  size={{ xs: 12, sm: 6 }}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="First Name"
                                 name="firstName"
                                 value={formData.firstName}
                                 onChange={handleChange}
+                                error={!!errors.firstName}
+                                helperText={errors.firstName}
                                 required
                                 size="small"
                                 disabled={isSubmitting}
                             />
                         </Grid>
 
-                        <Grid  size={{ xs: 12, sm: 6 }}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="Last Name"
                                 name="lastName"
                                 value={formData.lastName}
                                 onChange={handleChange}
+                                error={!!errors.lastName}
+                                helperText={errors.lastName}
                                 required
                                 size="small"
                                 disabled={isSubmitting}
                             />
                         </Grid>
 
-                        <Grid  size={{ xs: 12, sm: 6 }}>
+                        {/* DATE OF BIRTH – REQUIRED */}
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="Date of Birth"
@@ -145,14 +129,17 @@ export default function CreateStaff() {
                                 type="date"
                                 value={formData.dateOfBirth}
                                 onChange={handleChange}
+                                error={!!errors.dateOfBirth}
+                                helperText={errors.dateOfBirth}
                                 InputLabelProps={{ shrink: true }}
+                                required
                                 size="small"
                                 disabled={isSubmitting}
                             />
                         </Grid>
 
-                        <Grid  size={{ xs: 12, sm: 6 }}>
-                            <FormControl fullWidth size="small" disabled={isSubmitting}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
+                            <FormControl fullWidth size="small" error={!!errors.gender}>
                                 <InputLabel>Gender</InputLabel>
                                 <Select
                                     label="Gender"
@@ -164,38 +151,45 @@ export default function CreateStaff() {
                                     <MenuItem value="F">Female</MenuItem>
                                     <MenuItem value="O">Other</MenuItem>
                                 </Select>
+                                {errors.gender && (
+                                    <Typography variant="caption" color="error">
+                                        {errors.gender}
+                                    </Typography>
+                                )}
                             </FormControl>
                         </Grid>
 
-                        <Grid  size={{ xs: 12, sm: 6 }}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="Position"
                                 name="position"
                                 value={formData.position}
-                                onChange={handleChange}
+                                error={!!errors.position}
+                                helperText={errors.position}
+                                InputProps={{ readOnly: true }}
                                 required
                                 size="small"
-                                // disabled={isSubmitting}
-                                InputProps={{
-                                    readOnly: true,
-                                }}
                             />
                         </Grid>
 
-                        <Grid  size={{ xs: 12, sm: 6 }}>
+                        {/* DEPARTMENT – REQUIRED */}
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="Department"
                                 name="department"
                                 value={formData.department}
                                 onChange={handleChange}
+                                error={!!errors.department}
+                                helperText={errors.department}
+                                required
                                 size="small"
                                 disabled={isSubmitting}
                             />
                         </Grid>
 
-                        <Grid  size={{ xs: 12, sm: 6 }}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="Hire Date"
@@ -203,6 +197,8 @@ export default function CreateStaff() {
                                 type="date"
                                 value={formData.hireDate}
                                 onChange={handleChange}
+                                error={!!errors.hireDate}
+                                helperText={errors.hireDate}
                                 InputLabelProps={{ shrink: true }}
                                 required
                                 size="small"
@@ -210,7 +206,8 @@ export default function CreateStaff() {
                             />
                         </Grid>
 
-                        <Grid  size={{ xs: 12, sm: 6 }}>
+                        {/* SALARY – REQUIRED */}
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="Salary"
@@ -218,15 +215,18 @@ export default function CreateStaff() {
                                 type="number"
                                 value={formData.salary}
                                 onChange={handleChange}
-                                size="small"
+                                error={!!errors.salary}
+                                helperText={errors.salary}
                                 InputProps={{ inputProps: { min: 0 } }}
+                                required
+                                size="small"
                                 disabled={isSubmitting}
                             />
                         </Grid>
 
-                        <Grid  size={{ xs: 12 }} sx={{ mt: 2 }}>
+                        <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
                             <Box sx={{ display: 'flex', gap: 2 }}>
-                                <Link href="/staff" passHref>
+                                <Link href="/staff">
                                     <Button
                                         variant="outlined"
                                         color="secondary"
@@ -237,10 +237,10 @@ export default function CreateStaff() {
                                         Cancel
                                     </Button>
                                 </Link>
+
                                 <Button
                                     type="submit"
                                     variant="contained"
-                                    color="primary"
                                     startIcon={<Save />}
                                     size="small"
                                     disabled={isSubmitting}
