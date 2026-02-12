@@ -44,6 +44,8 @@ import dashboardReducer from "@/lib/features/dashboard/dashboardSlice";
 import permissionReducer from "@/lib/features/permission/permissionSlice";
 import roleReducer from "@/lib/features/roles/roleSlice";
 import rolePermissionReducer from "@/lib/features/role-permissions/rolePermissionSlice";
+import questionTypeReducer from "@/lib/features/questionType/questionTypeSlice";
+
 
 
 const admissionDraftPersistConfig = {
@@ -85,6 +87,7 @@ const rootReducer = combineReducers({
     permissions: permissionReducer,
     roles: roleReducer,
     rolePermissions: rolePermissionReducer,
+    questionTypes: questionTypeReducer,
 
 });
 

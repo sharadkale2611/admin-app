@@ -277,7 +277,16 @@ const API_ENDPOINTS = {
   POST_CREATE: "/permissions",
   PUT_UPDATE: "/permissions",
   DELETE: "/permissions",
-}
+},
+
+QUESTION_TYPES: {
+    GET_LIST: "/QuestionTypes",
+    GET_PAGINATED: "/QuestionTypes/paginated",
+    GET_BY_ID: "/QuestionTypes",
+    POST_CREATE: "/QuestionTypes",
+    PUT_UPDATE: "/QuestionTypes",
+    DELETE: "/QuestionTypes",
+  },
 
 
 
