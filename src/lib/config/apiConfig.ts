@@ -245,7 +245,16 @@ const API_ENDPOINTS = {
   },
 
   /* ===================== EXAMS ===================== */
-  EXAMS: {
+  
+  COURSE_MODULE_CONTENTS: {
+  GET_LIST: "/CourseModuleContents",
+  GET_BY_ID: "/CourseModuleContents",
+  POST_CREATE: "/CourseModuleContents",
+  PUT_UPDATE: "/CourseModuleContents",
+  DELETE: "/CourseModuleContents",
+},
+
+EXAMS: {
     GET_LIST_PAGINATED: "/Exams/paginated",
     GET_LIST: "/Exams",
     GET_BY_ID: "/Exams",

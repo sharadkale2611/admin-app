@@ -44,6 +44,7 @@ import dashboardReducer from "@/lib/features/dashboard/dashboardSlice";
 import permissionReducer from "@/lib/features/permission/permissionSlice";
 import roleReducer from "@/lib/features/roles/roleSlice";
 import rolePermissionReducer from "@/lib/features/role-permissions/rolePermissionSlice";
+import courseModuleContentReducer from "@/lib/features/courseModuleContent/courseModuleContentSlice";
 
 
 const admissionDraftPersistConfig = {
@@ -76,6 +77,8 @@ const rootReducer = combineReducers({
     examMarks: examMarksReducer,
     attendanceSession: attendanceSessionReducer,
     dashboard: dashboardReducer,
+    courseModuleContents: courseModuleContentReducer,
+
 
     admissionDraft: persistReducer(
         admissionDraftPersistConfig,
