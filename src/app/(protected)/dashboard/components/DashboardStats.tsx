@@ -12,16 +12,32 @@ import PeopleIcon from '@mui/icons-material/People';
 import GroupsIcon from '@mui/icons-material/Groups';
 import PercentIcon from '@mui/icons-material/Percent';
 import SchoolIcon from '@mui/icons-material/School';
-import EventAvailableIcon from '@mui/icons-material/EventAvailable'; 
-import { useAppSelector } from '@/lib/hooks';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+
+import { useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { fetchAdminDashboardSummary } from '@/lib/features/dashboard/dashboardThunks';
 
 export default function DashboardStats() {
-  const { summary, loading } = useAppSelector(
-    state => state.dashboard
+  const dispatch = useAppDispatch();
+
+  const { summary, loading, error } = useAppSelector(
+    (state) => state.dashboard
   );
+
+  // 🔹 FETCH DASHBOARD SUMMARY ON LOAD
+  useEffect(() => {
+    if (!summary) {
+      dispatch(fetchAdminDashboardSummary());
+    }
+  }, [dispatch, summary]);
 
   if (loading && !summary) {
     return <Typography>Loading stats...</Typography>;
+  }
+
+  if (error) {
+    return <Typography color="error">{error}</Typography>;
   }
 
   const stats = [
@@ -37,11 +53,11 @@ export default function DashboardStats() {
       icon: <GroupsIcon color="secondary" />,
       subText: 'Currently running',
     },
-
-    { label: 'Staff Present Today', 
-        value: '0',
-         icon: <EventAvailableIcon color="success" />, 
-         subText: 'Marked attendance',
+    {
+      label: 'Staff Present Today',
+      value: '0',
+      icon: <EventAvailableIcon color="success" />,
+      subText: 'Marked attendance',
     },
     {
       label: 'Attendance Today',
@@ -62,7 +78,7 @@ export default function DashboardStats() {
   return (
     <Box>
       <Grid container spacing={2}>
-        {stats.map(stat => (
+        {stats.map((stat) => (
           <Grid
             key={stat.label}
             size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
@@ -76,17 +92,11 @@ export default function DashboardStats() {
                     {stat.value}
                   </Typography>
 
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                  >
+                  <Typography variant="body2" color="text.secondary">
                     {stat.label}
                   </Typography>
 
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                  >
+                  <Typography variant="caption" color="text.secondary">
                     {stat.subText}
                   </Typography>
                 </Stack>

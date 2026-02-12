@@ -31,14 +31,14 @@ export default function StudentsPage() {
             >
                 <Typography variant="h4">Students</Typography>
 
-                <Button
+                {/* <Button
                     variant="contained"
                     startIcon={<Add />}
                     onClick={() => setShowCreate(true)}
                     disabled={showCreate}
                 >
                     Add Student
-                </Button>
+                </Button> */}
             </Box>
 
             <Grid container spacing={3}>

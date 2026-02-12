@@ -1,4 +1,3 @@
-// lib/features/staff/useEditStaffViewModel.ts
 'use client'
 
 import { useState, useEffect } from 'react';
@@ -7,7 +6,6 @@ import { updateStaff, fetchStaffById } from './staffThunks';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/lib/store';
 import { toast } from 'react-toastify';
-import Swal from "sweetalert2";      // ✅ ADD THIS
 
 export interface StaffFormData {
     userName: string;
@@ -24,12 +22,15 @@ export interface StaffFormData {
     isActive: boolean;
 }
 
+type StaffFormErrors = Partial<Record<keyof StaffFormData, string>>;
+
 export default function useEditStaffViewModel() {
     const router = useRouter();
     const { id } = useParams();
     const dispatch: AppDispatch = useDispatch();
 
-    const { currentStaff, loading, error: fetchError } = useSelector((state: RootState) => state.staff);
+    const { currentStaff, loading, error: fetchError } =
+        useSelector((state: RootState) => state.staff);
 
     const [formData, setFormData] = useState<StaffFormData>({
         userName: '',
@@ -46,17 +47,27 @@ export default function useEditStaffViewModel() {
         isActive: true
     });
 
+    const [errors, setErrors] = useState<StaffFormErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Load staff data when component mounts
+    // 🔔 Snackbar state
+    const [snackbar, setSnackbar] = useState<{
+        open: boolean;
+        message: string;
+        severity: 'error' | 'success';
+    }>({
+        open: false,
+        message: '',
+        severity: 'error'
+    });
+
+    // Fetch staff
     useEffect(() => {
-        if (id) {
-            dispatch(fetchStaffById(id as string));
-        }
+        if (id) dispatch(fetchStaffById(id as string));
     }, [dispatch, id]);
 
-    // Populate form when staff data is loaded
+    // Populate form
     useEffect(() => {
         if (currentStaff) {
             setFormData({
@@ -65,11 +76,15 @@ export default function useEditStaffViewModel() {
                 mobileNumber: currentStaff.mobileNumber || '',
                 firstName: currentStaff.firstName || '',
                 lastName: currentStaff.lastName || '',
-                dateOfBirth: currentStaff.dateOfBirth ? currentStaff.dateOfBirth.split('T')[0] : '',
+                dateOfBirth: currentStaff.dateOfBirth
+                    ? currentStaff.dateOfBirth.split('T')[0]
+                    : '',
                 gender: currentStaff.gender || '',
                 position: currentStaff.position || '',
                 department: currentStaff.department || '',
-                hireDate: currentStaff.hireDate ? currentStaff.hireDate.split('T')[0] : '',
+                hireDate: currentStaff.hireDate
+                    ? currentStaff.hireDate.split('T')[0]
+                    : '',
                 salary: currentStaff.salary?.toString() || '',
                 isActive: currentStaff.isActive
             });
@@ -78,94 +93,130 @@ export default function useEditStaffViewModel() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
+        setErrors(prev => ({ ...prev, [name]: undefined }));
     };
 
     const handleSelectChange = (e: { target: { name: string; value: string } }) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
+        setErrors(prev => ({ ...prev, [name]: undefined }));
     };
 
     const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: checked
-        }));
+        setFormData(prev => ({ ...prev, [name]: checked }));
+    };
+
+    // 🔒 Validation
+    const validate = (): StaffFormErrors => {
+        const e: StaffFormErrors = {};
+
+        if (!formData.email)
+            e.email = 'Email is required';
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+            e.email = 'Invalid email format';
+
+        if (!formData.mobileNumber)
+            e.mobileNumber = 'Mobile number is required';
+        else if (!/^[6-9]\d{9}$/.test(formData.mobileNumber))
+            e.mobileNumber = 'Enter valid 10-digit Indian mobile number';
+
+        // First Name
+        if (!formData.firstName)
+            e.firstName = 'First name is required';
+        else if (formData.firstName.trim().length < 2)
+            e.firstName = 'First name must be at least 2 characters';
+
+        // Last Name
+        if (!formData.lastName)
+            e.lastName = 'Last name is required';
+        else if (formData.lastName.trim().length < 2)
+            e.lastName = 'Last name must be at least 2 characters';
+
+        if (!formData.dateOfBirth)
+            e.dateOfBirth = 'Date of birth is required';
+        else {
+            const age =
+                new Date().getFullYear() -
+                new Date(formData.dateOfBirth).getFullYear();
+            if (age < 18)
+                e.dateOfBirth = 'Staff must be at least 18 years old';
+        }
+
+        if (!formData.gender)
+            e.gender = 'Gender is required';
+
+        if (!formData.department)
+            e.department = 'Department is required';
+
+        if (!formData.hireDate)
+            e.hireDate = 'Hire date is required';
+        else if (new Date(formData.hireDate) > new Date())
+            e.hireDate = 'Hire date cannot be in future';
+
+        if (!formData.salary)
+            e.salary = 'Salary is required';
+        else if (Number(formData.salary) < 0)
+            e.salary = 'Salary cannot be negative';
+
+        return e;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!id) {
+            setSnackbar({
+                open: true,
+                message: 'Staff ID missing',
+                severity: 'error'
+            });
+            return;
+        }
+
+        const validationErrors = validate();
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            setSnackbar({
+                open: true,
+                message: 'Please fix form errors',
+                severity: 'error'
+            });
+            return;
+        }
+
         setIsSubmitting(true);
         setError(null);
 
         try {
-            if (!id) {
-                throw new Error('Staff ID is required');
-            }
-
-            // Validate form data
-            if (!formData.userName || !formData.email ||
-                !formData.firstName || !formData.lastName || !formData.position) {
-                throw new Error('Please fill in all required fields');
-            }
-
-            // Validate email format
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-                throw new Error('Please enter a valid email address');
-            }
-
-            // Update staff via Redux
-            const result = await dispatch(updateStaff({
+            await dispatch(updateStaff({
                 id: id as string,
-                userName: formData.userName,
+                userName: formData.userName,   // readonly
                 email: formData.email,
                 mobileNumber: formData.mobileNumber,
                 firstName: formData.firstName,
                 lastName: formData.lastName,
                 dateOfBirth: formData.dateOfBirth,
                 gender: formData.gender,
-                position: formData.position,
+                position: formData.position,   // readonly
                 department: formData.department,
                 hireDate: formData.hireDate,
-                salary: Number(formData.salary) || 0,
+                salary: Number(formData.salary),
                 isActive: formData.isActive
             })).unwrap();
 
-            if (result.success) {
-                toast.success('Staff member updated successfully');
-                router.push('/staff');
-            } else {
-                throw new Error(result.error || 'Failed to update staff member');
-            }
+            toast.success('Staff member updated successfully');
+            router.push('/staff');
 
         } catch (err: any) {
-            let errorMessage = "";
-
-            if (typeof err === "string") {
-                errorMessage = err;                   // backend message
-            } else if (err instanceof Error) {
-                errorMessage = err.message;           // JS error
-            } else {
-                errorMessage = "An unknown error occurred";
-            }
-
-            setError(errorMessage);
-
-            // 🔥 SWEET ALERT FOR BACKEND ERRORS
-            Swal.fire({
-                icon: "error",
-                title: "Update Failed",
-                text: errorMessage,
-                confirmButtonColor: "#d33"
+            const msg = err?.message || 'Update failed';
+            setError(msg);
+            setSnackbar({
+                open: true,
+                message: msg,
+                severity: 'error'
             });
-
         } finally {
             setIsSubmitting(false);
         }
@@ -173,9 +224,12 @@ export default function useEditStaffViewModel() {
 
     return {
         formData,
+        errors,
         isSubmitting,
         error: error || fetchError,
         loading,
+        snackbar,
+        setSnackbar,
         handleChange,
         handleSelectChange,
         handleCheckboxChange,

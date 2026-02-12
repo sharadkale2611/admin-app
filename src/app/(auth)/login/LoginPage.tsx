@@ -1,4 +1,5 @@
 "use client";
+// src/app/(auth)/login/LoginPage.tsx
 
 import { useLoginViewModel } from "@/lib/features/auth/useLoginViewModel";
 import { useAppSelector } from "@/lib/hooks";
@@ -11,13 +12,22 @@ import {
     CircularProgress,
     Alert,
     Paper,
+    IconButton,
+    InputAdornment,
+    useTheme,
 } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
+import AnimatedEducationBackground from "@/app/components/ui/AnimatedEducationBackground";
 
 export default function LoginPage() {
     const { handleSubmit, loading, error, validationErrors } =
         useLoginViewModel();
+
+    const theme = useTheme();
+    const isDark = theme.palette.mode === "dark";
 
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -26,18 +36,51 @@ export default function LoginPage() {
         isAuthenticated,
         isAuthChecking,
         initialCheckDone,
-        hasLoggedOut,          // 🔥 FIX 1: READ IT
-    } = useAppSelector(state => state.auth);
+    } = useAppSelector((state) => state.auth);
 
-    console.log(
-        'LoginPage:',
-        'isAuthenticated =', isAuthenticated,
-        'hasLoggedOut =', hasLoggedOut,
-        'initialCheckDone =', initialCheckDone
-    );
+    const [mounted, setMounted] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
-    // 🔥 FIX 2: block ONLY until auth check completes
-    if (!initialCheckDone || isAuthChecking) {
+    const cardRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => setMounted(true), []);
+
+    useEffect(() => {
+        if (!mounted) return;
+        if (!initialCheckDone || isAuthChecking) return;
+
+        if (isAuthenticated) {
+            const redirectTo = searchParams?.get("redirect") || "/dashboard";
+            router.replace(redirectTo);
+        }
+    }, [
+        mounted,
+        initialCheckDone,
+        isAuthChecking,
+        isAuthenticated,
+        router,
+        searchParams,
+    ]);
+
+    const readyForAnimation =
+        mounted && initialCheckDone && !isAuthChecking;
+
+    useLayoutEffect(() => {
+        if (!readyForAnimation || !cardRef.current) return;
+
+        gsap.fromTo(
+            cardRef.current,
+            { opacity: 0, y: 32 },
+            {
+                opacity: 1,
+                y: 0,
+                duration: 0.9,
+                ease: "power3.out",
+            }
+        );
+    }, [readyForAnimation]);
+
+    if (!initialCheckDone || isAuthChecking || !mounted) {
         return (
             <Box height="100vh" display="flex" alignItems="center" justifyContent="center">
                 <CircularProgress />
@@ -45,68 +88,48 @@ export default function LoginPage() {
         );
     }
 
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        if (!mounted) return;
-
-        // 🔥 FIX 3: redirect ONLY after checkAuth finishes
-        if (isAuthenticated && !hasLoggedOut) {
-            router.replace(searchParams?.get("redirect") || "/dashboard");
-        }
-    }, [mounted, isAuthenticated, hasLoggedOut, router, searchParams]);
-
-    if (!mounted) {
-        return null;
-    }
-
-    // ❌ REMOVED: blocking login page based on isAuthenticated
-    // Login page must always render once auth check is done
-
     return (
         <Box
             sx={{
                 minHeight: "100vh",
+                position: "relative",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: `
-                  linear-gradient(
-                    rgba(15, 23, 42, 0.75),
-                    rgba(15, 23, 42, 0.75)
-                  ),
-                  url("/images/institute-bg1.png")
-                `,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                px: 2,
+                background: isDark
+                    ? "linear-gradient(135deg, #020617, #020617)"
+                    : "linear-gradient(135deg, #f8fafc, #eef2ff)",
             }}
         >
-            <Container maxWidth="sm">
+            {/* 🔥 Animated Background */}
+            <AnimatedEducationBackground />
+
+            {/* Login Card */}
+            <Container maxWidth="sm" sx={{ zIndex: 1 }}>
                 <Paper
-                    elevation={10}
+                    ref={cardRef}
+                    elevation={isDark ? 18 : 10}
                     sx={{
                         p: { xs: 3, sm: 4 },
                         borderRadius: 3,
-                        backdropFilter: "blur(12px)",
-                        backgroundColor: "rgba(255,255,255,0.92)",
+                        backdropFilter: "blur(14px)",
+                        backgroundColor: isDark
+                            ? "rgba(2,6,23,0.92)"
+                            : "rgba(255, 255, 255, 0.811)",
                     }}
                 >
-                    <Box textAlign="center" mb={3}>
-                        <Typography variant="h5" fontWeight={700} color="primary">
-                            Revolution Science Academy
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" mt={0.5}>
-                            Institute Management Portal
-                        </Typography>
-                    </Box>
+                    <Typography variant="h5" fontWeight={700} textAlign="center">
+                        Revolution Science Academy
+                    </Typography>
 
-                    <Typography variant="h6" fontWeight={600} textAlign="center" mb={3}>
-                        Sign in to your account
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        textAlign="center"
+                        mt={0.5}
+                        mb={3}
+                    >
+                        Institute Management Portal
                     </Typography>
 
                     {validationErrors.length > 0 && (
@@ -141,18 +164,28 @@ export default function LoginPage() {
                             name="username"
                             fullWidth
                             required
-                            autoComplete="username"
                             margin="normal"
                         />
 
                         <TextField
                             label="Password"
                             name="password"
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             fullWidth
                             required
-                            autoComplete="current-password"
                             margin="normal"
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            onClick={() => setShowPassword((v) => !v)}
+                                            edge="end"
+                                        >
+                                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            }}
                         />
 
                         <Button
@@ -165,7 +198,6 @@ export default function LoginPage() {
                                 mt: 3,
                                 py: 1.4,
                                 fontWeight: 600,
-                                textTransform: "none",
                                 borderRadius: 2,
                             }}
                         >

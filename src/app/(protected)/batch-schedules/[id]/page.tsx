@@ -61,6 +61,12 @@ function combineDateTime(dateStr: string, timeStr: string) {
   return `${dateStr}T${timeStr}:00`;
 }
 
+function toTimeInputValue(value: string | null | undefined) {
+  if (!value) return "";
+  // backend often sends "HH:mm:ss"; <input type="time"> expects "HH:mm"
+  return value.length >= 5 ? value.slice(0, 5) : value;
+}
+
 function formatScheduleDate(dateTime: string) {
   if (!dateTime) return "-";
   const date = new Date(dateTime);
@@ -96,7 +102,7 @@ const BatchSchedulesPage: React.FC = () => {
   /* ---------------- LOCAL STATE ---------------- */
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [startTime, setStartTime] = useState("09:00");
+  const [startTime, setStartTime] = useState("9:00");
   const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5]);
 
   const [trainerId, setTrainerId] = useState<number | "">("");
@@ -124,6 +130,7 @@ const BatchSchedulesPage: React.FC = () => {
     setTrainerId(currentBatch.trainerId ?? "");
     setSelectedClassRoomId(currentBatch.classRoomId ?? "");
     setBatchDurationInHr(currentBatch.batchDurationInHr ?? 1);
+    setStartTime(toTimeInputValue(currentBatch.startTime));
   }, [currentBatch]);
 
   /* ---------------- ACTIONS ---------------- */
@@ -262,6 +269,8 @@ const BatchSchedulesPage: React.FC = () => {
               InputLabelProps={{ shrink: true }}
               value={startTime}
               onChange={e => setStartTime(e.target.value)}
+              // disabled={!!currentBatch?.startTime}
+              InputProps={{ readOnly: !!currentBatch?.startTime }}
             />
           </Grid>
 

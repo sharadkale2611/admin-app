@@ -1,37 +1,21 @@
 'use client';
 
 import { Box, Chip, Stack, Typography } from '@mui/material';
-import { useAttendanceFilter } from '../_context/AttendanceFilterContext';
 import { useAttendanceSession } from '@/lib/features/attendance/useAttendanceSession';
+import { useAttendanceSessionData } from '../_context/AttendanceSessionDataContext';
+import { AttendanceFilter } from '@/lib/features/attendance/attendanceSessionSlice';
 
 interface AttendanceSummaryProps {
     sessionId: number;
 }
 
-/**
- * Dummy summary data
- * Replace with API response later
- */
-const mockSummary = {
-    present: 28,
-    absent: 3,
-    late: 1,
-    leave: 0,
-    total: 32,
-};
-
-type AttendanceFilter =
-    | 'ALL'
-    | 'PRESENT'
-    | 'ABSENT'
-    | 'LATE'
-    | 'LEAVE';
 
 export default function AttendanceSummary({
     sessionId,
 }: AttendanceSummaryProps) {
 
     const { filter, setFilter } = useAttendanceSession();
+    const { data } = useAttendanceSessionData();
     
 
     const handleFilterChange = (value: AttendanceFilter) => {
@@ -51,42 +35,42 @@ export default function AttendanceSummary({
             >
                 <SummaryChip
                     label="Present"
-                    count={mockSummary.present}
+                    count={data?.summary.present ?? 0}
                     color="success"
-                    active={filter === 'PRESENT'}
-                    onClick={() => handleFilterChange('PRESENT')}
+                    active={filter === 'Present'}
+                    onClick={() => handleFilterChange('Present')}
                 />
 
                 <SummaryChip
                     label="Absent"
-                    count={mockSummary.absent}
+                    count={data?.summary.absent ?? 0}
                     color="error"
-                    active={filter === 'ABSENT'}
-                    onClick={() => handleFilterChange('ABSENT')}
+                    active={filter === 'Absent'}
+                    onClick={() => handleFilterChange('Absent')}
                 />
 
                 <SummaryChip
                     label="Late"
-                    count={mockSummary.late}
+                    count={data?.summary.late ?? 0}
                     color="warning"
-                    active={filter === 'LATE'}
-                    onClick={() => handleFilterChange('LATE')}
+                    active={filter === 'Late'}
+                    onClick={() => handleFilterChange('Late')}
                 />
 
                 <SummaryChip
                     label="Leave"
-                    count={mockSummary.leave}
+                    count={data?.summary.leave ?? 0}
                     color="info"
-                    active={filter === 'LEAVE'}
-                    onClick={() => handleFilterChange('LEAVE')}
+                    active={filter === 'Leave'}
+                    onClick={() => handleFilterChange('Leave')}
                 />
 
                 <SummaryChip
                     label="Total"
-                    count={mockSummary.total}
+                    count={data?.summary.total ?? 0}
                     color="default"
-                    active={filter === 'ALL'}
-                    onClick={() => handleFilterChange('ALL')}
+                    active={filter === 'All'}
+                    onClick={() => handleFilterChange('All')}
                 />
             </Stack>
         </Box>

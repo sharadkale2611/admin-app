@@ -12,76 +12,106 @@ import {
     TableRow,
     Paper,
     Typography,
+    Alert,
+    Skeleton,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 
-/**
- * Dummy sessions data
- * Replace with API later
- */
-const mockSessions = [
-    {
-        sessionId: 101,
-        date: '12 Jan 2026',
-        batch: 'Batch 10-A',
-        staff: 'Rahul Patil',
-        time: '09:00 – 10:00',
-        marked: '28/32',
-        status: 'PARTIAL',
-    },
-    {
-        sessionId: 102,
-        date: '12 Jan 2026',
-        batch: 'Batch 9-B',
-        staff: 'Sneha Joshi',
-        time: '10:00 – 11:00',
-        marked: '0/30',
-        status: 'PENDING',
-    },
-    {
-        sessionId: 103,
-        date: '11 Jan 2026',
-        batch: 'Batch 12-C',
-        staff: 'Admin',
-        time: '11:00 – 12:00',
-        marked: '32/32',
-        status: 'COMPLETED',
-    },
-    {
-        sessionId: 104,
-        date: '10 Jan 2026',
-        batch: 'Batch 8-A',
-        staff: 'Rahul Patil',
-        time: '09:00 – 10:00',
-        marked: '30/30',
-        status: 'LOCKED',
-    },
-];
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
-type SessionStatus = 'PENDING' | 'PARTIAL' | 'COMPLETED' | 'LOCKED';
+import api from '@/lib/services/apiService';
+import API_ENDPOINTS from '@/lib/config/apiConfig';
+import { formatDate } from '@/lib/utils/dateUtils';
+
+type AttendanceSessionListItem = {
+    sessionId: number;
+    date: string;
+    batchId: number;
+    batchName: string;
+    staffId: number;
+    staffName: string;
+    time: string;
+    marked: string;
+    status: string;
+    remarks?: string | null;
+};
 
 export default function SessionsTable() {
     const router = useRouter();
+    const searchParams = useSearchParams();
 
-    const getStatusChip = (status: SessionStatus) => {
-        switch (status) {
-            case 'PENDING':
-                return <Chip label="Pending" color="error" size="small" />;
-            case 'PARTIAL':
-                return <Chip label="Partial" color="warning" size="small" />;
-            case 'COMPLETED':
-                return <Chip label="Completed" color="success" size="small" />;
-            case 'LOCKED':
-                return <Chip label="Locked" size="small" />;
-            default:
-                return null;
-        }
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [sessions, setSessions] = useState<AttendanceSessionListItem[]>([]);
+
+    const queryString = useMemo(() => {
+        const params = new URLSearchParams();
+
+        const date = searchParams.get('date');
+        const status = (searchParams.get('status') ?? '').toLowerCase();
+        const batchId = searchParams.get('batchId');
+        const staffId = searchParams.get('staffId');
+
+        if (date) params.set('date', date);
+        if (status && status !== 'all') params.set('status', status);
+        if (batchId) params.set('batchId', batchId);
+        if (staffId) params.set('staffId', staffId);
+
+        const qs = params.toString();
+        return qs ? `?${qs}` : '';
+    }, [searchParams]);
+
+    useEffect(() => {
+        let active = true;
+
+        const load = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+
+                const res = await api.get<AttendanceSessionListItem[]>(
+                    `${API_ENDPOINTS.ATTENDANCE_SESSIONS.GET_LIST}${queryString}`,
+                    { withCredentials: true }
+                );
+
+                if (!active) return;
+
+                if (!res?.success) {
+                    throw new Error(res?.error || res?.message || 'Failed to fetch sessions');
+                }
+
+                setSessions(res.data ?? []);
+            } catch (e: any) {
+                if (!active) return;
+                setError(e?.message || 'Failed to fetch sessions');
+                setSessions([]);
+            } finally {
+                if (!active) return;
+                setLoading(false);
+            }
+        };
+
+        load();
+
+        return () => {
+            active = false;
+        };
+    }, [queryString]);
+
+    const getStatusChip = (status: string) => {
+        const s = (status ?? '').toLowerCase();
+        if (s === 'pending') return <Chip label="Pending" color="warning" size="small" />;
+        if (s === 'partial') return <Chip label="Partial" color="info" size="small" />;
+        if (s === 'completed') return <Chip label="Completed" color="success" size="small" />;
+        return <Chip label={status || '—'} size="small" />;
     };
 
-    const getActionLabel = (status: SessionStatus) => {
-        if (status === 'PENDING') return 'Mark Attendance';
-        if (status === 'PARTIAL') return 'Continue';
-        return 'View';
+    const getActionLabel = (status: string) => {
+        const s = (status ?? '').toLowerCase();
+        if (s === 'pending') return 'Mark Attendance';
+        if (s === 'partial') return 'Continue';
+        return 'View Attendance';
     };
 
     return (
@@ -89,6 +119,12 @@ export default function SessionsTable() {
             <Typography variant="subtitle1" fontWeight={600} gutterBottom>
                 Sessions
             </Typography>
+
+            {error && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                    {error}
+                </Alert>
+            )}
 
             <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
@@ -100,40 +136,53 @@ export default function SessionsTable() {
                             <TableCell>Time</TableCell>
                             <TableCell>Marked</TableCell>
                             <TableCell>Status</TableCell>
+                            <TableCell>Remarks</TableCell>
                             <TableCell align="right">Action</TableCell>
                         </TableRow>
                     </TableHead>
 
                     <TableBody>
-                        {mockSessions.map((session) => (
+                        {loading && (
+                            Array.from({ length: 6 }).map((_, idx) => (
+                                <TableRow key={`sk-${idx}`}>
+                                    <TableCell><Skeleton width={90} /></TableCell>
+                                    <TableCell><Skeleton width={120} /></TableCell>
+                                    <TableCell><Skeleton width={140} /></TableCell>
+                                    <TableCell><Skeleton width={110} /></TableCell>
+                                    <TableCell><Skeleton width={60} /></TableCell>
+                                    <TableCell><Skeleton width={90} /></TableCell>
+                                    <TableCell><Skeleton width={160} /></TableCell>
+                                    <TableCell align="right"><Skeleton width={90} /></TableCell>
+                                </TableRow>
+                            ))
+                        )}
+
+                        {!loading && sessions.map((session) => (
                             <TableRow key={session.sessionId}>
-                                <TableCell>{session.date}</TableCell>
-                                <TableCell>{session.batch}</TableCell>
-                                <TableCell>{session.staff}</TableCell>
-                                <TableCell>{session.time}</TableCell>
-                                <TableCell>{session.marked}</TableCell>
-                                <TableCell>
-                                    {getStatusChip(session.status as SessionStatus)}
-                                </TableCell>
+                                <TableCell>{formatDate(session.date, '—')}</TableCell>
+                                <TableCell>{session.batchName || `#${session.batchId}`}</TableCell>
+                                <TableCell>{session.staffName || `#${session.staffId}`}</TableCell>
+                                <TableCell>{session.time || '—'}</TableCell>
+                                <TableCell>{session.marked || '—'}</TableCell>
+                                <TableCell>{getStatusChip(session.status)}</TableCell>
+                                <TableCell>{session.remarks || '—'}</TableCell>
                                 <TableCell align="right">
                                     <Button
                                         size="small"
                                         variant="outlined"
                                         onClick={() =>
-                                            router.push(
-                                                `/attendance/sessions/${session.sessionId}`
-                                            )
+                                            router.push(`/attendance/sessions/${session.sessionId}`)
                                         }
                                     >
-                                        {getActionLabel(session.status as SessionStatus)}
+                                        {getActionLabel(session.status)}
                                     </Button>
                                 </TableCell>
                             </TableRow>
                         ))}
 
-                        {mockSessions.length === 0 && (
+                        {!loading && sessions.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={7} align="center">
+                                <TableCell colSpan={8} align="center">
                                     <Typography color="text.secondary">
                                         No attendance sessions found
                                     </Typography>

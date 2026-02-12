@@ -123,9 +123,10 @@ export const useCourseFeesEditViewModel = (id: string) => {
 
         setFormData((prev) => ({
             ...prev,
-            [name]: value === '' ? '' : Number(value),
+            [name]: value === '' ? 0 : Number(value),
         }));
     };
+
 
     const handleSelectChange = (e: SelectChangeEvent<number>) => {
         const { name, value } = e.target;

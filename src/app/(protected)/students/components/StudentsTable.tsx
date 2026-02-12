@@ -68,7 +68,7 @@ export default function StudentsTable() {
 
     const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
     const { handleDelete } = useDeleteStudent();
-    const [isDeleting, setIsDeleting] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState<number | null>(null);
 
     const handleDeleteClick = async (student: Student) => {
         setIsDeleting(student.studentId);
@@ -179,7 +179,7 @@ export default function StudentsTable() {
                                             {student.firstName} {student.lastName}
                                         </TableCell>
                                         <TableCell>{student.email || "-"}</TableCell>
-                                        <TableCell>{student.mobileNumber || "-"}</TableCell>
+                                        <TableCell>{student.mobileNumber1 || "-"}</TableCell>
                                         <TableCell>
                                             <Chip
                                                 label={student.isActive ? "Active" : "Inactive"}

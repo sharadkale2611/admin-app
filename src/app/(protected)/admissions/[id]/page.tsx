@@ -1,62 +1,46 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   Typography,
   Paper,
   Stack,
-  Divider,
   Button,
   Chip,
   CircularProgress,
 } from "@mui/material";
 import { ArrowBack, Edit } from "@mui/icons-material";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/lib/store";
 import { fetchAdmissionById } from "@/lib/features/admission/admissionThunks";
 import { clearCurrentAdmission } from "@/lib/features/admission/admissionSlice";
 
-interface Props {
-  params: { id: string } | Promise<{ id: string }>;
-}
+const ViewAdmissionPage = () => {
+  const { id } = useParams<{ id: string }>();
+  const admissionId = Number(id);
 
-const ViewAdmissionPage: React.FC<Props> = ({ params }) => {
-  const [id, setId] = useState<number | null>(null);
   const dispatch = useDispatch<AppDispatch>();
   const { currentAdmission, loading } = useSelector(
     (state: RootState) => state.admissions
   );
 
-  // Log for debugging
   useEffect(() => {
-    console.log("currentAdmission", currentAdmission);
-  }, [currentAdmission]);
-
-  // Handle async params safely
-  useEffect(() => {
-    const resolveParams = async () => {
-      const resolvedParams = await params;
-      setId(Number(resolvedParams.id));
-    };
-    resolveParams();
-  }, [params]);
-
-  // Fetch admission once ID is available
-  useEffect(() => {
-    if (id !== null && !isNaN(id)) {
-      dispatch(fetchAdmissionById(id));
+    if (!isNaN(admissionId)) {
+      dispatch(fetchAdmissionById(admissionId));
     }
+
     return () => {
       dispatch(clearCurrentAdmission());
     };
-  }, [id, dispatch]);
+  }, [admissionId, dispatch]);
 
   const formatDate = (dateStr: string | null) =>
     dateStr ? dateStr.split("T")[0] : "—";
 
-  if (loading || id === null) {
+  if (loading || isNaN(admissionId)) {
     return (
       <Box sx={{ p: 4, display: "flex", justifyContent: "center" }}>
         <CircularProgress />
@@ -76,14 +60,8 @@ const ViewAdmissionPage: React.FC<Props> = ({ params }) => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Header */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 3 }}
-      >
-        <Stack direction="row" alignItems="center" spacing={2}>
+      <Stack direction="row" justifyContent="space-between" sx={{ mb: 3 }}>
+        <Stack direction="row" spacing={2}>
           <Button
             startIcon={<ArrowBack />}
             component={Link}
@@ -92,9 +70,7 @@ const ViewAdmissionPage: React.FC<Props> = ({ params }) => {
           >
             Back
           </Button>
-          <Typography variant="h4" component="div">
-            Admission Details
-          </Typography>
+          <Typography variant="h4">Admission Details</Typography>
         </Stack>
 
         <Button
@@ -107,30 +83,18 @@ const ViewAdmissionPage: React.FC<Props> = ({ params }) => {
         </Button>
       </Stack>
 
-      {/* Details Section */}
       <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" component="div" sx={{ mb: 2 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>
           Basic Information
         </Typography>
 
         <Stack spacing={1}>
-          <Typography component="div">
-            <strong>ID:</strong> {adm.studentEnrollmentId}
-          </Typography>
-          <Typography component="div">
-            <strong>Student Name:</strong> {adm.studentName}
-          </Typography>
-          <Typography component="div">
-            <strong>Course:</strong> {adm.courseName}
-          </Typography>
-          <Typography component="div">
-            <strong>Enrollment Type:</strong> {adm.enrollmentType}
-          </Typography>
+          <Typography><strong>ID:</strong> {adm.studentEnrollmentId}</Typography>
+          <Typography><strong>Student Name:</strong> {adm.studentName}</Typography>
+          <Typography><strong>Course:</strong> {adm.courseName}</Typography>
+          <Typography><strong>Enrollment Type:</strong> {adm.enrollmentType}</Typography>
 
-          <Typography
-            component="div"
-            sx={{ display: "flex", alignItems: "center", gap: 1 }}
-          >
+          <Typography sx={{ display: "flex", gap: 1 }}>
             <strong>Payment Status:</strong>
             <Chip
               label={adm.paymentStatus}
@@ -139,23 +103,16 @@ const ViewAdmissionPage: React.FC<Props> = ({ params }) => {
                 adm.paymentStatus === "Paid"
                   ? "success"
                   : adm.paymentStatus === "Pending"
-                  ? "warning"
-                  : "error"
+                    ? "warning"
+                    : "error"
               }
             />
           </Typography>
 
-          <Typography component="div">
-            <strong>Final Amount:</strong> ₹{adm.finalAmount}
-          </Typography>
-          <Typography component="div">
-            <strong>Paid Amount:</strong> ₹{adm.paidAmount}
-          </Typography>
+          <Typography><strong>Final Amount:</strong> ₹{adm.finalAmount}</Typography>
+          <Typography><strong>Paid Amount:</strong> ₹{adm.paidAmount}</Typography>
 
-          <Typography
-            component="div"
-            sx={{ display: "flex", alignItems: "center", gap: 1 }}
-          >
+          <Typography sx={{ display: "flex", gap: 1 }}>
             <strong>Status:</strong>
             <Chip
               label={adm.status ? "Active" : "Inactive"}
@@ -164,7 +121,7 @@ const ViewAdmissionPage: React.FC<Props> = ({ params }) => {
             />
           </Typography>
 
-          <Typography component="div">
+          <Typography>
             <strong>Enrollment Date:</strong> {formatDate(adm.enrollmentDate)}
           </Typography>
         </Stack>

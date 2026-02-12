@@ -7,10 +7,12 @@ import {
     Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import { useRouter } from 'next/navigation';
 
 export default function SessionsHeader() {
     // later: derive from auth / role
     const canCreateSession = true;
+    const router = useRouter();
 
     return (
         <Box>
@@ -38,7 +40,7 @@ export default function SessionsHeader() {
                     <Button
                         variant="contained"
                         startIcon={<AddIcon />}
-                        onClick={() => alert('Create Session – coming soon')}
+                        onClick={() => router.push('/attendance/sessions/create')}
                     >
                         New Session
                     </Button>

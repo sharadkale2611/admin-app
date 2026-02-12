@@ -90,8 +90,8 @@ export default function CreateStudentForm({
                 onSubmit={async (e) => {
                     const result = await handleSubmit(e);
 
-                    if (result?.success && result.studentId) {
-                        router.push(`/students/${result.studentId}`);
+                    if (result?.success && result.data?.studentId) {
+                        router.push(`/students/${result.data.studentId}`);
                     }
                 }}
                 noValidate

@@ -9,11 +9,12 @@ import Swal from 'sweetalert2';
 
 interface FormData {
     courseId: number;
-    totalInstallments: number | '';
-    feeAmount: number | '';
-    gstPercentage: number | '';
+    totalInstallments: number;
+    feeAmount: number;
+    gstPercentage: number;
     branchId?: number;
 }
+
 
 const initialFormData: FormData = {
     courseId: 0,

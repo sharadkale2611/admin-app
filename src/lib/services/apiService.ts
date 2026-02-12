@@ -46,18 +46,6 @@ axiosInstance.interceptors.response.use(
     (response: AxiosResponse) => {
         // Only transform JSON responses
         if (response.headers['content-type']?.includes('application/json')) {
-            // Create a new AxiosResponse that contains our transformed data
-            // const transformedResponse: AxiosResponse = {
-            //     ...response,
-            //     data: {
-            //         ...response.data, // Spread the actual API response data (success, message, data, etc.)
-            //         status: response.status,
-            //         statusText: response.statusText,
-            //         headers: response.headers,
-            //         config: response.config,
-            //     }
-            // };
-
             const transformedResponse = {
                 ...response.data, // Spread the actual API response data
                 status: response.status,
@@ -93,8 +81,7 @@ axiosInstance.interceptors.response.use(
 
             try {
                 // Attempt to refresh tokens
-                await axios.post(
-                    `${API_ENDPOINTS.BASE_URL_API}${API_ENDPOINTS.AUTH.REFRESH}`,
+                await axios.post(API_ENDPOINTS.AUTH.REFRESH,
                     {},
                     { withCredentials: true }
                 );
@@ -112,6 +99,7 @@ axiosInstance.interceptors.response.use(
                 });
             }
         }
+        
 
         // Standard error formatting
         const errorData = {

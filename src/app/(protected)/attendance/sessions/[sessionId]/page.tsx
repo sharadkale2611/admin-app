@@ -1,4 +1,4 @@
-//  src/app/(protected) / attendance / sessions / [sessionId] / page.tsx
+// src/app/(protected)/attendance/sessions/[sessionId]/page.tsx
 
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
@@ -14,55 +14,51 @@ import AttendanceHeader from "./components/AttendanceHeader";
 import AttendanceSummary from "./components/AttendanceSummary";
 import AttendanceTable from "./components/AttendanceTable";
 import { AttendanceFilterProvider } from "./_context/AttendanceFilterContext";
-
-/**
- * Page Props
- */
-interface AttendanceDetailsPageProps {
-    params: {
-        sessionId: string;
-    };
-}
+import { AttendanceSessionDataProvider } from "./_context/AttendanceSessionDataContext";
 
 /**
  * Attendance Details Page (Server Component)
+ * ✅ Next.js 15 compatible
  */
 export default async function AttendanceDetailsPage({
     params,
-}: AttendanceDetailsPageProps) {
-    const sessionId = Number(params.sessionId);
+}: {
+    params: Promise<{ sessionId: string }>;
+}) {
+    const { sessionId } = await params;
+    const numericSessionId = Number(sessionId);
 
-    if (isNaN(sessionId)) {
+    if (isNaN(numericSessionId)) {
         notFound();
     }
 
     return (
-        <Box sx={{ p: 3 }}>
-            {/* ================= HEADER ================= */}
-            <Suspense fallback={<HeaderSkeleton />}>
-                <AttendanceHeader sessionId={sessionId} />
-            </Suspense>
+        <AttendanceSessionDataProvider sessionId={numericSessionId}>
+            <Box sx={{ p: 3 }}>
+                {/* ================= HEADER ================= */}
+                <Suspense fallback={<HeaderSkeleton />}>
+                    <AttendanceHeader sessionId={numericSessionId} />
+                </Suspense>
 
-            <Divider sx={{ my: 2 }} />
+                <Divider sx={{ my: 2 }} />
 
-            {/* ================= SUMMARY ================= */}
-            <Suspense fallback={<SummarySkeleton />}>
-                <AttendanceSummary sessionId={sessionId} />
-            </Suspense>
+                {/* ================= SUMMARY ================= */}
+                <Suspense fallback={<SummarySkeleton />}>
+                    <AttendanceSummary sessionId={numericSessionId} />
+                </Suspense>
 
-            <Divider sx={{ my: 2 }} />
+                <Divider sx={{ my: 2 }} />
 
-            {/* ================= TABLE ================= */}
-            <Suspense fallback={<TableSkeleton />}>
-                <AttendanceTable sessionId={sessionId} />
-            </Suspense>
-        </Box>
+                {/* ================= TABLE ================= */}
+                <Suspense fallback={<TableSkeleton />}>
+                    <AttendanceTable sessionId={numericSessionId} />
+                </Suspense>
+            </Box>
+        </AttendanceSessionDataProvider>
     );
 }
 
-/* =========================================================
-   Skeletons (keep UX smooth)
-   ========================================================= */
+/* ================= Skeletons ================= */
 
 function HeaderSkeleton() {
     return (
@@ -94,14 +90,13 @@ function SummarySkeleton() {
 function TableSkeleton() {
     return (
         <AttendanceFilterProvider>
-
-        <Box
-            sx={{
-                height: 400,
-                bgcolor: "grey.100",
-                borderRadius: 1,
-            }}
-        />
+            <Box
+                sx={{
+                    height: 400,
+                    bgcolor: "grey.100",
+                    borderRadius: 1,
+                }}
+            />
         </AttendanceFilterProvider>
     );
 }
