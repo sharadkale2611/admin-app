@@ -12,7 +12,8 @@ import {
     StudentByAadharResponse,
     StudentBatchAssignment,
     ModuleWiseAttendanceResponse,
-    ApiError
+    ApiError,
+    ExamPerformanceResponse
 } from "./studentTypes";
 import API_ENDPOINTS from "@/lib/config/apiConfig";
 import api from "@/lib/services/apiService";
@@ -493,7 +494,7 @@ export const fetchStudentModuleWiseAttendance = createAsyncThunk<
             if (to) queryParams.append("to", to);
 
             const response = await api.get<
-                ApiResponse<ModuleWiseAttendanceResponse>
+                ModuleWiseAttendanceResponse
             >(
                 `${API_ENDPOINTS.ATTENDANCE.GET_BY_STUDENT_ID}/${studentId}/module-wise?${queryParams.toString()}`,
                 { withCredentials: true }
@@ -513,6 +514,56 @@ export const fetchStudentModuleWiseAttendance = createAsyncThunk<
             if (!response.data) {
                 return rejectWithValue({
                     error: "No attendance data returned",
+                    errors: null,
+                });
+            }
+
+            return response.data;
+
+        } catch (error: any) {
+            return rejectWithValue({
+                error:
+                    error?.response?.data?.message ||
+                    error?.response?.data?.error ||
+                    "Something went wrong",
+                errors: error?.response?.data?.errors || null,
+            });
+        }
+    }
+);
+
+
+
+
+
+export const fetchStudentExamPerformance = createAsyncThunk<
+    ExamPerformanceResponse,
+    { studentId: number },
+    { rejectValue: ApiError }
+>(
+    "students/fetchStudentExamPerformance",
+    async ({ studentId }, { rejectWithValue }) => {
+        try {
+            const response = await api.get<
+                ExamPerformanceResponse
+            >(
+                `${API_ENDPOINTS.EXAM_MARKS.GET_BY_STUDENT_ID}/${studentId}/performance`,
+                { withCredentials: true }
+            );
+
+            if (!response.success) {
+                return rejectWithValue({
+                    error:
+                        response.message ||
+                        response.error ||
+                        "Failed to fetch exam performance",
+                    errors: response.errors || null,
+                });
+            }
+
+            if (!response.data) {
+                return rejectWithValue({
+                    error: "No performance data returned",
                     errors: null,
                 });
             }

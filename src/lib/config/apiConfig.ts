@@ -80,6 +80,7 @@ const API_ENDPOINTS = {
     POST_CREATE: "/ExamMarks",
     PUT_UPDATE: "/ExamMarks",
     DELETE: "/ExamMarks",
+    GET_BY_STUDENT_ID: "/ExamMarks/by-student",
   },
 
   /* ===================== ADMISSIONS / ENROLLMENTS ===================== */

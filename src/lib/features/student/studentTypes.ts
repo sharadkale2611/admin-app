@@ -116,15 +116,6 @@ export interface UpdateStudentDto {
 }
 
 
-export interface ApiResponse<T> {
-    success: boolean;
-    message?: string;
-    data?: T;
-    error?: string | null;
-    errors?: Record<string, string[]> | null;
-}
-
-
 export interface CreateStudentResponse {
     studentId: number;
     studentCode: string;
@@ -208,6 +199,44 @@ export interface ModuleWiseAttendanceResponse {
     from: string;
     to: string;
     items: ModuleWiseAttendanceItem[];
+}
+
+
+export interface ExamPerformanceItem {
+    examMarkId: number;
+
+    studentId: number;
+    studentName: string;
+
+    examId: number;
+    examName: string;
+    courseName: string;
+    moduleName: string;
+
+    examTotalMarks: number;
+    examPassingMarks: number;
+
+    markObtained: number;
+    grade: string;
+
+    result: string;
+    status: string;
+
+    createdAt: string;
+}
+
+export interface ExamPerformanceResponse {
+    studentId: number;
+    items: ExamPerformanceItem[];
+}
+
+
+export interface ApiResponse<T> {
+    success: boolean;
+    message?: string;
+    data?: T;
+    error?: string | null;
+    errors?: Record<string, string[]> | null;
 }
 
 
