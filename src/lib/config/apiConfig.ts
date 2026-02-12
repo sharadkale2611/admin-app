@@ -288,6 +288,16 @@ QUESTION_TYPES: {
     DELETE: "/QuestionTypes",
   },
 
+  QUESTION_TYPE_RULES: {
+  GET_LIST: "/QuestionTypeRules",
+  GET_PAGINATED: "/QuestionTypeRules/paginated", 
+  GET_BY_ID: "/QuestionTypeRules",
+  POST_CREATE: "/QuestionTypeRules",
+  PUT_UPDATE: "/QuestionTypeRules",
+  DELETE: "/QuestionTypeRules",
+},
+
+
 
 
 };
