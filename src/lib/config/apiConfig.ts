@@ -297,7 +297,14 @@ QUESTION_TYPES: {
   DELETE: "/QuestionTypeRules",
 },
 
-
+ QUESTIONS: {
+  GET_LIST: "/Questions",
+  GET_PAGINATED: "/Questions/paginated", 
+  GET_BY_ID: "/Questions",
+  POST_CREATE: "/Questions",
+  PUT_UPDATE: "/Questions",
+  DELETE: "/Questions",
+},
 
 
 };

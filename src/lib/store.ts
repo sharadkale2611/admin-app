@@ -46,6 +46,7 @@ import roleReducer from "@/lib/features/roles/roleSlice";
 import rolePermissionReducer from "@/lib/features/role-permissions/rolePermissionSlice";
 import questionTypeReducer from "@/lib/features/questionType/questionTypeSlice";
 import questionTypeRuleReducer from "@/lib/features/questionTypeRule/questionTypeRuleSlice";
+import  questionReducer  from "@/lib/features/question/questionSlice";
 
 
 
@@ -90,6 +91,7 @@ const rootReducer = combineReducers({
     rolePermissions: rolePermissionReducer,
     questionTypes: questionTypeReducer,
     questionTypeRules: questionTypeRuleReducer,
+    questions: questionReducer,
 
 });
 
