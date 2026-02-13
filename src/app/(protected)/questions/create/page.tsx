@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Container,
   Typography,
@@ -15,14 +15,21 @@ import {
   Grid,
   Alert,
   Snackbar,
+  Checkbox,
+  FormControlLabel,
+  IconButton,
 } from "@mui/material";
-import { Save, Cancel } from "@mui/icons-material";
+import { Save, Cancel, Add, Delete } from "@mui/icons-material";
 import Link from "next/link";
 
 import useCreateQuestionViewModel from "@/lib/features/question/useCreateQuestionViewModel";
 import { ApiError } from "@/lib/features/question/questionTypes";
 
 import { useQuestionTypeViewModel } from "@/lib/features/questionType/useQuestionTypeViewModel";
+import { useAppDispatch } from "@/lib/hooks";
+import { createQuestionAttachment } from "@/lib/features/questionAttachment/questionAttachmentThunks";
+import { createQuestionOption } from "@/lib/features/questionOption/questionOptionThunks";
+import type { QuestionType } from "@/lib/features/questionType/questionTypeTypes";
 
 /* ===============================
    Field Labels (for errors)
@@ -43,8 +50,16 @@ const fieldLabels: Record<string, string> = {
    Error Renderer
 ================================ */
 
-function renderErrorContent(error: ApiError | null) {
+function renderErrorContent(error: ApiError | string | null) {
   if (!error) return null;
+
+  if (typeof error === "string") {
+    return (
+      <div className="text-red-600">
+        <h4 className="font-semibold mb-2">{error}</h4>
+      </div>
+    );
+  }
 
   return (
     <div className="text-red-600">
@@ -69,6 +84,8 @@ function renderErrorContent(error: ApiError | null) {
 }
 
 export default function CreateQuestionPage() {
+  const dispatch = useAppDispatch();
+
   const {
   formData,
   isSubmitting,
@@ -81,6 +98,62 @@ export default function CreateQuestionPage() {
 
   /* 🔹 Load Dropdown Data */
   const { questionTypes } = useQuestionTypeViewModel();
+
+  /* 🔹 Derived Selected Question Type */
+  const selectedQuestionType: QuestionType | undefined = useMemo(
+    () => {
+      if (!formData.questionTypeId) return undefined;
+      const id = Number(formData.questionTypeId);
+      if (Number.isNaN(id)) return undefined;
+      return questionTypes.find(
+        (qt) => qt.questionTypeId === id
+      );
+    },
+    [questionTypes, formData.questionTypeId]
+  );
+
+  /* 🔹 Local State: Attachment & Options */
+  const [attachmentFile, setAttachmentFile] =
+    useState<File | null>(null);
+
+  interface LocalOption {
+    optionText: string;
+    optionOrder: string;
+    isCorrect: boolean;
+  }
+
+  const [options, setOptions] = useState<LocalOption[]>([]);
+
+  const handleAddOption = () => {
+    setOptions((prev) => [
+      ...prev,
+      {
+        optionText: "",
+        optionOrder: String(prev.length + 1),
+        isCorrect: false,
+      },
+    ]);
+  };
+
+  const handleOptionChange = (
+    index: number,
+    field: keyof LocalOption,
+    value: string | boolean
+  ) => {
+    setOptions((prev) =>
+      prev.map((opt, i) =>
+        i === index
+          ? { ...opt, [field]: value }
+          : opt
+      )
+    );
+  };
+
+  const handleRemoveOption = (index: number) => {
+    setOptions((prev) =>
+      prev.filter((_, i) => i !== index)
+    );
+  };
 
 
   /* Snackbar */
@@ -104,21 +177,76 @@ export default function CreateQuestionPage() {
       <Paper elevation={0} sx={{ p: 3, border: "1px solid #e0e0e0" }}>
         <form
           onSubmit={async (e) => {
-            const result = await handleSubmit(e);
+      const result = await handleSubmit(e);
 
-            if (result?.success) {
-              setSnackbarMessage(
-                "message" in result && typeof result.message === "string"
-                  ? result.message
-                  : "Question created successfully."
+      if (result?.success && result.question) {
+        const questionId =
+  result.question.questionId;
+
+        try {
+          const tasks: Promise<unknown>[] = [];
+
+          // 🔹 Attachment (if supported & provided)
+          if (
+            selectedQuestionType?.supportsAttachments &&
+            attachmentFile
+          ) {
+            tasks.push(
+              dispatch(
+                createQuestionAttachment({
+                  questionId,
+                  file: attachmentFile,
+                })
+              ).unwrap()
+            );
+          }
+
+          // 🔹 Options (if supported)
+          if (selectedQuestionType?.supportsOptions) {
+            const validOptions = options.filter(
+              (opt) => opt.optionText.trim() !== ""
+            );
+
+            validOptions.forEach((opt, index) => {
+              tasks.push(
+                dispatch(
+                  createQuestionOption({
+                    questionId,
+                    optionText: opt.optionText,
+                    isCorrect: opt.isCorrect,
+                    optionOrder:
+                      opt.optionOrder.trim() !== ""
+                        ? Number(opt.optionOrder)
+                        : index + 1,
+                  })
+                ).unwrap()
               );
-              setSnackbarSeverity("success");
-              setSnackbarOpen(true);
+            });
+          }
 
-              setTimeout(() => {
-                window.location.href = "/questions";
-              }, 1500);
-            }
+          if (tasks.length > 0) {
+            await Promise.all(tasks);
+          }
+        } catch (err) {
+          console.error(
+            "Failed to create question attachments/options",
+            err
+          );
+        }
+
+        setSnackbarMessage(
+          typeof result.message === "string" &&
+            result.message.length > 0
+            ? result.message
+            : "Question created successfully."
+        );
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
+
+        setTimeout(() => {
+          window.location.href = "/questions";
+        }, 1500);
+      }
           }}
         >
           <Grid container spacing={2}>
@@ -281,6 +409,146 @@ export default function CreateQuestionPage() {
                 </Select>
               </FormControl>
             </Grid>
+
+      {/* Question Attachment (conditional) */}
+      {selectedQuestionType?.supportsAttachments && (
+        <>
+          <Grid size={{ xs: 12 }}>
+            <Typography
+              variant="subtitle1"
+              sx={{ mt: 2, mb: 1, color: "text.secondary" }}
+            >
+              Question Attachment
+            </Typography>
+          </Grid>
+          <Grid size={{ xs: 12 }}>
+            <Button
+              variant="outlined"
+              component="label"
+              size="small"
+              disabled={isSubmitting}
+            >
+              Upload File
+              <input
+                type="file"
+                hidden
+                onChange={(e) =>
+                  setAttachmentFile(
+                    e.target.files?.[0] ?? null
+                  )
+                }
+              />
+            </Button>
+            {attachmentFile && (
+              <Typography
+                variant="body2"
+                sx={{ ml: 2, display: "inline" }}
+              >
+                {attachmentFile.name}
+              </Typography>
+            )}
+          </Grid>
+        </>
+      )}
+
+      {/* Question Options (conditional) */}
+      {selectedQuestionType?.supportsOptions && (
+        <>
+          <Grid size={{ xs: 12 }}>
+            <Typography
+              variant="subtitle1"
+              sx={{ mt: 2, mb: 1, color: "text.secondary" }}
+            >
+              Question Options
+            </Typography>
+          </Grid>
+
+          {options.map((opt, index) => (
+            <Grid
+              key={index}
+              size={{ xs: 12 }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 1,
+                  alignItems: "center",
+                  mb: 1,
+                }}
+              >
+                <TextField
+                  label={`Option ${index + 1}`}
+                  size="small"
+                  fullWidth
+                  value={opt.optionText}
+                  disabled={isSubmitting}
+                  onChange={(e) =>
+                    handleOptionChange(
+                      index,
+                      "optionText",
+                      e.target.value
+                    )
+                  }
+                />
+                <TextField
+                  label="Order"
+                  size="small"
+                  type="number"
+                  sx={{ width: 100 }}
+                  value={opt.optionOrder}
+                  disabled={isSubmitting}
+                  onChange={(e) =>
+                    handleOptionChange(
+                      index,
+                      "optionOrder",
+                      e.target.value
+                    )
+                  }
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={opt.isCorrect}
+                      onChange={(e) =>
+                        handleOptionChange(
+                          index,
+                          "isCorrect",
+                          e.target.checked
+                        )
+                      }
+                      disabled={isSubmitting}
+                    />
+                  }
+                  label="Correct"
+                />
+                <IconButton
+                  aria-label="remove option"
+                  size="small"
+                  onClick={() =>
+                    handleRemoveOption(index)
+                  }
+                  disabled={isSubmitting}
+                >
+                  <Delete fontSize="small" />
+                </IconButton>
+              </Box>
+            </Grid>
+          ))}
+
+          <Grid size={{ xs: 12 }}>
+            <Button
+              type="button"
+              variant="outlined"
+              size="small"
+              startIcon={<Add />}
+              onClick={handleAddOption}
+              disabled={isSubmitting}
+            >
+              Add Option
+            </Button>
+          </Grid>
+        </>
+      )}
 
             {/* Actions */}
             <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>

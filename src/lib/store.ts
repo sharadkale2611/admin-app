@@ -48,8 +48,9 @@ import courseModuleContentReducer from "@/lib/features/courseModuleContent/cours
 import questionTypeReducer from "@/lib/features/questionType/questionTypeSlice";
 import questionTypeRuleReducer from "@/lib/features/questionTypeRule/questionTypeRuleSlice";
 import  questionReducer  from "@/lib/features/question/questionSlice";
-
-
+import questionOptionReducer from "@/lib/features/questionOption/questionOptionSlice";
+import questionAttachmentReducer from "@/lib/features/questionAttachment/questionAttachmentSlice";
+import questionAnswerReducer from "@/lib/features/questionAnswer/questionAnswerSlice";
 
 const admissionDraftPersistConfig = {
     key: 'admissionDraft',
@@ -95,6 +96,9 @@ const rootReducer = combineReducers({
     questionTypes: questionTypeReducer,
     questionTypeRules: questionTypeRuleReducer,
     questions: questionReducer,
+    questionOptions: questionOptionReducer,
+    questionAttachments: questionAttachmentReducer,
+    questionAnswers: questionAnswerReducer,
 
 });
 

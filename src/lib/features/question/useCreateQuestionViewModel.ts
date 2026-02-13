@@ -84,7 +84,7 @@ export default function useCreateQuestionViewModel() {
     useState(false);
 
   const [error, setError] =
-    useState<string | null>(null);
+	useState<string | null>(null);
 
   /* ============================================================
      Change Handler (CASCADING LOGIC HERE)
@@ -168,15 +168,21 @@ export default function useCreateQuestionViewModel() {
           : 0,
       };
 
-      await dispatch(
-        createQuestion(payload)
-      ).unwrap();
+      const result = await dispatch(
+  createQuestion(payload)
+        ).unwrap();
 
-      toast.success(
-        "Question created successfully"
-      );
+        toast.success(
+  result?.message || "Question created successfully"
+        );
 
-      return { success: true };
+        return {
+     success: true,
+     question: result?.question ?? null,
+     message:
+       result?.message ||
+       "Question created successfully",
+        };
     } catch (err: any) {
       const msg =
         err?.message ||

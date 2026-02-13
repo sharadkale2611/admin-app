@@ -1,7 +1,7 @@
 // src/lib/config/apiConfig.ts
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL_API?.replace(/\/$/, '') || '';
+  process.env.NEXT_PUBLIC_API_BASE_URL_API?.replace(/\/$/, "") || "";
 
 const API_ENDPOINTS = {
   /* ===================== BASE ===================== */
@@ -14,8 +14,6 @@ const API_ENDPOINTS = {
   // BASE_URL: 'https://apirsa.ysaasinfotech.com',
   // BASE_URL_API: 'https://apirsa.ysaasinfotech.com/api',
   // TIMEOUT: 5000,
-
-
 
   /* ===================== AUTH ===================== */
   AUTH: {
@@ -36,7 +34,6 @@ const API_ENDPOINTS = {
     PUT_UPDATE: "/Firms",
     DELETE: "/Firms",
   },
-
 
   ROLES: {
     GET_LIST: "/roles",
@@ -280,15 +277,15 @@ EXAMS: {
 
   /* ===================== PERMISSIONS ===================== */
   PERMISSIONS: {
-  GET_LIST: "/permissions",
-  GET_PAGINATED: "/permissions/paginated",
-  GET_BY_ID: "/permissions",
-  POST_CREATE: "/permissions",
-  PUT_UPDATE: "/permissions",
-  DELETE: "/permissions",
-},
+    GET_LIST: "/permissions",
+    GET_PAGINATED: "/permissions/paginated",
+    GET_BY_ID: "/permissions",
+    POST_CREATE: "/permissions",
+    PUT_UPDATE: "/permissions",
+    DELETE: "/permissions",
+  },
 
-QUESTION_TYPES: {
+  QUESTION_TYPES: {
     GET_LIST: "/QuestionTypes",
     GET_PAGINATED: "/QuestionTypes/paginated",
     GET_BY_ID: "/QuestionTypes",
@@ -298,27 +295,51 @@ QUESTION_TYPES: {
   },
 
   QUESTION_TYPE_RULES: {
-  GET_LIST: "/QuestionTypeRules",
-  GET_PAGINATED: "/QuestionTypeRules/paginated", 
-  GET_BY_ID: "/QuestionTypeRules",
-  POST_CREATE: "/QuestionTypeRules",
-  PUT_UPDATE: "/QuestionTypeRules",
-  DELETE: "/QuestionTypeRules",
-},
+    GET_LIST: "/QuestionTypeRules",
+    GET_PAGINATED: "/QuestionTypeRules/paginated",
+    GET_BY_ID: "/QuestionTypeRules",
+    POST_CREATE: "/QuestionTypeRules",
+    PUT_UPDATE: "/QuestionTypeRules",
+    DELETE: "/QuestionTypeRules",
+  },
 
- QUESTIONS: {
-  GET_LIST: "/Questions",
-  GET_PAGINATED: "/Questions/paginated", 
-  GET_BY_ID: "/Questions",
-  POST_CREATE: "/Questions",
-  PUT_UPDATE: "/Questions",
-  DELETE: "/Questions",
-},
+  QUESTIONS: {
+    GET_LIST: "/Questions",
+    GET_PAGINATED: "/Questions/paginated",
+    GET_BY_ID: "/Questions",
+    POST_CREATE: "/Questions",
+    PUT_UPDATE: "/Questions",
+    DELETE: "/Questions",
+  },
+
+  QUESTION_OPTIONS: {
+    GET_LIST: "/QuestionOptions",
+    GET_PAGINATED: "/QuestionOptions/paginated",
+    GET_BY_ID: "/QuestionOptions",
+    POST_CREATE: "/QuestionOptions",
+    PUT_UPDATE: "/QuestionOptions",
+    DELETE: "/QuestionOptions",
+  },
+
+  QUESTION_ATTACHMENTS: {
+    GET_LIST: "/QuestionAttachments",
+    GET_PAGINATED: "/QuestionAttachments/paginated",
+    GET_BY_ID: "/QuestionAttachments",
+    POST_CREATE: "/QuestionAttachments",
+    PUT_UPDATE: "/QuestionAttachments",
+    DELETE: "/QuestionAttachments",
+  },
+
+  QUESTION_ANSWERS: {
+    GET_LIST: "/QuestionAnswers",
+    GET_PAGINATED: "/QuestionAnswers/paginated",
+    GET_BY_ID: "/QuestionAnswers",
+    POST_CREATE: "/QuestionAnswers",
+    PUT_UPDATE: "/QuestionAnswers",
+    DELETE: "/QuestionAnswers",
+  },
 
 
 };
 
-
 export default API_ENDPOINTS;
-
-
