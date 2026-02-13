@@ -48,6 +48,7 @@ import questionTypeReducer from "@/lib/features/questionType/questionTypeSlice";
 import questionTypeRuleReducer from "@/lib/features/questionTypeRule/questionTypeRuleSlice";
 import  questionReducer  from "@/lib/features/question/questionSlice";
 import questionOptionReducer from "@/lib/features/questionOption/questionOptionSlice";
+import questionAttachmentReducer from "@/lib/features/questionAttachment/questionAttachmentSlice";
 
 const admissionDraftPersistConfig = {
     key: 'admissionDraft',
@@ -92,6 +93,7 @@ const rootReducer = combineReducers({
     questionTypeRules: questionTypeRuleReducer,
     questions: questionReducer,
     questionOptions: questionOptionReducer,
+    questionAttachments: questionAttachmentReducer,
 
 });
 
