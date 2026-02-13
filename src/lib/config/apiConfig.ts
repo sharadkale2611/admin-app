@@ -339,6 +339,14 @@ EXAMS: {
     DELETE: "/QuestionAnswers",
   },
 
+  EXAMPAPERS: {
+  GET_LIST: "/ExamPapers",
+  GET_BY_ID: "/ExamPapers",
+  POST_CREATE: "/ExamPapers",
+  PUT_UPDATE: "/ExamPapers",
+  DELETE: "/ExamPapers",
+},
+
 
 };
 
