@@ -21,6 +21,7 @@ export interface StudentFormData {
     lastName: string;
 
     email: string;
+    aadharNumber: string;
     mobileNumber1: string;
     mobileNumber2: string;
     whatsappNumber: string;
@@ -57,6 +58,7 @@ export default function useEditStudentViewModel() {
         lastName: '',
 
         email: '',
+        aadharNumber: '',
         mobileNumber1: '',
         mobileNumber2: '',
         whatsappNumber: '',
@@ -107,6 +109,7 @@ export default function useEditStudentViewModel() {
             lastName: currentStudent.lastName || '',
 
             email: currentStudent.email || '',
+            aadharNumber: currentStudent.aadharNumber || '',
             mobileNumber1: currentStudent.mobileNumber1 || '',
             mobileNumber2: currentStudent.mobileNumber2 || '',
             whatsappNumber: currentStudent.whatsappNumber || '',

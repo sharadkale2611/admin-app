@@ -57,7 +57,7 @@ export default function useCreateExamViewModel() {
 
   const modules = courseModulesByCourse.map(cm => ({
     moduleId: cm.moduleId,
-    moduleName: cm.moduleName ?? `Module #${cm.moduleId}`,
+    moduleName: cm.moduleName ?? `Module #${cm.moduleId}`,  
   }));
 
   const firmId = useSelector(

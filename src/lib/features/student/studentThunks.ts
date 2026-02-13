@@ -9,9 +9,11 @@ import {
     FetchStudentParams,
     CreateStudentResponse,
     CreatedStudent,
-    StudentByMobileResponse,
+    StudentByAadharResponse,
     StudentBatchAssignment,
-    ApiError
+    ModuleWiseAttendanceResponse,
+    ApiError,
+    ExamPerformanceResponse
 } from "./studentTypes";
 import API_ENDPOINTS from "@/lib/config/apiConfig";
 import api from "@/lib/services/apiService";
@@ -238,7 +240,7 @@ export const updateStudent = createAsyncThunk<
 
             const existingStudent =
                 state.students.currentStudent ||
-                state.students.students.find((s) => s.studentId === id);
+                state.students.students.find((s: Student) => s.studentId === id);
 
             if (!existingStudent) {
                 return rejectWithValue({
@@ -326,21 +328,52 @@ export const fetchStudentById = createAsyncThunk<
 );
 
 
-export const fetchStudentByMobile = createAsyncThunk<
-    StudentByMobileResponse,
+// export const fetchStudentByMobile = createAsyncThunk<
+//     StudentByMobileResponse,
+//     string,
+//     { rejectValue: ApiError }
+// >(
+//     "students/fetchStudentByMobile",
+//     async (mobile, { rejectWithValue }) => {
+//         try {
+//             // ✅ api.get<T>() already returns ApiResponse<T>
+//             const response = await api.get<StudentByMobileResponse>(
+//                 `${API_ENDPOINTS.STUDENT.GET_BY_MOBILE}/${mobile}`,
+//                 { withCredentials: true }
+//             );
+
+//             // response is ApiResponse<StudentByMobileResponse>
+//             if (!response.success || !response.data) {
+//                 return rejectWithValue({
+//                     error: "Student not found",
+//                     errors: null,
+//                 });
+//             }
+
+//             // ✅ Explicitly return payload
+//             const payload: StudentByMobileResponse = response.data;
+//             return payload;
+
+//         } catch (error: any) {
+//             return rejectWithValue(parseApiError(error));
+//         }
+//     }
+// );
+
+
+export const fetchStudentByAadhar = createAsyncThunk<
+    StudentByAadharResponse,
     string,
     { rejectValue: ApiError }
 >(
-    "students/fetchStudentByMobile",
-    async (mobile, { rejectWithValue }) => {
+    "students/fetchStudentByAadhar",
+    async (aadharNumber, { rejectWithValue }) => {
         try {
-            // ✅ api.get<T>() already returns ApiResponse<T>
-            const response = await api.get<StudentByMobileResponse>(
-                `${API_ENDPOINTS.STUDENT.GET_BY_MOBILE}/${mobile}`,
+            const response = await api.get<StudentByAadharResponse>(
+                `${API_ENDPOINTS.STUDENT.GET_BY_AADHAR}/${aadharNumber}`,
                 { withCredentials: true }
             );
 
-            // response is ApiResponse<StudentByMobileResponse>
             if (!response.success || !response.data) {
                 return rejectWithValue({
                     error: "Student not found",
@@ -348,8 +381,7 @@ export const fetchStudentByMobile = createAsyncThunk<
                 });
             }
 
-            // ✅ Explicitly return payload
-            const payload: StudentByMobileResponse = response.data;
+            const payload: StudentByAadharResponse = response.data;
             return payload;
 
         } catch (error: any) {
@@ -357,6 +389,7 @@ export const fetchStudentByMobile = createAsyncThunk<
         }
     }
 );
+
 
 
 export const fetchStudentBatchCourseAssignments = createAsyncThunk<
@@ -384,6 +417,166 @@ export const fetchStudentBatchCourseAssignments = createAsyncThunk<
             return rejectWithValue({
                 error: err.message ?? "Failed to load batch assignments",
                 errors: null,
+            });
+        }
+    }
+);
+
+
+
+
+
+type UpdateProfileImageResponse = {
+    studentId: number;
+    profileImagePath: string;
+};
+
+export const updateStudentProfileImage = createAsyncThunk<
+    UpdateProfileImageResponse,
+    { studentId: number; file: File },
+    { rejectValue: ApiError }
+>(
+    "students/updateStudentProfileImage",
+    async ({ studentId, file }, { rejectWithValue }) => {
+        try {
+            const formData = new FormData();
+            formData.append("ProfileImage", file); // Must match DTO property name
+
+            const response = await api.put<UpdateProfileImageResponse>(
+                `${API_ENDPOINTS.STUDENT.GET_BY_ID}/${studentId}/profile-image`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                    withCredentials: true,
+                }
+
+            );
+
+            if (!response.success || !response.data) {
+                return rejectWithValue({
+                    error:
+                        typeof response.data === "string"
+                            ? response.data
+                            : response.message || "Failed to update profile image",
+                    errors: null,
+                });
+            }
+
+            // Always return a value (never undefined)
+            return response.data as UpdateProfileImageResponse;
+
+        } catch (error: any) {
+            return rejectWithValue({
+                error: error?.response?.data?.message || "Upload failed",
+                errors: error?.response?.data?.errors || null,
+            });
+        }
+    }
+);
+
+
+export const fetchStudentModuleWiseAttendance = createAsyncThunk<
+    ModuleWiseAttendanceResponse,
+    {
+        studentId: number;
+        from?: string;
+        to?: string;
+    },
+    { rejectValue: ApiError }
+>(
+    "students/fetchStudentModuleWiseAttendance",
+    async ({ studentId, from, to }, { rejectWithValue }) => {
+        try {
+            const queryParams = new URLSearchParams();
+            if (from) queryParams.append("from", from);
+            if (to) queryParams.append("to", to);
+
+            const response = await api.get<
+                ModuleWiseAttendanceResponse
+            >(
+                `${API_ENDPOINTS.ATTENDANCE.GET_BY_STUDENT_ID}/${studentId}/module-wise?${queryParams.toString()}`,
+                { withCredentials: true }
+            );
+
+            // ❗ Only check success
+            if (!response.success) {
+                return rejectWithValue({
+                    error:
+                        response.message ||
+                        "Failed to fetch module-wise attendance",
+                    errors: response.errors || null,
+                });
+            }
+
+            // ❗ Make sure data exists
+            if (!response.data) {
+                return rejectWithValue({
+                    error: "No attendance data returned",
+                    errors: null,
+                });
+            }
+
+            return response.data;
+
+        } catch (error: any) {
+            return rejectWithValue({
+                error:
+                    error?.response?.data?.message ||
+                    error?.response?.data?.error ||
+                    "Something went wrong",
+                errors: error?.response?.data?.errors || null,
+            });
+        }
+    }
+);
+
+
+
+
+
+export const fetchStudentExamPerformance = createAsyncThunk<
+    ExamPerformanceResponse,
+    { studentId: number },
+    { rejectValue: ApiError }
+>(
+    "students/fetchStudentExamPerformance",
+    async ({ studentId }, { rejectWithValue }) => {
+        try {
+            const response = await api.get<
+                ExamPerformanceResponse
+            >(
+                `${API_ENDPOINTS.EXAM_MARKS.GET_BY_STUDENT_ID}/${studentId}/performance`,
+                { withCredentials: true }
+            );
+
+            if (!response.success) {
+                return rejectWithValue({
+                    error:
+                        response.message ||
+                        response.error ||
+                        "Failed to fetch exam performance",
+                    errors: response.errors || null,
+                });
+            }
+
+            if (!response.data) {
+                return rejectWithValue({
+                    error: "No performance data returned",
+                    errors: null,
+                });
+            }
+
+            return response.data;
+
+        } catch (error: any) {
+            return rejectWithValue({
+                error:
+                    error?.response?.data?.message ||
+                    error?.response?.data?.error ||
+                    "Something went wrong",
+                errors: error?.response?.data?.errors || null,
             });
         }
     }

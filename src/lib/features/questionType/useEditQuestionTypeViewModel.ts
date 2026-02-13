@@ -1,5 +1,5 @@
 "use client";
-// src/lib/features/permission/useEditPermissionViewModel
+
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,19 +7,21 @@ import { toast } from "react-toastify";
 
 import { RootState, AppDispatch } from "@/lib/store";
 import {
-  fetchPermissionById,
-  updatePermission,
-} from "./permissionThunks";
-import { ApiError } from "./permissionTypes";
+  fetchQuestionTypeById,
+  updateQuestionType,
+} from "./questionTypeThunks";
+import { ApiError } from "./questionTypeTypes";
 
 /* ===============================
    Form Data Interface
 ================================ */
 
-export interface PermissionFormData {
-  permissionKey: string;
-  module: string;
-  description?: string;
+export interface QuestionTypeFormData {
+  code: string;
+  name: string;
+  evaluationMode: "AUTO" | "MANUAL" | "HYBRID";
+  supportsOptions: boolean;
+  supportsAttachments: boolean;
   isActive: boolean;
 }
 
@@ -27,21 +29,23 @@ export interface PermissionFormData {
    ViewModel
 ================================ */
 
-export default function useEditPermissionViewModel() {
+export default function useEditQuestionTypeViewModel() {
   const router = useRouter();
   const { id } = useParams();
   const dispatch: AppDispatch = useDispatch();
 
   const {
-    currentPermission,
+    currentQuestionType,
     loading,
     error: fetchError,
-  } = useSelector((state: RootState) => state.permissions);
+  } = useSelector((state: RootState) => state.questionTypes);
 
-  const [formData, setFormData] = useState<PermissionFormData>({
-    permissionKey: "",
-    module: "",
-    description: "",
+  const [formData, setFormData] = useState<QuestionTypeFormData>({
+    code: "",
+    name: "",
+    evaluationMode: "AUTO",
+    supportsOptions: false,
+    supportsAttachments: false,
     isActive: true,
   });
 
@@ -49,12 +53,12 @@ export default function useEditPermissionViewModel() {
   const [error, setError] = useState<ApiError | null>(null);
 
   /* ===============================
-     Load Permission
+     Load Question Type
   ================================ */
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchPermissionById(Number(id)));
+      dispatch(fetchQuestionTypeById(Number(id)));
     }
   }, [dispatch, id]);
 
@@ -63,15 +67,20 @@ export default function useEditPermissionViewModel() {
   ================================ */
 
   useEffect(() => {
-    if (currentPermission) {
+    if (currentQuestionType) {
       setFormData({
-        permissionKey: currentPermission.permissionKey || "",
-        module: currentPermission.module || "",
-        description: currentPermission.description || "",
-        isActive: currentPermission.isActive,
+        code: currentQuestionType.code || "",
+        name: currentQuestionType.name || "",
+        evaluationMode:
+          currentQuestionType.evaluationMode || "AUTO",
+        supportsOptions:
+          currentQuestionType.supportsOptions ?? false,
+        supportsAttachments:
+          currentQuestionType.supportsAttachments ?? false,
+        isActive: currentQuestionType.isActive ?? true,
       });
     }
-  }, [currentPermission]);
+  }, [currentQuestionType]);
 
   /* ===============================
      Handlers
@@ -99,6 +108,17 @@ export default function useEditPermissionViewModel() {
     }));
   };
 
+  const handleSelectChange = (e: {
+    target: { name: string; value: any };
+  }) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   /* ===============================
      Submit
   ================================ */
@@ -111,25 +131,27 @@ export default function useEditPermissionViewModel() {
     setError(null);
 
     try {
-      if (!id) throw new Error("Permission ID is required");
+      if (!id) throw new Error("Question Type ID is required");
 
-      if (!formData.permissionKey || !formData.module) {
-        throw new Error("Permission Key and Module are required");
+      if (!formData.name || !formData.evaluationMode) {
+        throw new Error("Name and Evaluation Mode are required");
       }
 
       const result = await dispatch(
-        updatePermission({
+        updateQuestionType({
           id: Number(id),
-          permissionKey: formData.permissionKey.trim(),
-          module: formData.module.trim(),
-          description: formData.description || null,
+          name: formData.name.trim(),
+          evaluationMode: formData.evaluationMode,
+          supportsOptions: formData.supportsOptions,
+          supportsAttachments: formData.supportsAttachments,
           isActive: formData.isActive,
         })
       ).unwrap();
 
       return {
         success: true,
-        message: result.message || "Permission updated successfully",
+        message:
+          result.message || "Question type updated successfully",
       };
     } catch (err: unknown) {
       let errorMessage = "An unknown error occurred";
@@ -157,6 +179,7 @@ export default function useEditPermissionViewModel() {
 
     handleChange,
     handleBooleanChange,
+    handleSelectChange,
     handleSubmit,
   };
 }

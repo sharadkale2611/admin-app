@@ -68,6 +68,7 @@ const API_ENDPOINTS = {
     PUT_UPDATE: "/Students",
     DELETE: "/Students",
     GET_BY_MOBILE: "/Students/by-mobile",
+    GET_BY_AADHAR: "/Students/by-aadhar",
     GET_BATCH_COURSE_ASSIGNMENTS: "/Students/batch-course-assignments",
   },
 
@@ -79,6 +80,7 @@ const API_ENDPOINTS = {
     POST_CREATE: "/ExamMarks",
     PUT_UPDATE: "/ExamMarks",
     DELETE: "/ExamMarks",
+    GET_BY_STUDENT_ID: "/ExamMarks/by-student",
   },
 
   /* ===================== ADMISSIONS / ENROLLMENTS ===================== */
@@ -184,6 +186,7 @@ const API_ENDPOINTS = {
   ATTENDANCE: {
     GET_BY_SESSION: "/Attendance/by-session",
     PUT_UPDATE_STATUS: "/Attendance/update-status",
+    GET_BY_STUDENT_ID: "/Attendance/student",
   },
 
   /* ===================== STUDENT BATCH ASSIGNMENTS ===================== */
@@ -283,8 +286,34 @@ EXAMS: {
   POST_CREATE: "/permissions",
   PUT_UPDATE: "/permissions",
   DELETE: "/permissions",
-}
+},
 
+QUESTION_TYPES: {
+    GET_LIST: "/QuestionTypes",
+    GET_PAGINATED: "/QuestionTypes/paginated",
+    GET_BY_ID: "/QuestionTypes",
+    POST_CREATE: "/QuestionTypes",
+    PUT_UPDATE: "/QuestionTypes",
+    DELETE: "/QuestionTypes",
+  },
+
+  QUESTION_TYPE_RULES: {
+  GET_LIST: "/QuestionTypeRules",
+  GET_PAGINATED: "/QuestionTypeRules/paginated", 
+  GET_BY_ID: "/QuestionTypeRules",
+  POST_CREATE: "/QuestionTypeRules",
+  PUT_UPDATE: "/QuestionTypeRules",
+  DELETE: "/QuestionTypeRules",
+},
+
+ QUESTIONS: {
+  GET_LIST: "/Questions",
+  GET_PAGINATED: "/Questions/paginated", 
+  GET_BY_ID: "/Questions",
+  POST_CREATE: "/Questions",
+  PUT_UPDATE: "/Questions",
+  DELETE: "/Questions",
+},
 
 
 };

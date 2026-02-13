@@ -198,7 +198,7 @@ export default function StudentsTable() {
                                                     </IconButton>
                                                 </Link>
                                                 <Link href={`/students/${student.studentId}/edit`}>
-                                                    <IconButton size="small">
+                                                    <IconButton size="small"  color="primary">
                                                         <Edit />
                                                     </IconButton>
                                                 </Link>
