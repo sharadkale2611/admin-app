@@ -320,6 +320,17 @@ const API_ENDPOINTS = {
     PUT_UPDATE: "/QuestionAttachments",
     DELETE: "/QuestionAttachments",
   },
+
+  QUESTION_ANSWERS: {
+    GET_LIST: "/QuestionAnswers",
+    GET_PAGINATED: "/QuestionAnswers/paginated",
+    GET_BY_ID: "/QuestionAnswers",
+    POST_CREATE: "/QuestionAnswers",
+    PUT_UPDATE: "/QuestionAnswers",
+    DELETE: "/QuestionAnswers",
+  },
+
+
 };
 
 export default API_ENDPOINTS;
