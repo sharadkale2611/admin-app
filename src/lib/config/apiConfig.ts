@@ -306,6 +306,15 @@ QUESTION_TYPES: {
   DELETE: "/Questions",
 },
 
+QUESTION_OPTIONS: {
+  GET_LIST: "/QuestionOptions",
+  GET_PAGINATED: "/QuestionOptions/paginated",
+  GET_BY_ID: "/QuestionOptions",
+  POST_CREATE: "/QuestionOptions",
+  PUT_UPDATE: "/QuestionOptions",
+  DELETE: "/QuestionOptions",
+}
+
 
 };
 

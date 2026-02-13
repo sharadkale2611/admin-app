@@ -47,8 +47,7 @@ import rolePermissionReducer from "@/lib/features/role-permissions/rolePermissio
 import questionTypeReducer from "@/lib/features/questionType/questionTypeSlice";
 import questionTypeRuleReducer from "@/lib/features/questionTypeRule/questionTypeRuleSlice";
 import  questionReducer  from "@/lib/features/question/questionSlice";
-
-
+import questionOptionReducer from "@/lib/features/questionOption/questionOptionSlice";
 
 const admissionDraftPersistConfig = {
     key: 'admissionDraft',
@@ -92,6 +91,7 @@ const rootReducer = combineReducers({
     questionTypes: questionTypeReducer,
     questionTypeRules: questionTypeRuleReducer,
     questions: questionReducer,
+    questionOptions: questionOptionReducer,
 
 });
 
