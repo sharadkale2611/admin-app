@@ -286,8 +286,34 @@ EXAMS: {
   POST_CREATE: "/permissions",
   PUT_UPDATE: "/permissions",
   DELETE: "/permissions",
-}
+},
 
+QUESTION_TYPES: {
+    GET_LIST: "/QuestionTypes",
+    GET_PAGINATED: "/QuestionTypes/paginated",
+    GET_BY_ID: "/QuestionTypes",
+    POST_CREATE: "/QuestionTypes",
+    PUT_UPDATE: "/QuestionTypes",
+    DELETE: "/QuestionTypes",
+  },
+
+  QUESTION_TYPE_RULES: {
+  GET_LIST: "/QuestionTypeRules",
+  GET_PAGINATED: "/QuestionTypeRules/paginated", 
+  GET_BY_ID: "/QuestionTypeRules",
+  POST_CREATE: "/QuestionTypeRules",
+  PUT_UPDATE: "/QuestionTypeRules",
+  DELETE: "/QuestionTypeRules",
+},
+
+ QUESTIONS: {
+  GET_LIST: "/Questions",
+  GET_PAGINATED: "/Questions/paginated", 
+  GET_BY_ID: "/Questions",
+  POST_CREATE: "/Questions",
+  PUT_UPDATE: "/Questions",
+  DELETE: "/Questions",
+},
 
 
 };

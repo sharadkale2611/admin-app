@@ -45,6 +45,10 @@ import permissionReducer from "@/lib/features/permission/permissionSlice";
 import roleReducer from "@/lib/features/roles/roleSlice";
 import rolePermissionReducer from "@/lib/features/role-permissions/rolePermissionSlice";
 import courseModuleContentReducer from "@/lib/features/courseModuleContent/courseModuleContentSlice";
+import questionTypeReducer from "@/lib/features/questionType/questionTypeSlice";
+import questionTypeRuleReducer from "@/lib/features/questionTypeRule/questionTypeRuleSlice";
+import  questionReducer  from "@/lib/features/question/questionSlice";
+
 
 
 const admissionDraftPersistConfig = {
@@ -88,6 +92,9 @@ const rootReducer = combineReducers({
     permissions: permissionReducer,
     roles: roleReducer,
     rolePermissions: rolePermissionReducer,
+    questionTypes: questionTypeReducer,
+    questionTypeRules: questionTypeRuleReducer,
+    questions: questionReducer,
 
 });
 

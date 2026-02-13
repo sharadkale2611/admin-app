@@ -1,18 +1,16 @@
-// src/lib/features/permission/useDeletePermissionViewModel
-
 import { useCallback } from "react";
 import Swal from "sweetalert2";
 import { useAppDispatch } from "@/lib/hooks";
-import { deletePermission } from "./permissionThunks";
+import { deleteQuestionTypeRule } from "./questionTypeRuleThunks";
 
-export const useDeletePermission = () => {
+export const useDeleteQuestionTypeRule = () => {
   const dispatch = useAppDispatch();
 
   const handleDelete = useCallback(
-    async (permissionId: number, permissionKey: string) => {
+    async (ruleId: number, ruleName: string) => {
       const result = await Swal.fire({
         title: "Are you sure?",
-        text: `You are about to delete the permission "${permissionKey}". This action cannot be undone.`,
+        text: `You are about to delete the rule "${ruleName}". This action cannot be undone.`,
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#d33",
@@ -27,12 +25,14 @@ export const useDeletePermission = () => {
 
       if (result.isConfirmed) {
         try {
-          const actionResult = await dispatch(deletePermission(permissionId));
+          const actionResult = await dispatch(
+            deleteQuestionTypeRule(ruleId)
+          );
 
-          if (deletePermission.fulfilled.match(actionResult)) {
+          if (deleteQuestionTypeRule.fulfilled.match(actionResult)) {
             await Swal.fire({
               title: "Deleted!",
-              text: "Permission has been deleted successfully.",
+              text: "Rule has been deleted successfully.",
               icon: "success",
               timer: 2000,
               showConfirmButton: false,
@@ -42,7 +42,7 @@ export const useDeletePermission = () => {
         } catch (error: any) {
           await Swal.fire({
             title: "Error!",
-            text: error.message || "Failed to delete permission",
+            text: error.message || "Failed to delete rule",
             icon: "error",
             confirmButtonText: "OK",
           });
