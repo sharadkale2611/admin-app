@@ -47,6 +47,8 @@ import rolePermissionReducer from "@/lib/features/role-permissions/rolePermissio
 import questionTypeReducer from "@/lib/features/questionType/questionTypeSlice";
 import questionTypeRuleReducer from "@/lib/features/questionTypeRule/questionTypeRuleSlice";
 import  questionReducer  from "@/lib/features/question/questionSlice";
+import examPaperReducer from "@/lib/features/exampaper/examPaperSlice";
+
 
 import courseModuleContentReducer from "@/lib/features/courseModuleContent/courseModuleContentSlice";
 
@@ -95,6 +97,7 @@ const rootReducer = combineReducers({
     questionTypes: questionTypeReducer,
     questionTypeRules: questionTypeRuleReducer,
     questions: questionReducer,
+    examPapers: examPaperReducer,
 
 });
 
