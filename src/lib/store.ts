@@ -53,6 +53,7 @@ import questionAttachmentReducer from "@/lib/features/questionAttachment/questio
 import questionAnswerReducer from "@/lib/features/questionAnswer/questionAnswerSlice";
 import courseModuleContentReducer from "@/lib/features/courseModuleContent/courseModuleContentSlice";
 import examAttemptReducer from "@/lib/features/examAttempt/examAttemptSlice";
+import examAttemptQuestionReducer from "@/lib/features/examAttemptQuestion/examAttemptQuestionSlice";
 
 
 const admissionDraftPersistConfig = {
@@ -104,6 +105,7 @@ const rootReducer = combineReducers({
     questionAnswers: questionAnswerReducer,
     examPapers: examPaperReducer,
     examAttempts: examAttemptReducer,
+    examAttemptQuestions: examAttemptQuestionReducer,
 
 });
 
