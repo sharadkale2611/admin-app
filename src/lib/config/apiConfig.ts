@@ -324,6 +324,7 @@ EXAMPAPERS: {
     GET_PAGINATED: "/QuestionOptions/paginated",
     GET_BY_ID: "/QuestionOptions",
     POST_CREATE: "/QuestionOptions",
+    GET_BY_QUESTION: "/questionoptions/by-question", 
     PUT_UPDATE: "/QuestionOptions",
     DELETE: "/QuestionOptions",
   },
@@ -361,6 +362,14 @@ EXAM_ATTEMPT_QUESTIONS: {
   POST_CREATE: "/ExamAttemptQuestions",
   PUT_UPDATE: "/ExamAttemptQuestions",
   DELETE: "/ExamAttemptQuestions",
+},
+
+STUDENT_ANSWERS: {
+ GET_LIST: "/StudentAnswers",
+ GET_BY_ID: "/StudentAnswers",
+ POST_CREATE: "/StudentAnswers",
+ PUT_UPDATE: "/StudentAnswers",
+ DELETE: "/StudentAnswers",
 },
 
 
