@@ -58,9 +58,10 @@ export default function RootLayout({
           <AppRouterCacheProvider options={{ key: 'css' }}>
             <ThemeProvider theme={theme}>
               {children}
-            </ThemeProvider>
-          </AppRouterCacheProvider>
-        </StoreProvider>
+          </ThemeProvider>
+        </AppRouterCacheProvider>
+      </StoreProvider>
+
       </body>
     </html>
   );

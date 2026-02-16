@@ -47,9 +47,12 @@ import rolePermissionReducer from "@/lib/features/role-permissions/rolePermissio
 import questionTypeReducer from "@/lib/features/questionType/questionTypeSlice";
 import questionTypeRuleReducer from "@/lib/features/questionTypeRule/questionTypeRuleSlice";
 import  questionReducer  from "@/lib/features/question/questionSlice";
+import examPaperReducer from "@/lib/features/exampaper/examPaperSlice";
 import questionOptionReducer from "@/lib/features/questionOption/questionOptionSlice";
 import questionAttachmentReducer from "@/lib/features/questionAttachment/questionAttachmentSlice";
 import questionAnswerReducer from "@/lib/features/questionAnswer/questionAnswerSlice";
+import courseModuleContentReducer from "@/lib/features/courseModuleContent/courseModuleContentSlice";
+
 
 const admissionDraftPersistConfig = {
     key: 'admissionDraft',
@@ -81,6 +84,8 @@ const rootReducer = combineReducers({
     examMarks: examMarksReducer,
     attendanceSession: attendanceSessionReducer,
     dashboard: dashboardReducer,
+    courseModuleContents: courseModuleContentReducer,
+
 
     admissionDraft: persistReducer(
         admissionDraftPersistConfig,
@@ -96,6 +101,7 @@ const rootReducer = combineReducers({
     questionOptions: questionOptionReducer,
     questionAttachments: questionAttachmentReducer,
     questionAnswers: questionAnswerReducer,
+    examPapers: examPaperReducer,
 
 });
 

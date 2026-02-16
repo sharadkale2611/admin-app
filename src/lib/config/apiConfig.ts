@@ -243,7 +243,16 @@ const API_ENDPOINTS = {
   },
 
   /* ===================== EXAMS ===================== */
-  EXAMS: {
+  
+  COURSE_MODULE_CONTENTS: {
+  GET_LIST: "/CourseModuleContents",
+  GET_BY_ID: "/CourseModuleContents",
+  POST_CREATE: "/CourseModuleContents",
+  PUT_UPDATE: "/CourseModuleContents",
+  DELETE: "/CourseModuleContents",
+},
+
+EXAMS: {
     GET_LIST_PAGINATED: "/Exams/paginated",
     GET_LIST: "/Exams",
     GET_BY_ID: "/Exams",
@@ -302,6 +311,13 @@ const API_ENDPOINTS = {
     PUT_UPDATE: "/Questions",
     DELETE: "/Questions",
   },
+EXAMPAPERS: {
+  GET_LIST: "/ExamPapers",
+  GET_BY_ID: "/ExamPapers",
+  POST_CREATE: "/ExamPapers",
+  PUT_UPDATE: "/ExamPapers",
+  DELETE: "/ExamPapers",
+},
 
   QUESTION_OPTIONS: {
     GET_LIST: "/QuestionOptions",

@@ -34,6 +34,7 @@ export const AppRoutes = {
     COURSE_CATEGORY: '/courseCategory',
     MODULES: '/modules',
     COURSE_MODULES: '/courseModules',
+    MODULE_CONTENTS: '/modules/[moduleId]/contents',
     BATCHES:'/batches',
     STUDENT_BATCH_ASSIGNMENTS:'/studentBatchAssignments',
     BATCH_STUDYWORK:'/BatchStudyWorks',
