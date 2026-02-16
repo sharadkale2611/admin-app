@@ -1,4 +1,4 @@
-    import { useCallback } from "react";
+import { useCallback } from "react";
 import Swal from "sweetalert2";
 import { useAppDispatch } from "@/lib/hooks";
 import { deleteQuestionAnswer } from "./questionAnswerThunks";

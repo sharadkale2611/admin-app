@@ -346,6 +346,15 @@ EXAMPAPERS: {
     DELETE: "/QuestionAnswers",
   },
 
+  EXAM_ATTEMPTS: {
+  GET_LIST: "/ExamAttempts",
+  GET_BY_ID: "/ExamAttempts",
+  POST_CREATE: "/ExamAttempts",
+  PUT_UPDATE: "/ExamAttempts",
+  DELETE: "/ExamAttempts",
+},
+
+
 
 };
 
