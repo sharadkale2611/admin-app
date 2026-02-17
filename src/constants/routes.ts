@@ -46,7 +46,6 @@ export const AppRoutes = {
 
     CHANGE_PASSWORD: '/profile/change-password',
 
-
     QUESTIONS: '/questions',
     EXAM_PAPERS: '/exampapers',
     EXAM_ATTEMPTS: '/examAttempts',

@@ -319,6 +319,15 @@ EXAMPAPERS: {
   DELETE: "/ExamPapers",
 },
 
+
+EXAMPAPERQUESTIONS: {
+  GET_LIST: "/ExamPaperQuestions",
+  GET_BY_ID: "/ExamPaperQuestions",
+  POST_CREATE: "/ExamPaperQuestions",
+  PUT_UPDATE: "/ExamPaperQuestions",
+  DELETE: "/ExamPaperQuestions",
+},
+
   QUESTION_OPTIONS: {
     GET_LIST: "/QuestionOptions",
     GET_PAGINATED: "/QuestionOptions/paginated",
