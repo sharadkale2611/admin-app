@@ -115,7 +115,7 @@ export default function CreateQuestionPage() {
     isSubmitting,
     error,
     courses,
-    modules, // cascading modules
+    modules,
     handleChange,
     handleSubmit,
   } = useCreateQuestionViewModel();
@@ -131,19 +131,30 @@ export default function CreateQuestionPage() {
 
   /* 🔹 Local State: Attachment & Options */
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const [attachmentError, setAttachmentError] = useState<string | null>(null);
 
   interface LocalOption {
     optionText: string;
     optionOrder: string;
     isCorrect: boolean;
-
-    // ✅ NEW (optional)
     optionMediaFile?: File | null;
     optionMediaPreviewUrl?: string;
   }
 
   const [options, setOptions] = useState<LocalOption[]>([]);
   const [optionsError, setOptionsError] = useState<string | null>(null);
+
+  // ✅ Attachment required when the type needs attachments and has no options (CODING/DESC/MCQA)
+  const isAttachmentRequired = useMemo(() => {
+    return Boolean(selectedQuestionType?.supportsAttachments);
+  }, [selectedQuestionType?.supportsAttachments]);
+  // Clear attachment error when question type changes (and clear file when attachments not supported)
+  useEffect(() => {
+    setAttachmentError(null);
+    if (!selectedQuestionType?.supportsAttachments) {
+      setAttachmentFile(null);
+    }
+  }, [selectedQuestionType?.questionTypeId, selectedQuestionType?.supportsAttachments]);
 
   // ---- Rules state ----
   const [rulesByTypeId, setRulesByTypeId] = useState<Record<number, QuestionTypeRuleDto>>({});
@@ -187,6 +198,45 @@ export default function CreateQuestionPage() {
       mounted = false;
     };
   }, []);
+
+  // ✅ NEW: attachment preview
+  const [attachmentPreviewUrl, setAttachmentPreviewUrl] = useState<string | undefined>(undefined);
+  const [attachmentIsImage, setAttachmentIsImage] = useState(false);
+
+  const revokeAttachmentPreviewUrl = (url?: string) => {
+    if (!url) return;
+    try {
+      URL.revokeObjectURL(url);
+    } catch {
+      // ignore
+    }
+  };
+
+  // cleanup attachment preview on unmount
+  useEffect(() => {
+    return () => revokeAttachmentPreviewUrl(attachmentPreviewUrl);
+  }, [attachmentPreviewUrl]);
+
+  const setAttachmentWithPreview = (file: File | null) => {
+    // clear existing preview
+    revokeAttachmentPreviewUrl(attachmentPreviewUrl);
+    setAttachmentPreviewUrl(undefined);
+    setAttachmentIsImage(false);
+
+    setAttachmentFile(file);
+    setAttachmentError(null);
+
+    if (!file) return;
+
+    const isImg = file.type.startsWith("image/");
+    setAttachmentIsImage(isImg);
+
+    if (isImg) {
+      const url = URL.createObjectURL(file);
+      setAttachmentPreviewUrl(url);
+    }
+  };
+
 
   const activeRule = useMemo(() => {
     const typeId = Number(formData.questionTypeId || 0);
@@ -472,10 +522,20 @@ export default function CreateQuestionPage() {
             // ✅ prevent page reload ALWAYS
             e.preventDefault();
 
-            // ✅ use returned message (don’t rely on async state)
+            // 1) Options validation (if supportsOptions)
             const optionValidationMsg = validateOptions();
             if (optionValidationMsg) {
               setSnackbarMessage(optionValidationMsg);
+              setSnackbarSeverity("error");
+              setSnackbarOpen(true);
+              return;
+            }
+
+            // 2) Attachment required validation (CODING/DESC/MCQA types)
+            if (isAttachmentRequired && !attachmentFile) {
+              const msg = "Attachment is required for this question type.";
+              setAttachmentError(msg);
+              setSnackbarMessage(msg);
               setSnackbarSeverity("error");
               setSnackbarOpen(true);
               return;
@@ -571,56 +631,56 @@ export default function CreateQuestionPage() {
               </FormControl>
             </Grid>
 
-           {/* Course */}
-<Grid size={{ xs: 12 }}>
-  <FormControl fullWidth size="small">
-    <InputLabel>Course</InputLabel>
-    <Select
-      name="courseId"
-      value={formData.courseId}
-      label="Course"
-      onChange={handleChange}
-      disabled={isSubmitting}
-    >
-      <MenuItem value="">None</MenuItem>
-      {courses.map((course: any) => (
-        <MenuItem
-          key={course.courseId}
-          value={course.courseId}
-        >
-          {course.courseName}
-        </MenuItem>
-      ))}
-    </Select>
-  </FormControl>
-</Grid>
+            {/* Course */}
+            <Grid size={{ xs: 12 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Course</InputLabel>
+                <Select
+                  name="courseId"
+                  value={formData.courseId}
+                  label="Course"
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                >
+                  <MenuItem value="">None</MenuItem>
+                  {courses.map((course: any) => (
+                    <MenuItem
+                      key={course.courseId}
+                      value={course.courseId}
+                    >
+                      {course.courseName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
 
-{/* Module (Filtered by Course) */}
-<Grid size={{ xs: 12 }}>
-  <FormControl
-    fullWidth
-    size="small"
-    disabled={!formData.courseId}
-  >
-    <InputLabel>Module</InputLabel>
-    <Select
-      name="moduleId"
-      value={formData.moduleId}
-      label="Module"
-      onChange={handleChange}
-    >
-      <MenuItem value="">None</MenuItem>
-      {modules.map((module: any) => (
-        <MenuItem
-          key={module.moduleId}
-          value={module.moduleId}
-        >
-          {module.moduleName}
-        </MenuItem>
-      ))}
-    </Select>
-  </FormControl>
-</Grid>
+            {/* Module (Filtered by Course) */}
+            <Grid size={{ xs: 12 }}>
+              <FormControl
+                fullWidth
+                size="small"
+                disabled={!formData.courseId}
+              >
+                <InputLabel>Module</InputLabel>
+                <Select
+                  name="moduleId"
+                  value={formData.moduleId}
+                  label="Module"
+                  onChange={handleChange}
+                >
+                  <MenuItem value="">None</MenuItem>
+                  {modules.map((module: any) => (
+                    <MenuItem
+                      key={module.moduleId}
+                      value={module.moduleId}
+                    >
+                      {module.moduleName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
 
             {/* Title */}
             <Grid size={{ xs: 12 }}>
@@ -698,228 +758,297 @@ export default function CreateQuestionPage() {
               </FormControl>
             </Grid>
 
-      {/* Question Attachment (conditional) */}
+            {/* Question Attachment (conditional) */}
       {selectedQuestionType?.supportsAttachments && (
         <>
           <Grid size={{ xs: 12 }}>
-            <Typography
-              variant="subtitle1"
-              sx={{ mt: 2, mb: 1, color: "text.secondary" }}
-            >
-              Question Attachment
+            <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, color: "text.secondary" }}>
+              Question Attachment {isAttachmentRequired ? "*" : "(optional)"}
             </Typography>
           </Grid>
+
           <Grid size={{ xs: 12 }}>
             <Button
               variant="outlined"
               component="label"
               size="small"
               disabled={isSubmitting}
+              color={attachmentError ? "error" : "primary"}
             >
-              Upload File
+              Upload File {isAttachmentRequired ? "*" : ""}
               <input
                 type="file"
                 hidden
-                onChange={(e) =>
-                  setAttachmentFile(
-                    e.target.files?.[0] ?? null
-                  )
-                }
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  setAttachmentWithPreview(file);
+                  e.currentTarget.value = ""; // allow selecting same file again
+                }}
               />
             </Button>
+
             {attachmentFile && (
-              <Typography
-                variant="body2"
-                sx={{ ml: 2, display: "inline" }}
-              >
+              <Typography variant="body2" sx={{ ml: 2, display: "inline" }}>
                 {attachmentFile.name}
               </Typography>
             )}
-          </Grid>
-        </>
-      )}
 
-      {/* Question Options (conditional) */}
-      {selectedQuestionType?.supportsOptions && (
-        <>
-          <Grid size={{ xs: 12 }}>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <Typography
-                variant="subtitle1"
-                sx={{ mt: 2, mb: 1, color: "text.secondary" }}
-              >
-                Question Options
+            {attachmentError && (
+              <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                {attachmentError}
               </Typography>
+            )}
 
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                <Chip
-                  size="small"
-                  label={
-                    rulesLoading
-                      ? "Rules: loading..."
-                      : `Min ${ruleMinOptions} • Max ${ruleMaxOptions}`
-                  }
-                  variant="outlined"
-                />
-                <Chip
-                  size="small"
-                  color={correctSelectedCount >= 1 ? "success" : "default"}
-                  label={`Correct selected: ${correctSelectedCount}${ruleMaxSelections ? ` / ${ruleMaxSelections}` : ""}`}
-                  variant="outlined"
-                />
-              </Box>
-            </Box>
-            <Divider />
-          </Grid>
-
-          {options.map((opt, index) => (
-            <Grid key={index} size={{ xs: 12 }}>
+            {/* ✅ Preview */}
+            {attachmentFile && (
               <Box
                 sx={{
+                  mt: 1.5,
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 2,
+                  p: 1.25,
                   display: "flex",
-                  gap: 1,
+                  gap: 2,
                   alignItems: "center",
-                  mb: 1,
+                  bgcolor: "background.default",
                 }}
               >
-                <TextField
-                  label={`Option ${index + 1}`}
-                  size="small"
-                  fullWidth
-                  value={opt.optionText}
-                  disabled={isSubmitting}
-                  onChange={(e) =>
-                    handleOptionChange(index, "optionText", e.target.value)
-                  }
-                />
-
-                <TextField
-                  label="Order"
-                  size="small"
-                  type="number"
-                  sx={{ width: 100 }}
-                  value={opt.optionOrder}
-                  disabled={true} // keep stable; auto-maintained
-                />
-
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={opt.isCorrect}
-                      onChange={(e) =>
-                        handleOptionChange(index, "isCorrect", e.target.checked)
-                      }
-                      disabled={isSubmitting}
-                    />
-                  }
-                  label="Correct"
-                />
-
-                <IconButton
-                  aria-label="remove option"
-                  size="small"
-                  onClick={() => handleRemoveOption(index)}
-                  disabled={isSubmitting || options.length <= ruleMinOptions}
-                >
-                  <Delete fontSize="small" />
-                </IconButton>
-              </Box>
-
-              {/* ✅ ADD BELOW (doesn't remove old UI) */}
-              <Box sx={{ mt: 1, display: "grid", gridTemplateColumns: "1fr 120px", gap: 12 }}>
-                <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-                  <Button
-                    variant="outlined"
-                    component="label"
-                    size="small"
-                    disabled={isSubmitting}
-                  >
-                    Upload Option Image (optional)
-                    <input
-                      hidden
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      onChange={(ev) => {
-                        const file = ev.target.files?.[0] ?? null;
-                        handleOptionMediaChange(index, file);
-                        ev.currentTarget.value = ""; // allow re-select same file
-                      }}
-                    />
-                  </Button>
-
-                  <Typography variant="caption" color="text.secondary">
-                    Saved as <b>OptionMediaPath</b> • JPG/PNG/WEBP • Max 2MB
-                  </Typography>
-
-                  {opt.optionMediaFile && (
-                    <>
-                      <Typography variant="body2" color="text.secondary">
-                        {opt.optionMediaFile.name}
-                      </Typography>
-
-                      <Tooltip title="Remove image">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleOptionMediaChange(index, null)}
-                          disabled={isSubmitting}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </>
-                  )}
-                </Stack>
-
                 <Box
                   sx={{
-                    width: 120,
-                    height: 72,
+                    width: 180,
+                    height: 100,
                     border: "1px solid",
                     borderColor: "divider",
                     borderRadius: 1,
+                    overflow: "hidden",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    overflow: "hidden",
-                    bgcolor: "background.default",
+                    bgcolor: "grey.50",
                   }}
                 >
-                  {opt.optionMediaPreviewUrl ? (
+                  {attachmentIsImage && attachmentPreviewUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={opt.optionMediaPreviewUrl}
-                      alt={`Option ${index + 1} preview`}
+                      src={attachmentPreviewUrl}
+                      alt="Attachment preview"
                       style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     />
                   ) : (
                     <Typography variant="caption" color="text.secondary">
-                      No image
+                      Preview not available
                     </Typography>
                   )}
                 </Box>
-              </Box>
-            </Grid>
-          ))}
 
-          <Grid size={{ xs: 12 }}>
-            <Button
-              type="button"
-              variant="outlined"
-              size="small"
-              startIcon={<Add />}
-              onClick={handleAddOption}
-              disabled={isSubmitting || options.length >= ruleMaxOptions}
-            >
-              Add Option
-            </Button>
-            {options.length >= ruleMaxOptions && (
-              <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
-                Max options reached ({ruleMaxOptions}).
-              </Typography>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="body2" fontWeight={600} noWrap title={attachmentFile.name}>
+                    {attachmentFile.name}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {(attachmentFile.size / 1024).toFixed(1)} KB • {attachmentFile.type || "unknown type"}
+                  </Typography>
+
+                  <Box sx={{ mt: 1 }}>
+                    <Button
+                      size="small"
+                      variant="text"
+                      color="error"
+                      onClick={() => setAttachmentWithPreview(null)}
+                      disabled={isSubmitting}
+                    >
+                      Remove
+                    </Button>
+                  </Box>
+                </Box>
+              </Box>
             )}
           </Grid>
         </>
       )}
+
+            {/* Question Options (conditional) */}
+            {selectedQuestionType?.supportsOptions && (
+              <>
+                <Grid size={{ xs: 12 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{ mt: 2, mb: 1, color: "text.secondary" }}
+                    >
+                      Question Options
+                    </Typography>
+
+                    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                      <Chip
+                        size="small"
+                        label={
+                          rulesLoading
+                            ? "Rules: loading..."
+                            : `Min ${ruleMinOptions} • Max ${ruleMaxOptions}`
+                        }
+                        variant="outlined"
+                      />
+                      <Chip
+                        size="small"
+                        color={correctSelectedCount >= 1 ? "success" : "default"}
+                        label={`Correct selected: ${correctSelectedCount}${ruleMaxSelections ? ` / ${ruleMaxSelections}` : ""}`}
+                        variant="outlined"
+                      />
+                    </Box>
+                  </Box>
+                  <Divider />
+                </Grid>
+
+                {options.map((opt, index) => (
+                  <Grid key={index} size={{ xs: 12 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        gap: 1,
+                        alignItems: "center",
+                        mb: 1,
+                      }}
+                    >
+                      <TextField
+                        label={`Option ${index + 1}`}
+                        size="small"
+                        fullWidth
+                        value={opt.optionText}
+                        disabled={isSubmitting}
+                        onChange={(e) =>
+                          handleOptionChange(index, "optionText", e.target.value)
+                        }
+                      />
+
+                      <TextField
+                        label="Order"
+                        size="small"
+                        type="number"
+                        sx={{ width: 100 }}
+                        value={opt.optionOrder}
+                        disabled={true} // keep stable; auto-maintained
+                      />
+
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={opt.isCorrect}
+                            onChange={(e) =>
+                              handleOptionChange(index, "isCorrect", e.target.checked)
+                            }
+                            disabled={isSubmitting}
+                          />
+                        }
+                        label="Correct"
+                      />
+
+                      <IconButton
+                        aria-label="remove option"
+                        size="small"
+                        onClick={() => handleRemoveOption(index)}
+                        disabled={isSubmitting || options.length <= ruleMinOptions}
+                      >
+                        <Delete fontSize="small" />
+                      </IconButton>
+                    </Box>
+
+                    {/* ✅ ADD BELOW (doesn't remove old UI) */}
+                    <Box sx={{ mt: 1, display: "grid", gridTemplateColumns: "1fr 120px", gap: 12 }}>
+                      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                        <Button
+                          variant="outlined"
+                          component="label"
+                          size="small"
+                          disabled={isSubmitting}
+                        >
+                          Upload Option Image (optional)
+                          <input
+                            hidden
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            onChange={(ev) => {
+                              const file = ev.target.files?.[0] ?? null;
+                              handleOptionMediaChange(index, file);
+                              ev.currentTarget.value = ""; // allow re-select same file
+                            }}
+                          />
+                        </Button>
+
+                        <Typography variant="caption" color="text.secondary">
+                          Saved as <b>OptionMediaPath</b> • JPG/PNG/WEBP • Max 2MB
+                        </Typography>
+
+                        {opt.optionMediaFile && (
+                          <>
+                            <Typography variant="body2" color="text.secondary">
+                              {opt.optionMediaFile.name}
+                            </Typography>
+
+                            <Tooltip title="Remove image">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleOptionMediaChange(index, null)}
+                                disabled={isSubmitting}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </>
+                        )}
+                      </Stack>
+
+                      <Box
+                        sx={{
+                          width: 120,
+                          height: 72,
+                          border: "1px solid",
+                          borderColor: "divider",
+                          borderRadius: 1,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          overflow: "hidden",
+                          bgcolor: "background.default",
+                        }}
+                      >
+                        {opt.optionMediaPreviewUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={opt.optionMediaPreviewUrl}
+                            alt={`Option ${index + 1} preview`}
+                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                          />
+                        ) : (
+                          <Typography variant="caption" color="text.secondary">
+                            No image
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+                  </Grid>
+                ))}
+
+                <Grid size={{ xs: 12 }}>
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    size="small"
+                    startIcon={<Add />}
+                    onClick={handleAddOption}
+                    disabled={isSubmitting || options.length >= ruleMaxOptions}
+                  >
+                    Add Option
+                  </Button>
+                  {options.length >= ruleMaxOptions && (
+                    <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
+                      Max options reached ({ruleMaxOptions}).
+                    </Typography>
+                  )}
+                </Grid>
+              </>
+            )}
 
             {/* Actions */}
             <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
