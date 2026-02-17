@@ -1,7 +1,13 @@
 /* =======================
    Question Model
 ======================= */
-
+export interface QuestionOption {
+  questionOptionId: number;
+  questionId?: number;
+  optionText: string;
+  isCorrect: boolean;
+  optionOrder?: number;
+}
 export interface Question {
   questionId: number;
 
@@ -29,6 +35,8 @@ export interface Question {
   courseName?: string | null;
   moduleName?: string | null;
   questionTypeName?: string | null;
+    options?: QuestionOption[];
+
 }
 
 /* =======================
