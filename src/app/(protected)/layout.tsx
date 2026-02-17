@@ -115,6 +115,11 @@ const ProtectedLayout = ({ children }: LayoutParams) => {
         { text: "Exam Marks", icon: <SchoolIcon />, path: AppRoutes.EXAM_MARKS },
         { text: "Attendance", icon: <EventNoteIcon />, path: AppRoutes.ATTENDANCE },
         { text: "Notifications", icon: <Campaign />, path: AppRoutes.NOTICES },
+
+
+        { text: "Question Types", icon: <Campaign />, path: AppRoutes.QUESTION_TYPES },
+        { text: "Question Type Rules", icon: <Campaign />, path: AppRoutes.QUESTION_TYPE_RULES },
+        { text: "Questions", icon: <Campaign />, path: AppRoutes.QUESTIONS },
     ];
 
     const menuItems = user?.roles?.includes("Administrator")

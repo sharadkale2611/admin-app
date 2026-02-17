@@ -46,6 +46,10 @@ export const AppRoutes = {
 
     CHANGE_PASSWORD: '/profile/change-password',
 
+    QUESTION_TYPES: 'questionTypes',
+    QUESTION_TYPE_RULES: 'questionTypeRules',
+    QUESTIONS: 'questions',
+
 
 
 
