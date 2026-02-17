@@ -311,6 +311,22 @@ EXAMS: {
     PUT_UPDATE: "/Questions",
     DELETE: "/Questions",
   },
+EXAMPAPERS: {
+  GET_LIST: "/ExamPapers",
+  GET_BY_ID: "/ExamPapers",
+  POST_CREATE: "/ExamPapers",
+  PUT_UPDATE: "/ExamPapers",
+  DELETE: "/ExamPapers",
+},
+
+
+EXAMPAPERQUESTIONS: {
+  GET_LIST: "/ExamPaperQuestions",
+  GET_BY_ID: "/ExamPaperQuestions",
+  POST_CREATE: "/ExamPaperQuestions",
+  PUT_UPDATE: "/ExamPaperQuestions",
+  DELETE: "/ExamPaperQuestions",
+},
 
   QUESTION_OPTIONS: {
     GET_LIST: "/QuestionOptions",
@@ -338,14 +354,6 @@ EXAMS: {
     PUT_UPDATE: "/QuestionAnswers",
     DELETE: "/QuestionAnswers",
   },
-
-  EXAMPAPERS: {
-  GET_LIST: "/ExamPapers",
-  GET_BY_ID: "/ExamPapers",
-  POST_CREATE: "/ExamPapers",
-  PUT_UPDATE: "/ExamPapers",
-  DELETE: "/ExamPapers",
-},
 
 
 };

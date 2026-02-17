@@ -16,6 +16,7 @@ export default function useEditExamPaperViewModel() {
   const { id } = useParams();
   const dispatch = useAppDispatch();
 
+  // ✅ FIXED REDUX PATH
   const { currentExamPaper, loading } = useSelector(
     (state: RootState) => state.examPapers
   );
@@ -31,20 +32,19 @@ export default function useEditExamPaperViewModel() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (id) dispatch(fetchExamPaperById(Number(id)));
+    if (id) {
+      dispatch(fetchExamPaperById(Number(id)));
+    }
   }, [dispatch, id]);
 
   useEffect(() => {
     if (currentExamPaper) {
       setFormData({
-        name: currentExamPaper.name,
-        totalMarks: currentExamPaper.totalMarks.toString(),
-        durationMinutes:
-          currentExamPaper.durationMinutes.toString(),
-        shuffleQuestions:
-          currentExamPaper.shuffleQuestions,
-        shuffleOptions:
-          currentExamPaper.shuffleOptions,
+        name: currentExamPaper.name ?? "",
+        totalMarks: String(currentExamPaper.totalMarks ?? ""),
+        durationMinutes: String(currentExamPaper.durationMinutes ?? ""),
+        shuffleQuestions: currentExamPaper.shuffleQuestions ?? true,
+        shuffleOptions: currentExamPaper.shuffleOptions ?? true,
       });
     }
   }, [currentExamPaper]);

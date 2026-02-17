@@ -48,11 +48,11 @@ import courseModuleContentReducer from "@/lib/features/courseModuleContent/cours
 import questionTypeReducer from "@/lib/features/questionType/questionTypeSlice";
 import questionTypeRuleReducer from "@/lib/features/questionTypeRule/questionTypeRuleSlice";
 import  questionReducer  from "@/lib/features/question/questionSlice";
+import examPaperReducer from "@/lib/features/exampaper/examPaperSlice";
 import questionOptionReducer from "@/lib/features/questionOption/questionOptionSlice";
 import questionAttachmentReducer from "@/lib/features/questionAttachment/questionAttachmentSlice";
 import questionAnswerReducer from "@/lib/features/questionAnswer/questionAnswerSlice";
-import examPaperReducer from "@/lib/features/exampaper/examPaperSlice";
-
+import examPaperQuestionReducer from "@/lib/features/examPaperQuestion/examPaperQuestionSlice";
 
 
 const admissionDraftPersistConfig = {
@@ -86,8 +86,8 @@ const rootReducer = combineReducers({
     attendanceSession: attendanceSessionReducer,
     dashboard: dashboardReducer,
     courseModuleContents: courseModuleContentReducer,
-
-
+   examPapers: examPaperReducer,
+   examPaperQuestions: examPaperQuestionReducer,
     admissionDraft: persistReducer(
         admissionDraftPersistConfig,
         admissionDraftReducer
@@ -102,7 +102,6 @@ const rootReducer = combineReducers({
     questionOptions: questionOptionReducer,
     questionAttachments: questionAttachmentReducer,
     questionAnswers: questionAnswerReducer,
-    examPapers: examPaperReducer,
 
 });
 
