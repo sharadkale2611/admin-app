@@ -222,3 +222,38 @@ export const deleteQuestionOption = createAsyncThunk<
     }
   }
 );
+
+
+/* ===============================
+   GET OPTIONS BY QUESTION ID
+================================ */
+
+export const fetchQuestionOptionsByQuestionId = createAsyncThunk<
+  QuestionOption[],
+  number,
+  { rejectValue: ApiError }
+>(
+  "questionOptions/fetchByQuestionId",
+  async (questionId, { rejectWithValue }) => {
+    try {
+      const response = await api.get<QuestionOption[]>(
+        `${API_ENDPOINTS.QUESTION_OPTIONS.GET_BY_QUESTION}/${questionId}`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (!response?.success || !response.data) {
+        return rejectWithValue({
+          error: response?.message || "No options found",
+          errors: null,
+        });
+      }
+
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(parseApiError(error));
+    }
+  }
+);
+

@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
+    fetchStudentList,
     fetchStudents,
     fetchStudentById,
     createStudent,
@@ -64,6 +65,23 @@ const studentSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            // 🔹 Fetch Student List (non-paginated; used for dropdowns)
+            .addCase(fetchStudentList.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchStudentList.fulfilled, (state, action) => {
+                state.loading = false;
+                state.students = action.payload;
+                state.totalCount = action.payload.length;
+                state.totalPages = Math.ceil(state.totalCount / state.pageSize);
+            })
+            .addCase(fetchStudentList.rejected, (state, action) => {
+                state.loading = false;
+                state.error =
+                    (action.payload as ApiError) ?? { error: "Failed to fetch students", errors: null };
+            })
+
             // 🔹 Fetch Students
             .addCase(fetchStudents.pending, (state) => {
                 state.loading = true;

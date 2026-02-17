@@ -61,7 +61,7 @@ export const fetchStudentList = createAsyncThunk<
     void,      // No parameters
     { dispatch: AppDispatch; state: RootState; rejectValue: ApiError }
 >(
-    "students/fetchStudents",
+    "students/fetchStudentList",
     async (_, { rejectWithValue }) => {
         try {
             const response = await api.get<Student[]>(
@@ -70,7 +70,7 @@ export const fetchStudentList = createAsyncThunk<
             );
 
             if (!response.data) {
-                return rejectWithValue({
+                return rejectWithValue({    
                     error: "No data returned from server",
                     errors: null,
                 });

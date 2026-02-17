@@ -46,9 +46,19 @@ export const AppRoutes = {
 
     CHANGE_PASSWORD: '/profile/change-password',
 
-    QUESTION_TYPES: 'questionTypes',
-    QUESTION_TYPE_RULES: 'questionTypeRules',
-    QUESTIONS: 'questions',
+    QUESTIONS: '/questions',
+    EXAM_PAPERS: '/exampapers',
+    EXAM_ATTEMPTS: '/examAttempts',
+    STUDENT_ANSWERS: '/studentAnswers',
+    QUESTION_TYPES: '/questionTypes',
+    QUESTION_TYPE_RULES: '/questionTypeRules',
+    QUESTION_OPTIONS: '/questionOptions',
+    QUESTION_ATTACHMENTS: '/questionAttachments',
+    EXAM_ATTEMPT_QUESTIONS: '/examAttemptQuestions',
+    QUESTION_ANSWERS: '/questionAnswers',    
+    QUESTION_ANSWER_ATTACHMENTS: '/questionAttachments',
+
+
 
 
 

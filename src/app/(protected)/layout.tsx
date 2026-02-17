@@ -116,10 +116,17 @@ const ProtectedLayout = ({ children }: LayoutParams) => {
         { text: "Attendance", icon: <EventNoteIcon />, path: AppRoutes.ATTENDANCE },
         { text: "Notifications", icon: <Campaign />, path: AppRoutes.NOTICES },
 
+        {text:"Question Types", icon: <MenuBookIcon />, path: AppRoutes.QUESTION_TYPES},
+        {text:"Question Type Rules", icon: <MenuBookIcon />, path: AppRoutes.QUESTION_TYPE_RULES},
+        {text : "Questions", icon: <MenuBookIcon />, path: AppRoutes.QUESTIONS},
+        {text:"Question Options", icon: <MenuBookIcon />, path: AppRoutes.QUESTION_OPTIONS},
+        {text:"Question Attachments", icon: <MenuBookIcon />, path: AppRoutes.QUESTION_ANSWER_ATTACHMENTS},
+        {text:"Question Answers", icon: <MenuBookIcon />, path: AppRoutes.QUESTION_ANSWERS},
 
-        { text: "Question Types", icon: <Campaign />, path: AppRoutes.QUESTION_TYPES },
-        { text: "Question Type Rules", icon: <Campaign />, path: AppRoutes.QUESTION_TYPE_RULES },
-        { text: "Questions", icon: <Campaign />, path: AppRoutes.QUESTIONS },
+        {text : "Exam Papers", icon: <MenuBookIcon />, path: AppRoutes.EXAM_PAPERS},
+        {text : "Exam Attempts", icon: <MenuBookIcon />, path: AppRoutes.EXAM_ATTEMPTS},
+        {text : "Exam Attempt Questions", icon: <MenuBookIcon />, path: AppRoutes.EXAM_ATTEMPT_QUESTIONS},
+        {text:"Student Answers", icon: <MenuBookIcon />, path: AppRoutes.STUDENT_ANSWERS},
     ];
 
     const menuItems = user?.roles?.includes("Administrator")
