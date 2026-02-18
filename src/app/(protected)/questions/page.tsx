@@ -52,6 +52,29 @@ export default function QuestionsPage() {
   const [selectedModule, setSelectedModule] =
     React.useState<string>("");
 
+  /* =========================================
+     ✅ FILTER QUESTIONS (MAIN FIX)
+  ========================================= */
+  const filteredQuestions = React.useMemo(() => {
+    return questions.filter((q) => {
+      if (
+        selectedCourse &&
+        String(q.courseId) !== String(selectedCourse)
+      ) {
+        return false;
+      }
+
+      if (
+        selectedModule &&
+        String(q.moduleId) !== String(selectedModule)
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [questions, selectedCourse, selectedModule]);
+
   function renderErrorContent(error: ApiError | null) {
     if (!error) return null;
 
@@ -62,7 +85,9 @@ export default function QuestionsPage() {
     if (Array.isArray(error.errors)) {
       return error.errors.map((e, i) => (
         <div key={i}>
-          {typeof e === "string" ? e : JSON.stringify(e)}
+          {typeof e === "string"
+            ? e
+            : JSON.stringify(e)}
         </div>
       ));
     }
@@ -187,13 +212,13 @@ export default function QuestionsPage() {
               />
             ))}
           </Stack>
-        ) : questions.length === 0 ? (
+        ) : filteredQuestions.length === 0 ? (
           <Typography align="center" color="text.secondary">
             No questions found
           </Typography>
         ) : (
           <Stack spacing={2}>
-            {questions.map((q) => (
+            {filteredQuestions.map((q) => (
               <QuestionRenderer
                 key={q.questionId}
                 question={q}
