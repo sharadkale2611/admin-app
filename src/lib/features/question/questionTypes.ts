@@ -1,13 +1,39 @@
 /* =======================
-   Question Model
+   Question Option Model
 ======================= */
+
 export interface QuestionOption {
-  questionOptionId: number;
-  questionId?: number;
+  optionId: number;
   optionText: string;
   isCorrect: boolean;
   optionOrder?: number;
+  optionMediaPath?: string | null;
 }
+
+/* =======================
+   Question Attachment Model
+======================= */
+
+export interface QuestionAttachment {
+  questionAttachmentId: number;
+  uploadMediaPath: string;
+}
+
+/* =======================
+   Question Answer Model
+======================= */
+
+export interface QuestionAnswer {
+  questionAnswerId: number;
+  answerText?: string | null;
+  answerRegex?: string | null;
+  maxScore?: number;
+}
+
+/* =======================
+   Question Model
+======================= */
+
 export interface Question {
   questionId: number;
 
@@ -23,20 +49,22 @@ export interface Question {
   difficultyLevel: "EASY" | "MEDIUM" | "HARD";
   negativeMarks: number;
 
-  questionVersion: number;
+  questionVersion?: number;
   isActive: boolean;
-  isDeleted: boolean;
+  isDeleted?: boolean;
 
   createdAt: string;
   updatedAt?: string | null;
 
-  // Optional navigation properties (if included from API)
   firmName?: string | null;
   courseName?: string | null;
   moduleName?: string | null;
   questionTypeName?: string | null;
-  options?: QuestionOption[];
 
+  /* ⭐ NEW FIELDS FROM API */
+  options?: QuestionOption[];
+  attachments?: QuestionAttachment[];
+  answers?: QuestionAnswer[];
 }
 
 /* =======================
@@ -56,42 +84,24 @@ export interface QuestionState {
 
 export interface CreateQuestionDto {
   questionTypeId: number;
-
   courseId?: number;
   moduleId?: number;
-
   title: string;
   description?: string;
-
   marks: number;
   difficultyLevel: "EASY" | "MEDIUM" | "HARD";
-
   negativeMarks?: number;
 }
 
 export interface UpdateQuestionDto {
   title: string;
   description?: string;
-
   marks: number;
   difficultyLevel: "EASY" | "MEDIUM" | "HARD";
-
   negativeMarks?: number;
   isActive: boolean;
  courseId?: number | null;
   moduleId?: number | null;
-}
-
-/* =======================
-   Paginated Response (Optional - if needed later)
-======================= */
-
-export interface PaginatedQuestions {
-  totalCount: number;
-  pageSize: number;
-  currentPage: number;
-  totalPages: number;
-  items: Question[];
 }
 
 /* =======================
