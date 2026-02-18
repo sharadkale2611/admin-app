@@ -6,35 +6,27 @@ import {
   Typography,
   Box,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Button,
   IconButton,
   Alert,
   Skeleton,
   Stack,
-  Chip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
-import {
-  Add,
-  Refresh,
-  Visibility,
-  Edit,
-  Delete,
-} from "@mui/icons-material";
+
+import { Add, Refresh } from "@mui/icons-material";
 import Link from "next/link";
 
 import { useQuestionViewModel } from "@/lib/features/question/useQuestionViewModel";
 import { useDeleteQuestion } from "@/lib/features/question/useDeleteQuestionViewModel";
+import useCreateQuestionViewModel from "@/lib/features/question/useCreateQuestionViewModel";
 
-import {
-  ApiError,
-  Question,
-} from "@/lib/features/question/questionTypes";
+import { ApiError } from "@/lib/features/question/questionTypes";
+
+import QuestionRenderer from "./_components/QuestionRenderer";
 
 export default function QuestionsPage() {
   const {
@@ -46,13 +38,19 @@ export default function QuestionsPage() {
 
   const { handleDelete } = useDeleteQuestion();
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
+  /* =========================================
+     Use SAME ViewModel as Create Page
+  ========================================= */
+  const {
+    courses,
+    modules,
+    handleChange,
+  } = useCreateQuestionViewModel();
+
+  const [selectedCourse, setSelectedCourse] =
+    React.useState<string>("");
+  const [selectedModule, setSelectedModule] =
+    React.useState<string>("");
 
   function renderErrorContent(error: ApiError | null) {
     if (!error) return null;
@@ -74,7 +72,7 @@ export default function QuestionsPage() {
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-      {/* Header */}
+      {/* ================= HEADER ================= */}
       <Box
         sx={{
           display: "flex",
@@ -90,7 +88,7 @@ export default function QuestionsPage() {
             <Refresh />
           </IconButton>
 
-          <Link href="/questions/create" passHref>
+          <Link href="/questions/create">
             <Button variant="contained" startIcon={<Add />}>
               Add Question
             </Button>
@@ -98,147 +96,118 @@ export default function QuestionsPage() {
         </Stack>
       </Box>
 
-      {/* Error */}
+      {/* ================= ERROR ================= */}
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {renderErrorContent(error)}
         </Alert>
       )}
 
-      {/* Table */}
-      <Paper elevation={2}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Title</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Course</TableCell>
-                <TableCell>Module</TableCell>
-                <TableCell>Marks</TableCell>
-                <TableCell>Difficulty</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Created On</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
+      {/* ================= COURSE + MODULE FILTER ================= */}
+      <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+        <Stack direction="row" spacing={2}>
+          {/* Course Dropdown */}
+          <FormControl size="small" sx={{ minWidth: 200 }}>
+            <InputLabel>Course</InputLabel>
+            <Select
+              value={selectedCourse}
+              label="Course"
+              onChange={(e) => {
+                handleChange({
+                  target: {
+                    name: "courseId",
+                    value: e.target.value,
+                  },
+                } as any);
 
-            <TableBody>
-              {isLoading ? (
-                Array.from(new Array(5)).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from(new Array(10)).map((__, j) => (
-                      <TableCell key={j}>
-                        <Skeleton variant="text" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : questions.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
-                    <Typography color="text.secondary">
-                      No questions found
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                questions.map((question: Question) => (
-                  <TableRow key={question.questionId} hover>
-                    <TableCell>
-                      <Typography fontWeight="medium">
-                        #{question.questionId}
-                      </Typography>
-                    </TableCell>
+                setSelectedCourse(e.target.value);
+                setSelectedModule("");
+              }}
+            >
+              <MenuItem value="">None</MenuItem>
+              {courses.map((course: any) => (
+                <MenuItem
+                  key={course.courseId}
+                  value={course.courseId}
+                >
+                  {course.courseName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-                    <TableCell>{question.title}</TableCell>
+          {/* Module Dropdown */}
+          <FormControl
+            size="small"
+            sx={{ minWidth: 200 }}
+            disabled={!selectedCourse}
+          >
+            <InputLabel>Module</InputLabel>
+            <Select
+              value={selectedModule}
+              label="Module"
+              onChange={(e) => {
+                handleChange({
+                  target: {
+                    name: "moduleId",
+                    value: e.target.value,
+                  },
+                } as any);
 
-                    <TableCell>
-                      {question.questionTypeName || "-"}
-                    </TableCell>
+                setSelectedModule(e.target.value);
+              }}
+            >
+              <MenuItem value="">None</MenuItem>
+              {modules.map((module: any) => (
+                <MenuItem
+                  key={module.moduleId}
+                  value={module.moduleId}
+                >
+                  {module.moduleName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Stack>
+      </Paper>
 
-                    <TableCell>
-                      {question.courseName || "-"}
-                    </TableCell>
-
-                    <TableCell>
-                      {question.moduleName || "-"}
-                    </TableCell>
-
-                    <TableCell>{question.marks}</TableCell>
-
-                    <TableCell>
-                      <Chip
-                        label={question.difficultyLevel}
-                        size="small"
-                        color={
-                          question.difficultyLevel === "EASY"
-                            ? "success"
-                            : question.difficultyLevel === "MEDIUM"
-                            ? "warning"
-                            : "error"
-                        }
-                      />
-                    </TableCell>
-
-                    <TableCell>
-                      <Chip
-                        label={
-                          question.isActive ? "Active" : "Inactive"
-                        }
-                        size="small"
-                        color={
-                          question.isActive ? "success" : "default"
-                        }
-                      />
-                    </TableCell>
-
-                    <TableCell>
-                      {formatDate(question.createdAt)}
-                    </TableCell>
-
-                    <TableCell>
-                      <Stack direction="row" spacing={1}>
-                        <Link
-                          href={`/questions/${question.questionId}`}
-                          passHref
-                        >
-                          <IconButton size="small" color="primary">
-                            <Visibility />
-                          </IconButton>
-                        </Link>
-
-                        <Link
-                          href={`/questions/${question.questionId}/edit`}
-                          passHref
-                        >
-                          <IconButton size="small" color="secondary">
-                            <Edit />
-                          </IconButton>
-                        </Link>
-
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={async () => {
-                            const success = await handleDelete(
-                              question.questionId,
-                              question.title
-                            );
-                            if (success) refetch();
-                          }}
-                        >
-                          <Delete />
-                        </IconButton>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+      {/* ================= QUESTION LIST ================= */}
+      <Paper elevation={2} sx={{ p: 2 }}>
+        {!selectedCourse || !selectedModule ? (
+          <Typography color="text.secondary">
+            Please select course and module to view questions.
+          </Typography>
+        ) : isLoading ? (
+          <Stack spacing={2}>
+            {Array.from(new Array(4)).map((_, i) => (
+              <Skeleton
+                key={i}
+                variant="rectangular"
+                height={120}
+              />
+            ))}
+          </Stack>
+        ) : questions.length === 0 ? (
+          <Typography align="center" color="text.secondary">
+            No questions found
+          </Typography>
+        ) : (
+          <Stack spacing={2}>
+            {questions.map((q) => (
+              <QuestionRenderer
+                key={q.questionId}
+                question={q}
+                onDelete={async (id, title) => {
+                  const success = await handleDelete(
+                    id,
+                    title
+                  );
+                  if (success) refetch();
+                }}
+              />
+            ))}
+          </Stack>
+        )}
       </Paper>
     </Container>
   );
