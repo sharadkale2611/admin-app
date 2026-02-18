@@ -1,4 +1,4 @@
-    "use client";
+"use client";
 
 import React from "react";
 import {
@@ -18,33 +18,45 @@ import {
   Skeleton,
   Stack,
   Chip,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
-import {
-  Add,
-  Refresh,
-  Visibility,
-  Edit,
-  Delete,
-} from "@mui/icons-material";
+import { Add, Refresh, Visibility, Edit, Delete } from "@mui/icons-material";
 import Link from "next/link";
 
 import { useQuestionTypeViewModel } from "@/lib/features/questionType/useQuestionTypeViewModel";
 import { useDeleteQuestionType } from "@/lib/features/questionType/useDeleteQuestionTypeViewModel";
 
-import {
-  ApiError,
-  QuestionType,
-} from "@/lib/features/questionType/questionTypeTypes";
+import { ApiError, QuestionType } from "@/lib/features/questionType/questionTypeTypes";
 
 export default function QuestionTypesPage() {
-  const {
-    questionTypes,
-    isLoading,
-    error,
-    refetch,
-  } = useQuestionTypeViewModel();
-
+  const { questionTypes, isLoading, error, refetch } = useQuestionTypeViewModel();
   const { handleDelete } = useDeleteQuestionType();
+
+  // ✅ Filters
+  const [codeSearch, setCodeSearch] = React.useState("");
+  const [evaluationModeFilter, setEvaluationModeFilter] = React.useState<string>("");
+
+  const evaluationModes = React.useMemo(() => {
+    const set = new Set<string>();
+    questionTypes.forEach((qt) => {
+      if (qt.evaluationMode) set.add(String(qt.evaluationMode));
+    });
+    return Array.from(set.values()).sort();
+  }, [questionTypes]);
+
+  const filteredQuestionTypes = React.useMemo(() => {
+    const term = codeSearch.trim().toLowerCase();
+
+    return questionTypes.filter((qt) => {
+      if (evaluationModeFilter && String(qt.evaluationMode) !== evaluationModeFilter) return false;
+      if (term && !(qt.code ?? "").toLowerCase().includes(term)) return false;
+      return true;
+    });
+  }, [questionTypes, codeSearch, evaluationModeFilter]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -56,16 +68,11 @@ export default function QuestionTypesPage() {
 
   function renderErrorContent(error: ApiError | null) {
     if (!error) return null;
-
-    if (error.error) {
-      return <div>{error.error}</div>;
-    }
+    if (error.error) return <div>{error.error}</div>;
 
     if (Array.isArray(error.errors)) {
       return error.errors.map((e, i) => (
-        <div key={i}>
-          {typeof e === "string" ? e : JSON.stringify(e)}
-        </div>
+        <div key={i}>{typeof e === "string" ? e : JSON.stringify(e)}</div>
       ));
     }
 
@@ -75,17 +82,10 @@ export default function QuestionTypesPage() {
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
-      >
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
         <Typography variant="h4">Question Types</Typography>
 
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} alignItems="center">
           <IconButton onClick={refetch} color="primary">
             <Refresh />
           </IconButton>
@@ -97,6 +97,34 @@ export default function QuestionTypesPage() {
           </Link>
         </Stack>
       </Box>
+
+      {/* ✅ Filter Bar (Code + Evaluation Mode) */}
+      <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+        <Stack direction="row" spacing={2} flexWrap="wrap">
+          <TextField
+            size="small"
+            label="Search Code"
+            value={codeSearch}
+            onChange={(e) => setCodeSearch(e.target.value)}
+          />
+
+          <FormControl size="small" sx={{ minWidth: 220 }}>
+            <InputLabel>Evaluation Mode</InputLabel>
+            <Select
+              value={evaluationModeFilter}
+              label="Evaluation Mode"
+              onChange={(e) => setEvaluationModeFilter(e.target.value)}
+            >
+              <MenuItem value="">All</MenuItem>
+              {evaluationModes.map((m) => (
+                <MenuItem key={m} value={m}>
+                  {m}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Stack>
+      </Paper>
 
       {/* Error */}
       {error && (
@@ -133,21 +161,17 @@ export default function QuestionTypesPage() {
                     ))}
                   </TableRow>
                 ))
-              ) : questionTypes.length === 0 ? (
+              ) : filteredQuestionTypes.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
-                    <Typography color="text.secondary">
-                      No question types found
-                    </Typography>
+                    <Typography color="text.secondary">No question types found</Typography>
                   </TableCell>
                 </TableRow>
               ) : (
-                questionTypes.map((qt: QuestionType) => (
+                filteredQuestionTypes.map((qt: QuestionType) => (
                   <TableRow key={qt.questionTypeId} hover>
                     <TableCell>
-                      <Typography fontWeight="medium">
-                        {qt.code}
-                      </Typography>
+                      <Typography fontWeight="medium">{qt.code}</Typography>
                     </TableCell>
 
                     <TableCell>{qt.name}</TableCell>
@@ -191,25 +215,17 @@ export default function QuestionTypesPage() {
                       />
                     </TableCell>
 
-                    <TableCell>
-                      {formatDate(qt.createdAt)}
-                    </TableCell>
+                    <TableCell>{formatDate(qt.createdAt)}</TableCell>
 
                     <TableCell>
                       <Stack direction="row" spacing={1}>
-                        <Link
-                          href={`/questionTypes/${qt.questionTypeId}`}
-                          passHref
-                        >
+                        <Link href={`/questionTypes/${qt.questionTypeId}`} passHref>
                           <IconButton size="small" color="primary">
                             <Visibility />
                           </IconButton>
                         </Link>
 
-                        <Link
-                          href={`/questionTypes/${qt.questionTypeId}/edit`}
-                          passHref
-                        >
+                        <Link href={`/questionTypes/${qt.questionTypeId}/edit`} passHref>
                           <IconButton size="small" color="secondary">
                             <Edit />
                           </IconButton>

@@ -18,7 +18,7 @@ import {
   TextField,
 } from "@mui/material";
 
-import { Add, Refresh } from "@mui/icons-material";
+import { Add, Refresh, FileDownload } from "@mui/icons-material";
 import Link from "next/link";
 
 import { useQuestionViewModel } from "@/lib/features/question/useQuestionViewModel";
@@ -26,35 +26,41 @@ import { useDeleteQuestion } from "@/lib/features/question/useDeleteQuestionView
 import useCreateQuestionViewModel from "@/lib/features/question/useCreateQuestionViewModel";
 
 import { ApiError } from "@/lib/features/question/questionTypes";
+import API_ENDPOINTS from "@/lib/config/apiConfig";
 
 import QuestionRenderer from "./_components/QuestionRenderer";
+import { toast } from "react-toastify";
+
+function getApiBaseUrlApi(): string {
+  const baseApi = (API_ENDPOINTS as any)?.BASE_URL_API?.trim?.();
+  if (baseApi) return baseApi;
+
+  const base = (API_ENDPOINTS as any)?.BASE_URL?.trim?.() || "";
+  if (!base) return "https://localhost:7033/api";
+  return base.endsWith("/api") ? base : `${base}/api`;
+}
 
 export default function QuestionsPage() {
-  const { questions, isLoading, error, refetch } =
-    useQuestionViewModel();
-
+  const { questions, isLoading, error, refetch } = useQuestionViewModel();
   const { handleDelete } = useDeleteQuestion();
 
   /* =========================================
      Dropdown Data (Course + Module)
   ========================================= */
-  const { courses, modules, handleChange } =
-    useCreateQuestionViewModel();
+  const { courses, modules, handleChange } = useCreateQuestionViewModel();
 
   /* =========================================
      FILTER STATES
   ========================================= */
-  const [selectedCourse, setSelectedCourse] =
-    React.useState<string>("");
+  const [selectedCourse, setSelectedCourse] = React.useState<string>("");
+  const [selectedModule, setSelectedModule] = React.useState<string>("");
+  const [selectedQuestionType, setSelectedQuestionType] = React.useState<string>("");
+  const [searchText, setSearchText] = React.useState<string>("");
 
-  const [selectedModule, setSelectedModule] =
-    React.useState<string>("");
+  // ✅ Export state
+  const [isExporting, setIsExporting] = React.useState(false);
 
-  const [selectedQuestionType, setSelectedQuestionType] =
-    React.useState<string>("");
-
-  const [searchText, setSearchText] =
-    React.useState<string>("");
+  const apiBase = React.useMemo(() => getApiBaseUrlApi(), []);
 
   /* =========================================
      UNIQUE QUESTION TYPES (For Dropdown)
@@ -68,10 +74,7 @@ export default function QuestionsPage() {
       }
     });
 
-    return Array.from(map.entries()).map(([id, name]) => ({
-      id,
-      name,
-    }));
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
   }, [questions]);
 
   /* =========================================
@@ -79,72 +82,78 @@ export default function QuestionsPage() {
   ========================================= */
   const filteredQuestions = React.useMemo(() => {
     return questions.filter((q) => {
-      // Course Filter
-      if (
-        selectedCourse &&
-        String(q.courseId) !== String(selectedCourse)
-      )
-        return false;
+      if (selectedCourse && String(q.courseId) !== String(selectedCourse)) return false;
+      if (selectedModule && String(q.moduleId) !== String(selectedModule)) return false;
+      if (selectedQuestionType && String(q.questionTypeId) !== String(selectedQuestionType)) return false;
 
-      // Module Filter
-      if (
-        selectedModule &&
-        String(q.moduleId) !== String(selectedModule)
-      )
-        return false;
-
-      // Question Type Filter
-      if (
-        selectedQuestionType &&
-        String(q.questionTypeId) !==
-          String(selectedQuestionType)
-      )
-        return false;
-
-      // Title/Description Search
       if (searchText) {
         const text = searchText.toLowerCase();
-
-        const titleMatch = q.title
-          ?.toLowerCase()
-          .includes(text);
-
-        const descMatch = q.description
-          ?.toLowerCase()
-          .includes(text);
-
+        const titleMatch = q.title?.toLowerCase().includes(text);
+        const descMatch = q.description?.toLowerCase().includes(text);
         if (!titleMatch && !descMatch) return false;
       }
 
       return true;
     });
-  }, [
-    questions,
-    selectedCourse,
-    selectedModule,
-    selectedQuestionType,
-    searchText,
-  ]);
+  }, [questions, selectedCourse, selectedModule, selectedQuestionType, searchText]);
 
   function renderErrorContent(error: ApiError | null) {
     if (!error) return null;
 
-    if (error.error) {
-      return <div>{error.error}</div>;
-    }
+    if (error.error) return <div>{error.error}</div>;
 
     if (Array.isArray(error.errors)) {
       return error.errors.map((e, i) => (
-        <div key={i}>
-          {typeof e === "string"
-            ? e
-            : JSON.stringify(e)}
-        </div>
+        <div key={i}>{typeof e === "string" ? e : JSON.stringify(e)}</div>
       ));
     }
 
     return null;
   }
+
+  const handleExportExcel = async () => {
+    try {
+      setIsExporting(true);
+
+      const qs = new URLSearchParams();
+
+      if (selectedCourse) qs.set("courseId", selectedCourse);
+      if (selectedModule) qs.set("moduleId", selectedModule);
+      if (selectedQuestionType) qs.set("questionTypeId", selectedQuestionType);
+      if (searchText.trim()) qs.set("searchText", searchText.trim());
+
+      const url = `${apiBase}/Questions/export${qs.toString() ? `?${qs.toString()}` : ""}`;
+
+      const res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        throw new Error(`Export failed (${res.status})`);
+      }
+
+      const blob = await res.blob();
+
+      // try to read filename from content-disposition, fallback
+      const cd = res.headers.get("content-disposition") || "";
+      const match = /filename\*?=(?:UTF-8'')?["']?([^"';\n]+)["']?/i.exec(cd);
+      const filename = decodeURIComponent(match?.[1] ?? "Questions.xlsx");
+
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to export questions");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
@@ -163,6 +172,16 @@ export default function QuestionsPage() {
           <IconButton onClick={refetch} color="primary">
             <Refresh />
           </IconButton>
+
+          {/* ✅ Export Excel */}
+          <Button
+            variant="outlined"
+            startIcon={<FileDownload />}
+            onClick={handleExportExcel}
+            disabled={isExporting}
+          >
+            {isExporting ? "Exporting..." : "Export Excel"}
+          </Button>
 
           <Link href="/questions/create">
             <Button variant="contained" startIcon={<Add />}>
@@ -190,10 +209,7 @@ export default function QuestionsPage() {
               label="Course"
               onChange={(e) => {
                 handleChange({
-                  target: {
-                    name: "courseId",
-                    value: e.target.value,
-                  },
+                  target: { name: "courseId", value: e.target.value },
                 } as any);
 
                 setSelectedCourse(e.target.value);
@@ -202,10 +218,7 @@ export default function QuestionsPage() {
             >
               <MenuItem value="">All</MenuItem>
               {courses.map((course: any) => (
-                <MenuItem
-                  key={course.courseId}
-                  value={course.courseId}
-                >
+                <MenuItem key={course.courseId} value={course.courseId}>
                   {course.courseName}
                 </MenuItem>
               ))}
@@ -213,21 +226,14 @@ export default function QuestionsPage() {
           </FormControl>
 
           {/* Module */}
-          <FormControl
-            size="small"
-            sx={{ minWidth: 200 }}
-            disabled={!selectedCourse}
-          >
+          <FormControl size="small" sx={{ minWidth: 200 }} disabled={!selectedCourse}>
             <InputLabel>Module</InputLabel>
             <Select
               value={selectedModule}
               label="Module"
               onChange={(e) => {
                 handleChange({
-                  target: {
-                    name: "moduleId",
-                    value: e.target.value,
-                  },
+                  target: { name: "moduleId", value: e.target.value },
                 } as any);
 
                 setSelectedModule(e.target.value);
@@ -235,10 +241,7 @@ export default function QuestionsPage() {
             >
               <MenuItem value="">All</MenuItem>
               {modules.map((module: any) => (
-                <MenuItem
-                  key={module.moduleId}
-                  value={module.moduleId}
-                >
+                <MenuItem key={module.moduleId} value={module.moduleId}>
                   {module.moduleName}
                 </MenuItem>
               ))}
@@ -251,12 +254,9 @@ export default function QuestionsPage() {
             <Select
               value={selectedQuestionType}
               label="Question Type"
-              onChange={(e) =>
-                setSelectedQuestionType(e.target.value)
-              }
+              onChange={(e) => setSelectedQuestionType(e.target.value)}
             >
               <MenuItem value="">All</MenuItem>
-
               {questionTypes.map((qt) => (
                 <MenuItem key={qt.id} value={qt.id}>
                   {qt.name}
@@ -270,9 +270,7 @@ export default function QuestionsPage() {
             size="small"
             label="Search Title / Description"
             value={searchText}
-            onChange={(e) =>
-              setSearchText(e.target.value)
-            }
+            onChange={(e) => setSearchText(e.target.value)}
           />
         </Stack>
       </Paper>
@@ -282,11 +280,7 @@ export default function QuestionsPage() {
         {isLoading ? (
           <Stack spacing={2}>
             {Array.from(new Array(4)).map((_, i) => (
-              <Skeleton
-                key={i}
-                variant="rectangular"
-                height={120}
-              />
+              <Skeleton key={i} variant="rectangular" height={120} />
             ))}
           </Stack>
         ) : filteredQuestions.length === 0 ? (
@@ -300,10 +294,7 @@ export default function QuestionsPage() {
                 key={q.questionId}
                 question={q}
                 onDelete={async (id, title) => {
-                  const success = await handleDelete(
-                    id,
-                    title
-                  );
+                  const success = await handleDelete(id, title);
                   if (success) refetch();
                 }}
               />
