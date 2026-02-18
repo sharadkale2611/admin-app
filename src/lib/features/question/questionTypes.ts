@@ -35,7 +35,7 @@ export interface Question {
   courseName?: string | null;
   moduleName?: string | null;
   questionTypeName?: string | null;
-    options?: QuestionOption[];
+  options?: QuestionOption[];
 
 }
 
@@ -78,6 +78,8 @@ export interface UpdateQuestionDto {
 
   negativeMarks?: number;
   isActive: boolean;
+ courseId?: number | null;
+  moduleId?: number | null;
 }
 
 /* =======================

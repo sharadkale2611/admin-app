@@ -718,7 +718,7 @@ export default function EditQuestionPage() {
                   value={formData.questionTypeId}
                   label="Question Type"
                   onChange={handleChange}
-                  disabled={loading || isSubmitting}
+                   disabled={true}
                 >
                   {questionTypes.map((qt) => (
                     <MenuItem key={qt.questionTypeId} value={qt.questionTypeId}>

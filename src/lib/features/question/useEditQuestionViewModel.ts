@@ -199,43 +199,42 @@ export default function useEditQuestionViewModel() {
 
   const handleSubmit = async (
     e: React.FormEvent
-  ): Promise<
-    { success: boolean; message: string } | undefined
-  > => {
+  ): Promise<{ success: boolean; message: string } | undefined> => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
 
     try {
-      if (!id)
-        throw new Error("Question ID missing");
+      if (!id) throw new Error("Question ID missing");
+      if (!formData.title) throw new Error("Title is required");
+      if (!formData.marks) throw new Error("Marks is required");
+      if (!formData.difficultyLevel) throw new Error("Difficulty Level is required");
 
-      if (!formData.title)
-        throw new Error("Title is required");
+      // ✅ convert "" -> null (so API gets nullable int?)
+      const courseId =
+        formData.courseId && !isNaN(Number(formData.courseId))
+          ? Number(formData.courseId)
+          : null;
 
-      if (!formData.marks)
-        throw new Error("Marks is required");
-
-      if (!formData.difficultyLevel)
-        throw new Error(
-          "Difficulty Level is required"
-        );
+      const moduleId =
+        formData.moduleId && !isNaN(Number(formData.moduleId))
+          ? Number(formData.moduleId)
+          : null;
 
       await dispatch(
         updateQuestion({
           id: Number(id),
           dto: {
             title: formData.title,
-            description:
-              formData.description || undefined,
+            description: formData.description || undefined,
             marks: Number(formData.marks),
-            difficultyLevel:
-              formData.difficultyLevel as any,
-            negativeMarks:
-              formData.negativeMarks
-                ? Number(formData.negativeMarks)
-                : 0,
+            difficultyLevel: formData.difficultyLevel as any,
+            negativeMarks: formData.negativeMarks ? Number(formData.negativeMarks) : 0,
             isActive: formData.isActive,
+
+            // ✅ now editable + sent to API
+            courseId,
+            moduleId,
           },
         })
       ).unwrap();
@@ -245,11 +244,7 @@ export default function useEditQuestionViewModel() {
         message: "Question updated successfully",
       };
     } catch (err: any) {
-      const message =
-        err?.message ||
-        err?.error ||
-        "Failed to update question";
-
+      const message = err?.message || err?.error || "Failed to update question";
       setError({ error: message, errors: null });
       toast.error(message);
       return undefined;
