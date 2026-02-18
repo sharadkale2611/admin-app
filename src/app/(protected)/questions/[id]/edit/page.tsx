@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Container,
   Typography,
@@ -75,7 +75,7 @@ function renderErrorContent(error: ApiError | null) {
 }
 
 /* ===============================
-   Rules Types
+   Rules (same as create)
 ================================ */
 
 type QuestionTypeRuleDto = {
@@ -92,7 +92,6 @@ const DEFAULT_MIN_OPTIONS = 2;
 const DEFAULT_MAX_OPTIONS = 6;
 
 function getApiBaseUrlApi(): string {
-  // Prefer BASE_URL_API, else BASE_URL + "/api"
   const baseApi = API_ENDPOINTS.BASE_URL_API?.trim();
   if (baseApi) return baseApi;
 
@@ -108,18 +107,30 @@ type OptionApiDto = {
   optionMediaPath: string | null;
   isCorrect: boolean;
   optionOrder: number;
+  isActive?: boolean;
 };
 
-interface LocalOption {
-  optionId?: number; // present for existing options
+type AttachmentApiDto = {
+  questionAttachmentId: number;
+  questionId: number;
+  uploadMediaPath: string | null;
+  isActive: boolean;
+};
+
+type LocalOption = {
+  optionId?: number;
   optionText: string;
   optionOrder: string;
   isCorrect: boolean;
+  isActive: boolean;
 
-  // Option image upload (optional)
+  // NEW upload
   optionMediaFile?: File | null;
   optionMediaPreviewUrl?: string;
-}
+
+  // Existing url (from API)
+  optionMediaPath?: string | null;
+};
 
 export default function EditQuestionPage() {
   const params = useParams<{ id: string }>();
@@ -150,8 +161,10 @@ export default function EditQuestionPage() {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
 
+  const baseApi = useMemo(() => getApiBaseUrlApi(), []);
+
   /* ===============================
-     Rules state
+     Rules fetch
   ============================== */
 
   const [rulesByTypeId, setRulesByTypeId] = useState<Record<number, QuestionTypeRuleDto>>({});
@@ -163,7 +176,7 @@ export default function EditQuestionPage() {
     (async () => {
       try {
         setRulesError(null);
-        const url = `${getApiBaseUrlApi()}${API_ENDPOINTS.QUESTION_TYPE_RULES.GET_LIST}`;
+        const url = `${baseApi}${API_ENDPOINTS.QUESTION_TYPE_RULES.GET_LIST}`;
         const res = await fetch(url, { credentials: "include" });
         if (!res.ok) throw new Error(`Failed to load rules (${res.status})`);
         const json = await res.json();
@@ -181,7 +194,7 @@ export default function EditQuestionPage() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [baseApi]);
 
   const activeRule = useMemo(() => {
     const id = Number(formData.questionTypeId || 0);
@@ -207,12 +220,15 @@ export default function EditQuestionPage() {
   }, [activeRule, selectedQuestionType?.supportsOptions]);
 
   /* ===============================
-     Attachment state (required if supportsAttachments)
+     Attachment (edit)
   ============================== */
 
-  const isAttachmentRequired = useMemo(() => {
-    return Boolean(selectedQuestionType?.supportsAttachments);
-  }, [selectedQuestionType?.supportsAttachments]);
+  const isAttachmentRequired = useMemo(() => Boolean(selectedQuestionType?.supportsAttachments), [
+    selectedQuestionType?.supportsAttachments,
+  ]);
+
+  const [existingAttachment, setExistingAttachment] = useState<AttachmentApiDto | null>(null);
+  const [attachmentLoadError, setAttachmentLoadError] = useState<string | null>(null);
 
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
@@ -243,8 +259,50 @@ export default function EditQuestionPage() {
     }
   };
 
+  const isUrlImage = (url?: string | null) => {
+    if (!url) return false;
+    return /\.(png|jpg|jpeg|webp)(\?.*)?$/i.test(url);
+  };
+
+  // Best-effort load existing attachment (needs your backend GET route)
+  useEffect(() => {
+    if (!questionId || Number.isNaN(questionId)) return;
+
+    let mounted = true;
+
+    (async () => {
+      try {
+        setAttachmentLoadError(null);
+
+        // Try a common route: /QuestionAttachments/by-question/{questionId}
+        const tryUrl = `${baseApi}/QuestionAttachments/by-question/${questionId}`;
+        const res = await fetch(tryUrl, { credentials: "include" });
+
+        if (!res.ok) {
+          // Not fatal: your API might not have this route
+          if (mounted) setExistingAttachment(null);
+          return;
+        }
+
+        const json = await res.json();
+        const list: AttachmentApiDto[] = json?.data ?? [];
+
+        // Use first active; else first
+        const chosen = list.find((a) => a.isActive) ?? list[0] ?? null;
+
+        if (mounted) setExistingAttachment(chosen);
+      } catch (e: any) {
+        if (mounted) setAttachmentLoadError(e?.message ?? "Failed to load attachment");
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [baseApi, questionId]);
+
   /* ===============================
-     Options state (load/edit/save)
+     Options (edit)
   ============================== */
 
   const [options, setOptions] = useState<LocalOption[]>([]);
@@ -252,15 +310,13 @@ export default function EditQuestionPage() {
   const [optionsError, setOptionsError] = useState<string | null>(null);
   const [optionsLoadError, setOptionsLoadError] = useState<string | null>(null);
 
-  const normalizeOptionOrder = (opts: LocalOption[]) =>
-    opts.map((o, i) => ({ ...o, optionOrder: String(i + 1) }));
+  const correctSelectedCount = useMemo(() => options.filter((o) => o.isCorrect).length, [options]);
 
-  const revokeOptionPreview = (url?: string) => revokeUrl(url);
+  const normalizeOptionOrder = (opts: LocalOption[]) => opts.map((o, i) => ({ ...o, optionOrder: String(i + 1) }));
 
-  // Cleanup option previews on unmount
   useEffect(() => {
     return () => {
-      options.forEach((o) => revokeOptionPreview(o.optionMediaPreviewUrl));
+      options.forEach((o) => revokeUrl(o.optionMediaPreviewUrl));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -280,7 +336,7 @@ export default function EditQuestionPage() {
       if (!row) return prev;
 
       if (!file) {
-        revokeOptionPreview(row.optionMediaPreviewUrl);
+        revokeUrl(row.optionMediaPreviewUrl);
         return prev.map((o, i) =>
           i === index ? { ...o, optionMediaFile: null, optionMediaPreviewUrl: undefined } : o
         );
@@ -292,7 +348,7 @@ export default function EditQuestionPage() {
         return prev;
       }
 
-      revokeOptionPreview(row.optionMediaPreviewUrl);
+      revokeUrl(row.optionMediaPreviewUrl);
       const preview = URL.createObjectURL(file);
 
       return prev.map((o, i) =>
@@ -300,8 +356,6 @@ export default function EditQuestionPage() {
       );
     });
   };
-
-  const correctSelectedCount = useMemo(() => options.filter((o) => o.isCorrect).length, [options]);
 
   const validateOptions = (): string | null => {
     if (!selectedQuestionType?.supportsOptions) return null;
@@ -342,7 +396,7 @@ export default function EditQuestionPage() {
     return null;
   };
 
-  // Load options from API (by question)
+  // Load options for this question
   useEffect(() => {
     if (!questionId || Number.isNaN(questionId)) return;
 
@@ -352,7 +406,7 @@ export default function EditQuestionPage() {
       try {
         setOptionsLoadError(null);
 
-        const url = `${getApiBaseUrlApi()}${API_ENDPOINTS.QUESTION_OPTIONS.GET_BY_QUESTION}/${questionId}`;
+        const url = `${baseApi}${API_ENDPOINTS.QUESTION_OPTIONS.GET_BY_QUESTION}/${questionId}`;
         const res = await fetch(url, { credentials: "include" });
         if (!res.ok) throw new Error(`Failed to load options (${res.status})`);
 
@@ -367,8 +421,10 @@ export default function EditQuestionPage() {
             optionText: o.optionText ?? "",
             optionOrder: String(o.optionOrder ?? 1),
             isCorrect: Boolean(o.isCorrect),
+            isActive: o.isActive ?? true,
             optionMediaFile: null,
             optionMediaPreviewUrl: undefined,
+            optionMediaPath: o.optionMediaPath,
           }));
 
         if (mounted) {
@@ -383,32 +439,27 @@ export default function EditQuestionPage() {
     return () => {
       mounted = false;
     };
-  }, [questionId]);
+  }, [baseApi, questionId]);
 
-  // If question type changes to one that doesn't support options, clear UI
+  // If type supports options but API returned none, seed min
   useEffect(() => {
-    setOptionsError(null);
+    if (!selectedQuestionType?.supportsOptions) return;
+    if (options.length > 0) return;
 
-    if (!selectedQuestionType?.supportsOptions) {
-      setOptions([]);
-      setBaseOptions([]);
-      return;
-    }
+    const seeded: LocalOption[] = Array.from({ length: ruleMinOptions }, (_, i) => ({
+      optionText: "",
+      optionOrder: String(i + 1),
+      isCorrect: false,
+      isActive: true,
+      optionMediaFile: null,
+      optionMediaPreviewUrl: undefined,
+      optionMediaPath: null,
+    }));
 
-    // If supportsOptions and there are no loaded options (rare), seed min options
-    if (selectedQuestionType?.supportsOptions && options.length === 0) {
-      const seeded: LocalOption[] = Array.from({ length: ruleMinOptions }, (_, i) => ({
-        optionText: "",
-        optionOrder: String(i + 1),
-        isCorrect: false,
-        optionMediaFile: null,
-        optionMediaPreviewUrl: undefined,
-      }));
-      setOptions(seeded);
-      setBaseOptions(seeded);
-    }
+    setBaseOptions(seeded);
+    setOptions(seeded);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedQuestionType?.questionTypeId, selectedQuestionType?.supportsOptions]);
+  }, [selectedQuestionType?.questionTypeId, selectedQuestionType?.supportsOptions, ruleMinOptions]);
 
   const handleAddOption = () => {
     setOptionsError(null);
@@ -416,16 +467,20 @@ export default function EditQuestionPage() {
 
     setOptions((prev) => {
       if (prev.length >= ruleMaxOptions) return prev;
+
       const next = normalizeOptionOrder([
         ...prev,
         {
           optionText: "",
           optionOrder: String(prev.length + 1),
           isCorrect: false,
+          isActive: true,
           optionMediaFile: null,
           optionMediaPreviewUrl: undefined,
+          optionMediaPath: null,
         },
       ]);
+
       return next;
     });
   };
@@ -439,7 +494,8 @@ export default function EditQuestionPage() {
         setOptionsError(`Minimum ${ruleMinOptions} option(s) are required.`);
         return prev;
       }
-      revokeOptionPreview(prev[index]?.optionMediaPreviewUrl);
+
+      revokeUrl(prev[index]?.optionMediaPreviewUrl);
       return normalizeOptionOrder(prev.filter((_, i) => i !== index));
     });
   };
@@ -470,81 +526,93 @@ export default function EditQuestionPage() {
     });
   };
 
-  // Save helpers (assumes standard REST routing; confirm endpoints if different)
-  const saveOptionsAndAttachment = async () => {
-    const baseUrlApi = getApiBaseUrlApi();
+  /* ===============================
+     Save (options + attachment)
+  ============================== */
 
-    // Attachment required validation
-    if (isAttachmentRequired && !attachmentFile) {
-      throw new Error("Attachment is required for this question type.");
-    }
+  const saveOptions = async () => {
+    if (!selectedQuestionType?.supportsOptions) return;
 
-    // Options validation
-    const msg = validateOptions();
-    if (msg) throw new Error(msg);
+    const removed = (baseOptions || [])
+      .map((o) => o.optionId)
+      .filter(Boolean)
+      .filter((id) => !options.some((x) => x.optionId === id)) as number[];
 
-    // 1) Upload attachment if user selected a new one
-    if (selectedQuestionType?.supportsAttachments && attachmentFile) {
-      const form = new FormData();
-      form.append("QuestionId", String(questionId));
-      // backend field name unknown; common: "File"
-      // If your create attachment expects "AttachmentFile" or "File", tell me and I’ll adjust.
-      form.append("File", attachmentFile);
-
-      const url = `${baseUrlApi}${API_ENDPOINTS.QUESTION_ATTACHMENTS.POST_CREATE}`;
-      const res = await fetch(url, { method: "POST", credentials: "include", body: form });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Attachment upload failed (${res.status}): ${text}`);
-      }
-    }
-
-    // 2) Options sync: delete removed
-    const baseIds = new Set(baseOptions.map((o) => o.optionId).filter(Boolean) as number[]);
-    const currentIds = new Set(options.map((o) => o.optionId).filter(Boolean) as number[]);
-    const removedIds = [...baseIds].filter((id) => !currentIds.has(id));
-
-    for (const id of removedIds) {
-      const url = `${baseUrlApi}${API_ENDPOINTS.QUESTION_OPTIONS.DELETE}/${id}`;
+    for (const id of removed) {
+      const url = `${baseApi}${API_ENDPOINTS.QUESTION_OPTIONS.DELETE}/${id}`;
       const res = await fetch(url, { method: "DELETE", credentials: "include" });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Failed to delete option ${id} (${res.status}): ${text}`);
-      }
+      if (!res.ok) throw new Error(`Failed to delete option (${id})`);
     }
 
-    // 3) Create / Update options
     const normalized = normalizeOptionOrder(options);
 
     for (let i = 0; i < normalized.length; i++) {
       const opt = normalized[i];
+
       const form = new FormData();
-      form.append("QuestionId", String(questionId));
       form.append("OptionText", opt.optionText);
       form.append("IsCorrect", String(opt.isCorrect));
       form.append("OptionOrder", String(i + 1));
+      form.append("IsActive", String(opt.isActive));
       if (opt.optionMediaFile) form.append("OptionMedia", opt.optionMediaFile);
 
       if (opt.optionId) {
-        // ASSUMPTION: PUT /QuestionOptions/{id} accepts multipart/form-data
-        const url = `${baseUrlApi}${API_ENDPOINTS.QUESTION_OPTIONS.PUT_UPDATE}/${opt.optionId}`;
+        // ✅ confirmed by you: PUT /QuestionOptions/{id} multipart/form-data
+        const url = `${baseApi}${API_ENDPOINTS.QUESTION_OPTIONS.PUT_UPDATE}/${opt.optionId}`;
         const res = await fetch(url, { method: "PUT", credentials: "include", body: form });
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(`Failed to update option ${opt.optionId} (${res.status}): ${text}`);
-        }
+        if (!res.ok) throw new Error(`Failed to update option (${opt.optionId})`);
       } else {
-        const url = `${baseUrlApi}${API_ENDPOINTS.QUESTION_OPTIONS.POST_CREATE}`;
+        // Create requires QuestionId too
+        form.append("QuestionId", String(questionId));
+
+        const url = `${baseApi}${API_ENDPOINTS.QUESTION_OPTIONS.POST_CREATE}`;
         const res = await fetch(url, { method: "POST", credentials: "include", body: form });
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(`Failed to create option (${res.status}): ${text}`);
-        }
+        if (!res.ok) throw new Error("Failed to create option");
       }
     }
 
-    // Refresh baseOptions after save
-    setBaseOptions(normalized.map((o) => ({ ...o, optionMediaFile: null })));
+    setBaseOptions(normalizeOptionOrder(options).map((o) => ({ ...o, optionMediaFile: null })));
+  };
+
+  const saveAttachment = async () => {
+    if (!selectedQuestionType?.supportsAttachments) return;
+
+    // required rule: if supportsAttachments, must have existing or new file
+    if (isAttachmentRequired && !existingAttachment?.uploadMediaPath && !attachmentFile) {
+      throw new Error("Attachment is required for this question type.");
+    }
+
+    // If user selected a new file -> update existing if exists else create new
+    if (!attachmentFile) return;
+
+    const form = new FormData();
+    form.append("IsActive", "true");
+    form.append("File", attachmentFile); // ✅ confirmed field name
+
+    if (existingAttachment?.questionAttachmentId) {
+      const url = `${baseApi}${API_ENDPOINTS.QUESTION_ATTACHMENTS.PUT_UPDATE}/${existingAttachment.questionAttachmentId}`;
+      const res = await fetch(url, { method: "PUT", credentials: "include", body: form });
+      if (!res.ok) throw new Error("Failed to update attachment");
+    } else {
+      // create (assumes POST expects QuestionId + File)
+      form.append("QuestionId", String(questionId));
+
+      const url = `${baseApi}${API_ENDPOINTS.QUESTION_ATTACHMENTS.POST_CREATE}`;
+      const res = await fetch(url, { method: "POST", credentials: "include", body: form });
+      if (!res.ok) throw new Error("Failed to create attachment");
+    }
+  };
+
+  const deleteExistingAttachment = async () => {
+    if (!existingAttachment?.questionAttachmentId) return;
+    const url = `${baseApi}${API_ENDPOINTS.QUESTION_ATTACHMENTS.DELETE}/${existingAttachment.questionAttachmentId}`;
+    const res = await fetch(url, { method: "DELETE", credentials: "include" });
+    if (!res.ok) throw new Error("Failed to delete attachment");
+    setExistingAttachment(null);
+    setAttachmentFile(null);
+    setAttachmentError(null);
+    revokeUrl(attachmentPreviewUrl);
+    setAttachmentPreviewUrl(undefined);
   };
 
   return (
@@ -571,6 +639,12 @@ export default function EditQuestionPage() {
         </Alert>
       )}
 
+      {attachmentLoadError && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          {attachmentLoadError}
+        </Alert>
+      )}
+
       {optionsError && (
         <Alert severity="warning" sx={{ mb: 2 }}>
           {optionsError}
@@ -589,7 +663,6 @@ export default function EditQuestionPage() {
             e.preventDefault();
 
             try {
-              // Validate before doing anything
               const optMsg = validateOptions();
               if (optMsg) {
                 setSnackbarMessage(optMsg);
@@ -598,7 +671,7 @@ export default function EditQuestionPage() {
                 return;
               }
 
-              if (isAttachmentRequired && !attachmentFile) {
+              if (isAttachmentRequired && !existingAttachment?.uploadMediaPath && !attachmentFile) {
                 const msg = "Attachment is required for this question type.";
                 setAttachmentError(msg);
                 setSnackbarMessage(msg);
@@ -608,20 +681,20 @@ export default function EditQuestionPage() {
               }
 
               const result = await handleSubmit(e);
+              if (!result?.success) return;
 
-              if (result?.success) {
-                await saveOptionsAndAttachment();
+              await saveOptions();
+              await saveAttachment();
 
-                setSnackbarMessage(result.message);
-                setSnackbarSeverity("success");
-                setSnackbarOpen(true);
+              setSnackbarMessage(result.message);
+              setSnackbarSeverity("success");
+              setSnackbarOpen(true);
 
-                setTimeout(() => {
-                  window.location.href = "/questions";
-                }, 1500);
-              }
+              setTimeout(() => {
+                window.location.href = "/questions";
+              }, 1500);
             } catch (err: any) {
-              const msg = err?.message ?? "Failed to save changes";
+              const msg = err?.message ?? "Failed to update question";
               setSnackbarMessage(msg);
               setSnackbarSeverity("error");
               setSnackbarOpen(true);
@@ -634,7 +707,6 @@ export default function EditQuestionPage() {
               <Typography variant="subtitle1" sx={{ mb: 1, color: "text.secondary" }}>
                 Question Information
               </Typography>
-              <Divider />
             </Grid>
 
             {/* Question Type */}
@@ -678,7 +750,7 @@ export default function EditQuestionPage() {
               </FormControl>
             </Grid>
 
-            {/* Module (Cascading) */}
+            {/* Module */}
             <Grid size={{ xs: 12 }}>
               <FormControl fullWidth size="small" disabled={loading || isSubmitting || !formData.courseId}>
                 <InputLabel>Module</InputLabel>
@@ -794,6 +866,51 @@ export default function EditQuestionPage() {
                 </Grid>
 
                 <Grid size={{ xs: 12 }}>
+                  {existingAttachment?.uploadMediaPath && (
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="body2" sx={{ mb: 0.5 }}>
+                        Current:
+                      </Typography>
+
+                      {isUrlImage(existingAttachment.uploadMediaPath) ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={existingAttachment.uploadMediaPath}
+                          alt="Current attachment"
+                          style={{ width: 260, height: 140, objectFit: "cover", borderRadius: 8, border: "1px solid #e0e0e0" }}
+                        />
+                      ) : (
+                        <a href={existingAttachment.uploadMediaPath} target="_blank" rel="noreferrer">
+                          {existingAttachment.uploadMediaPath}
+                        </a>
+                      )}
+
+                      <Box sx={{ mt: 1 }}>
+                        <Button
+                          type="button"
+                          variant="outlined"
+                          color="error"
+                          size="small"
+                          onClick={async () => {
+                            try {
+                              await deleteExistingAttachment();
+                              setSnackbarMessage("Attachment removed");
+                              setSnackbarSeverity("success");
+                              setSnackbarOpen(true);
+                            } catch (err: any) {
+                              setSnackbarMessage(err?.message ?? "Failed to delete attachment");
+                              setSnackbarSeverity("error");
+                              setSnackbarOpen(true);
+                            }
+                          }}
+                          disabled={isSubmitting}
+                        >
+                          Remove Attachment
+                        </Button>
+                      </Box>
+                    </Box>
+                  )}
+
                   <Button
                     variant="outlined"
                     component="label"
@@ -801,7 +918,7 @@ export default function EditQuestionPage() {
                     disabled={isSubmitting}
                     color={attachmentError ? "error" : "primary"}
                   >
-                    Upload File *
+                    {existingAttachment?.uploadMediaPath ? "Replace File *" : "Upload File *"}
                     <input
                       type="file"
                       hidden
@@ -823,8 +940,8 @@ export default function EditQuestionPage() {
                     <Box
                       sx={{
                         mt: 1.5,
-                        width: 220,
-                        height: 120,
+                        width: 260,
+                        height: 140,
                         border: "1px solid",
                         borderColor: "divider",
                         borderRadius: 2,
@@ -834,7 +951,7 @@ export default function EditQuestionPage() {
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={attachmentPreviewUrl}
-                        alt="Attachment preview"
+                        alt="Selected attachment preview"
                         style={{ width: "100%", height: "100%", objectFit: "cover" }}
                       />
                     </Box>
@@ -865,113 +982,118 @@ export default function EditQuestionPage() {
                   <Divider />
                 </Grid>
 
-                {options.map((opt, index) => (
-                  <Grid key={opt.optionId ?? `new-${index}`} size={{ xs: 12 }}>
-                    <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 2, borderColor: "divider" }}>
-                      <Stack spacing={1}>
-                        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                          <TextField
-                            label={`Option ${index + 1}`}
-                            size="small"
-                            fullWidth
-                            value={opt.optionText}
-                            disabled={loading || isSubmitting}
-                            onChange={(e) => handleOptionChange(index, "optionText", e.target.value)}
-                          />
+                {options.map((opt, index) => {
+                  const previewSrc = opt.optionMediaPreviewUrl || (opt.optionMediaPath ?? "");
+                  const hasPreview = Boolean(previewSrc);
 
-                          <TextField label="Order" size="small" sx={{ width: 90 }} value={opt.optionOrder} disabled />
+                  return (
+                    <Grid key={opt.optionId ?? `new-${index}`} size={{ xs: 12 }}>
+                      <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 2, borderColor: "divider" }}>
+                        <Stack spacing={1}>
+                          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+                            <TextField
+                              label={`Option ${index + 1}`}
+                              size="small"
+                              fullWidth
+                              value={opt.optionText}
+                              disabled={loading || isSubmitting}
+                              onChange={(e) => handleOptionChange(index, "optionText", e.target.value)}
+                            />
 
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                checked={opt.isCorrect}
-                                onChange={(e) => handleOptionChange(index, "isCorrect", e.target.checked)}
-                                disabled={loading || isSubmitting}
-                              />
-                            }
-                            label="Correct"
-                          />
+                            <TextField label="Order" size="small" sx={{ width: 90 }} value={opt.optionOrder} disabled />
 
-                          <IconButton
-                            aria-label="remove option"
-                            size="small"
-                            onClick={() => handleRemoveOption(index)}
-                            disabled={loading || isSubmitting || options.length <= ruleMinOptions}
-                          >
-                            <Delete fontSize="small" />
-                          </IconButton>
-                        </Box>
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  checked={opt.isCorrect}
+                                  onChange={(e) => handleOptionChange(index, "isCorrect", e.target.checked)}
+                                  disabled={loading || isSubmitting}
+                                />
+                              }
+                              label="Correct"
+                            />
 
-                        {/* OptionMedia (optional) */}
-                        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: 12 }}>
-                          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-                            <Button variant="outlined" component="label" size="small" disabled={isSubmitting}>
-                              Upload Option Image (optional)
-                              <input
-                                type="file"
-                                hidden
-                                accept="image/png,image/jpeg,image/webp"
-                                onChange={(ev) => {
-                                  const file = ev.target.files?.[0] ?? null;
-                                  handleOptionMediaChange(index, file);
-                                  ev.currentTarget.value = "";
-                                }}
-                              />
-                            </Button>
-
-                            {opt.optionMediaFile?.name && (
-                              <Typography variant="body2" color="text.secondary">
-                                {opt.optionMediaFile.name}
-                              </Typography>
-                            )}
-
-                            {opt.optionMediaFile && (
-                              <IconButton
-                                size="small"
-                                onClick={() => handleOptionMediaChange(index, null)}
-                                disabled={isSubmitting}
-                              >
-                                <Delete fontSize="small" />
-                              </IconButton>
-                            )}
-
-                            <Typography variant="caption" color="text.secondary">
-                              JPG/PNG/WEBP • Max 2MB
-                            </Typography>
-                          </Stack>
-
-                          <Box
-                            sx={{
-                              width: 120,
-                              height: 72,
-                              border: "1px solid",
-                              borderColor: "divider",
-                              borderRadius: 1,
-                              bgcolor: "background.default",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              overflow: "hidden",
-                            }}
-                          >
-                            {opt.optionMediaPreviewUrl ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={opt.optionMediaPreviewUrl}
-                                alt={`Option ${index + 1} preview`}
-                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                              />
-                            ) : (
-                              <Typography variant="caption" color="text.secondary">
-                                No image
-                              </Typography>
-                            )}
+                            <IconButton
+                              aria-label="remove option"
+                              size="small"
+                              onClick={() => handleRemoveOption(index)}
+                              disabled={loading || isSubmitting || options.length <= ruleMinOptions}
+                            >
+                              <Delete fontSize="small" />
+                            </IconButton>
                           </Box>
-                        </Box>
-                      </Stack>
-                    </Paper>
-                  </Grid>
-                ))}
+
+                          {/* OptionMediaPath (upload optional) */}
+                          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: 12 }}>
+                            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                              <Button variant="outlined" component="label" size="small" disabled={isSubmitting}>
+                                Upload Option Image (optional)
+                                <input
+                                  type="file"
+                                  hidden
+                                  accept="image/png,image/jpeg,image/webp"
+                                  onChange={(ev) => {
+                                    const file = ev.target.files?.[0] ?? null;
+                                    handleOptionMediaChange(index, file);
+                                    ev.currentTarget.value = "";
+                                  }}
+                                />
+                              </Button>
+
+                              <Typography variant="caption" color="text.secondary">
+                                (Saved as OptionMediaPath)
+                              </Typography>
+
+                              {opt.optionMediaFile?.name && (
+                                <Typography variant="body2" color="text.secondary">
+                                  {opt.optionMediaFile.name}
+                                </Typography>
+                              )}
+
+                              {(opt.optionMediaFile || opt.optionMediaPreviewUrl) && (
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleOptionMediaChange(index, null)}
+                                  disabled={isSubmitting}
+                                >
+                                  <Delete fontSize="small" />
+                                </IconButton>
+                              )}
+                            </Stack>
+
+                            <Box
+                              sx={{
+                                width: 120,
+                                height: 72,
+                                border: "1px solid",
+                                borderColor: "divider",
+                                borderRadius: 1,
+                                bgcolor: "background.default",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                overflow: "hidden",
+                              }}
+                            >
+                              {hasPreview && isUrlImage(previewSrc) ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={previewSrc}
+                                  alt={`Option ${index + 1} preview`}
+                                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                />
+                              ) : (
+                                <Typography variant="caption" color="text.secondary">
+                                  No image
+                                </Typography>
+                              )}
+                            </Box>
+                          </Box>
+                        </Stack>
+                      </Paper>
+                    </Grid>
+                  );
+                })}
 
                 <Grid size={{ xs: 12 }}>
                   <Button
@@ -992,13 +1114,7 @@ export default function EditQuestionPage() {
             <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
               <Box sx={{ display: "flex", gap: 2 }}>
                 <Link href="/questions">
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    startIcon={<Cancel />}
-                    size="small"
-                    disabled={isSubmitting}
-                  >
+                  <Button variant="outlined" color="secondary" startIcon={<Cancel />} size="small" disabled={isSubmitting}>
                     Cancel
                   </Button>
                 </Link>
@@ -1019,10 +1135,9 @@ export default function EditQuestionPage() {
         </form>
       </Paper>
 
-      {/* Snackbar */}
       <Snackbar
         open={snackbarOpen}
-        autoHideDuration={2500}
+        autoHideDuration={2200}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
         onClose={() => setSnackbarOpen(false)}
       >
