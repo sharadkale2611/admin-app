@@ -15,6 +15,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  TextField,
 } from "@mui/material";
 
 import { Add, Refresh } from "@mui/icons-material";
@@ -29,51 +30,101 @@ import { ApiError } from "@/lib/features/question/questionTypes";
 import QuestionRenderer from "./_components/QuestionRenderer";
 
 export default function QuestionsPage() {
-  const {
-    questions,
-    isLoading,
-    error,
-    refetch,
-  } = useQuestionViewModel();
+  const { questions, isLoading, error, refetch } =
+    useQuestionViewModel();
 
   const { handleDelete } = useDeleteQuestion();
 
   /* =========================================
-     Use SAME ViewModel as Create Page
+     Dropdown Data (Course + Module)
   ========================================= */
-  const {
-    courses,
-    modules,
-    handleChange,
-  } = useCreateQuestionViewModel();
+  const { courses, modules, handleChange } =
+    useCreateQuestionViewModel();
 
+  /* =========================================
+     FILTER STATES
+  ========================================= */
   const [selectedCourse, setSelectedCourse] =
     React.useState<string>("");
+
   const [selectedModule, setSelectedModule] =
     React.useState<string>("");
 
+  const [selectedQuestionType, setSelectedQuestionType] =
+    React.useState<string>("");
+
+  const [searchText, setSearchText] =
+    React.useState<string>("");
+
   /* =========================================
-     ✅ FILTER QUESTIONS (MAIN FIX)
+     UNIQUE QUESTION TYPES (For Dropdown)
+  ========================================= */
+  const questionTypes = React.useMemo(() => {
+    const map = new Map<number, string>();
+
+    questions.forEach((q) => {
+      if (q.questionTypeId && q.questionTypeName) {
+        map.set(q.questionTypeId, q.questionTypeName);
+      }
+    });
+
+    return Array.from(map.entries()).map(([id, name]) => ({
+      id,
+      name,
+    }));
+  }, [questions]);
+
+  /* =========================================
+     MAIN FILTER LOGIC (All Filters Combined)
   ========================================= */
   const filteredQuestions = React.useMemo(() => {
     return questions.filter((q) => {
+      // Course Filter
       if (
         selectedCourse &&
         String(q.courseId) !== String(selectedCourse)
-      ) {
+      )
         return false;
-      }
 
+      // Module Filter
       if (
         selectedModule &&
         String(q.moduleId) !== String(selectedModule)
-      ) {
+      )
         return false;
+
+      // Question Type Filter
+      if (
+        selectedQuestionType &&
+        String(q.questionTypeId) !==
+          String(selectedQuestionType)
+      )
+        return false;
+
+      // Title/Description Search
+      if (searchText) {
+        const text = searchText.toLowerCase();
+
+        const titleMatch = q.title
+          ?.toLowerCase()
+          .includes(text);
+
+        const descMatch = q.description
+          ?.toLowerCase()
+          .includes(text);
+
+        if (!titleMatch && !descMatch) return false;
       }
 
       return true;
     });
-  }, [questions, selectedCourse, selectedModule]);
+  }, [
+    questions,
+    selectedCourse,
+    selectedModule,
+    selectedQuestionType,
+    searchText,
+  ]);
 
   function renderErrorContent(error: ApiError | null) {
     if (!error) return null;
@@ -128,10 +179,10 @@ export default function QuestionsPage() {
         </Alert>
       )}
 
-      {/* ================= COURSE + MODULE FILTER ================= */}
+      {/* ================= FILTER BAR ================= */}
       <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
-        <Stack direction="row" spacing={2}>
-          {/* Course Dropdown */}
+        <Stack direction="row" spacing={2} flexWrap="wrap">
+          {/* Course */}
           <FormControl size="small" sx={{ minWidth: 200 }}>
             <InputLabel>Course</InputLabel>
             <Select
@@ -149,7 +200,7 @@ export default function QuestionsPage() {
                 setSelectedModule("");
               }}
             >
-              <MenuItem value="">None</MenuItem>
+              <MenuItem value="">All</MenuItem>
               {courses.map((course: any) => (
                 <MenuItem
                   key={course.courseId}
@@ -161,7 +212,7 @@ export default function QuestionsPage() {
             </Select>
           </FormControl>
 
-          {/* Module Dropdown */}
+          {/* Module */}
           <FormControl
             size="small"
             sx={{ minWidth: 200 }}
@@ -182,7 +233,7 @@ export default function QuestionsPage() {
                 setSelectedModule(e.target.value);
               }}
             >
-              <MenuItem value="">None</MenuItem>
+              <MenuItem value="">All</MenuItem>
               {modules.map((module: any) => (
                 <MenuItem
                   key={module.moduleId}
@@ -193,16 +244,42 @@ export default function QuestionsPage() {
               ))}
             </Select>
           </FormControl>
+
+          {/* Question Type */}
+          <FormControl size="small" sx={{ minWidth: 200 }}>
+            <InputLabel>Question Type</InputLabel>
+            <Select
+              value={selectedQuestionType}
+              label="Question Type"
+              onChange={(e) =>
+                setSelectedQuestionType(e.target.value)
+              }
+            >
+              <MenuItem value="">All</MenuItem>
+
+              {questionTypes.map((qt) => (
+                <MenuItem key={qt.id} value={qt.id}>
+                  {qt.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* Search */}
+          <TextField
+            size="small"
+            label="Search Title / Description"
+            value={searchText}
+            onChange={(e) =>
+              setSearchText(e.target.value)
+            }
+          />
         </Stack>
       </Paper>
 
       {/* ================= QUESTION LIST ================= */}
       <Paper elevation={2} sx={{ p: 2 }}>
-        {!selectedCourse || !selectedModule ? (
-          <Typography color="text.secondary">
-            Please select course and module to view questions.
-          </Typography>
-        ) : isLoading ? (
+        {isLoading ? (
           <Stack spacing={2}>
             {Array.from(new Array(4)).map((_, i) => (
               <Skeleton
