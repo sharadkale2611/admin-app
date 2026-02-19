@@ -17,6 +17,7 @@ import {
 
 import { Save, Cancel } from "@mui/icons-material";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import useCreateExamPaperViewModel from "@/lib/features/exampaper/useCreateExamPaperViewModel";
 
@@ -35,6 +36,7 @@ export default function CreateExamPaperPage() {
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const router = useRouter();
 
   return (
     <Container maxWidth="md" sx={{ mt: 3, mb: 4 }}>
@@ -53,14 +55,12 @@ export default function CreateExamPaperPage() {
           onSubmit={async (e) => {
             const result = await handleSubmit(e);
 
-            if (result?.success) {
-              setSnackbarMessage("Exam paper created successfully.");
-              setSnackbarOpen(true);
+if (result?.success && result.examPaperId) {
+ router.push(
+ `/examPaperQuestions/create/${result.examPaperId}`
+);
+}
 
-              setTimeout(() => {
-                window.location.href = "/exampapers";
-              }, 1500);
-            }
           }}
         >
           <Grid container spacing={2}>

@@ -14,6 +14,11 @@ export interface ExamPaperFormData {
   shuffleOptions: boolean;
 }
 
+export type CreateExamPaperResult = {
+  success: boolean;
+  examPaperId?: number;
+};
+
 export default function useCreateExamPaperViewModel() {
   const dispatch = useAppDispatch();
 
@@ -37,7 +42,9 @@ export default function useCreateExamPaperViewModel() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (
+    e: React.FormEvent
+  ): Promise<CreateExamPaperResult | undefined> => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
@@ -51,11 +58,17 @@ export default function useCreateExamPaperViewModel() {
         shuffleOptions: formData.shuffleOptions,
       };
 
-      await dispatch(createExamPaper(payload)).unwrap();
+      const response = await dispatch(
+        createExamPaper(payload)
+      ).unwrap();
 
       toast.success("Exam paper created successfully");
 
-      return { success: true };
+      /* ⭐ IMPORTANT CHANGE HERE */
+      return {
+        success: true,
+        examPaperId: response.examPaper?.examPaperId,
+      };
     } catch (err: any) {
       const msg = err?.error || "Create failed";
       setError(msg);
