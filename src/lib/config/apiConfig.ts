@@ -380,7 +380,13 @@ STUDENT_ANSWERS: {
  PUT_UPDATE: "/StudentAnswers",
  DELETE: "/StudentAnswers",
 },
-
+SAASFEATURES: {
+  GET_LIST: "/SaaSFeatures",
+  GET_BY_ID: "/SaaSFeatures",
+  POST_CREATE: "/SaaSFeatures",
+  PUT_UPDATE: "/SaaSFeatures",
+  DELETE: "/SaaSFeatures",
+},
 
 
 };

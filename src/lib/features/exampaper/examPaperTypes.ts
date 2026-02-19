@@ -17,6 +17,8 @@ export interface ExamPaper {
   updatedAt?: string | null;
 
   isDeleted: boolean;
+    examPaperQuestions?: ExamPaperQuestion[];
+
 }
 
 /* =======================
@@ -65,4 +67,11 @@ export interface ApiResponse<T> {
 export interface ApiError {
   error: string | null;
   errors: Record<string, string[]> | null;
+}
+export interface ExamPaperQuestion {
+  examPaperQuestionId: number;
+  questionId?: number;
+  questionTitle: string;
+  questionOrder?: number;
+  marksOverride?: number;
 }

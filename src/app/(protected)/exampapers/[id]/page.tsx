@@ -29,10 +29,15 @@ import {
 import { useExamPaperDetailsViewModel } from "@/lib/features/exampaper/useExamPaperDetailsViewModel";
 
 export default function ExamPaperDetailsPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id as string;
 
   const { examPaper, isLoading, error } =
-    useExamPaperDetailsViewModel(id as string);
+    useExamPaperDetailsViewModel(id);
+
+  /* ===============================
+     Helpers
+  ================================ */
 
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return "Not specified";
@@ -86,15 +91,20 @@ export default function ExamPaperDetailsPage() {
         <Alert severity="warning" sx={{ mb: 2 }}>
           Exam paper not found
         </Alert>
-
-        <Link href="/exampapers">
-          <Button startIcon={<ArrowBack />} variant="outlined">
-            Back
-          </Button>
-        </Link>
       </Container>
     );
   }
+
+  /* ===============================
+     QUESTIONS SAFE ARRAY (🔥 FIX)
+  ================================ */
+
+  const questions = (examPaper?.examPaperQuestions ?? [])
+    .slice()
+    .sort(
+      (a: any, b: any) =>
+        (a.questionOrder ?? 0) - (b.questionOrder ?? 0)
+    );
 
   /* ===============================
      Page
@@ -118,7 +128,9 @@ export default function ExamPaperDetailsPage() {
             </Button>
           </Link>
 
-          <Typography variant="h4">Exam Paper Details</Typography>
+          <Typography variant="h4">
+            Exam Paper Details
+          </Typography>
         </Box>
 
         <Stack direction="row" spacing={1}>
@@ -132,6 +144,10 @@ export default function ExamPaperDetailsPage() {
           />
         </Stack>
       </Box>
+
+      {/* ===============================
+         MAIN GRID
+      ================================ */}
 
       <Grid container spacing={3}>
         {/* LEFT CARD */}
@@ -197,7 +213,7 @@ export default function ExamPaperDetailsPage() {
 
               <Grid container spacing={3}>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="subtitle2" color="text.secondary">
+                  <Typography variant="subtitle2">
                     Total Marks
                   </Typography>
                   <Typography variant="body2">
@@ -206,53 +222,11 @@ export default function ExamPaperDetailsPage() {
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="subtitle2" color="text.secondary">
+                  <Typography variant="subtitle2">
                     Duration (Minutes)
                   </Typography>
                   <Typography variant="body2">
                     {examPaper.durationMinutes}
-                  </Typography>
-                </Grid>
-
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Shuffle Questions
-                  </Typography>
-                  <Typography variant="body2">
-                    {examPaper.shuffleQuestions ? "Yes" : "No"}
-                  </Typography>
-                </Grid>
-
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Shuffle Options
-                  </Typography>
-                  <Typography variant="body2">
-                    {examPaper.shuffleOptions ? "Yes" : "No"}
-                  </Typography>
-                </Grid>
-              </Grid>
-
-              <Divider sx={{ my: 3 }} />
-
-              <Typography variant="h6">System Information</Typography>
-
-              <Grid container spacing={3} sx={{ mt: 1 }}>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    ExamPaper ID
-                  </Typography>
-                  <Typography variant="body2">
-                    {examPaper.examPaperId}
-                  </Typography>
-                </Grid>
-
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Firm ID
-                  </Typography>
-                  <Typography variant="body2">
-                    {examPaper.firmId}
                   </Typography>
                 </Grid>
               </Grid>
@@ -260,6 +234,54 @@ export default function ExamPaperDetailsPage() {
           </Card>
         </Grid>
       </Grid>
+
+      {/* ===============================
+         QUESTIONS LIST
+      ================================ */}
+
+      <Box sx={{ mt: 4 }}>
+        <Typography variant="h6" gutterBottom>
+          Exam Questions
+        </Typography>
+
+        <Stack spacing={2}>
+          {questions.length === 0 ? (
+            <Paper sx={{ p: 3 }}>
+              <Typography color="text.secondary">
+                No questions added to this exam yet.
+              </Typography>
+            </Paper>
+          ) : (
+            questions.map((q: any, index: number) => (
+              <Paper key={q.examPaperQuestionId} sx={{ p: 2 }}>
+                <Stack spacing={1}>
+                  <Typography fontWeight={600}>
+                    #{index + 1}. {q.questionTitle}
+                  </Typography>
+
+                  <Divider />
+
+                  <Box sx={{ display: "flex", gap: 2 }}>
+                    {q.questionOrder && (
+                      <Chip
+                        size="small"
+                        label={`Order: ${q.questionOrder}`}
+                      />
+                    )}
+
+                    {q.marksOverride && (
+                      <Chip
+                        size="small"
+                        label={`Marks: ${q.marksOverride}`}
+                      />
+                    )}
+                  </Box>
+                </Stack>
+              </Paper>
+            ))
+          )}
+        </Stack>
+      </Box>
     </Container>
   );
 }

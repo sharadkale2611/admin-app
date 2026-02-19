@@ -17,6 +17,7 @@ import {
 
 import { Save, Cancel } from "@mui/icons-material";
 import Link from "next/link";
+import { useRouter, useParams } from "next/navigation";
 
 import useEditExamPaperViewModel from "@/lib/features/exampaper/useEditExamPaperViewModel";
 
@@ -32,6 +33,10 @@ export default function EditExamPaperPage() {
     handleChange,
     handleSubmit,
   } = useEditExamPaperViewModel();
+
+  const router = useRouter();
+  const params = useParams();
+  const examPaperId = Number(params.id);
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -51,14 +56,14 @@ export default function EditExamPaperPage() {
               setSnackbarMessage(result.message);
               setSnackbarOpen(true);
 
+              // ✅ Redirect to DETAILS page (Requirement Flow)
               setTimeout(() => {
-                window.location.href = "/exampapers";
-              }, 1500);
+router.push(`/examPaperQuestions/create/${examPaperId}`);
+              }, 1200);
             }
           }}
         >
           <Grid container spacing={2}>
-            {/* Name */}
             <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
@@ -72,7 +77,6 @@ export default function EditExamPaperPage() {
               />
             </Grid>
 
-            {/* Total Marks */}
             <Grid size={{ xs: 6 }}>
               <TextField
                 fullWidth
@@ -87,7 +91,6 @@ export default function EditExamPaperPage() {
               />
             </Grid>
 
-            {/* Duration */}
             <Grid size={{ xs: 6 }}>
               <TextField
                 fullWidth
@@ -102,7 +105,6 @@ export default function EditExamPaperPage() {
               />
             </Grid>
 
-            {/* Shuffle Questions */}
             <Grid size={{ xs: 12 }}>
               <FormControlLabel
                 control={
@@ -117,7 +119,6 @@ export default function EditExamPaperPage() {
               />
             </Grid>
 
-            {/* Shuffle Options */}
             <Grid size={{ xs: 12 }}>
               <FormControlLabel
                 control={
@@ -132,10 +133,9 @@ export default function EditExamPaperPage() {
               />
             </Grid>
 
-            {/* Actions */}
             <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
               <Box sx={{ display: "flex", gap: 2 }}>
-                <Link href="/exampapers">
+                <Link href={`/exampapers/${examPaperId}`}>
                   <Button
                     variant="outlined"
                     color="secondary"
@@ -162,7 +162,6 @@ export default function EditExamPaperPage() {
         </form>
       </Paper>
 
-      {/* Snackbar */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={2000}

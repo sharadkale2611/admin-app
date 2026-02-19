@@ -17,132 +17,112 @@ import {
 
 import { Save, Cancel } from "@mui/icons-material";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
-import useCreateExamPaperViewModel from "@/lib/features/exampaper/useCreateExamPaperViewModel";
+import useCreateSaaSFeatureViewModel from "@/lib/features/saasfeature/useCreateSaaSFeatureViewModel";
 
 /* ===============================
    Page
 ================================ */
 
-export default function CreateExamPaperPage() {
+export default function CreateSaaSFeaturePage() {
   const {
     formData,
-    isSubmitting,
-    error,
     handleChange,
     handleSubmit,
-  } = useCreateExamPaperViewModel();
+    isSubmitting,
+  } = useCreateSaaSFeatureViewModel();
 
+  /* Snackbar */
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
-  const router = useRouter();
 
   return (
     <Container maxWidth="md" sx={{ mt: 3, mb: 4 }}>
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
-        Create Exam Paper
+        Create SaaS Feature
       </Typography>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
 
       <Paper elevation={0} sx={{ p: 3, border: "1px solid #e0e0e0" }}>
         <form
           onSubmit={async (e) => {
             const result = await handleSubmit(e);
 
-if (result?.success && result.examPaperId) {
- router.push(
- `/examPaperQuestions/create/${result.examPaperId}`
-);
-}
+            if (result?.success) {
+              setSnackbarMessage("Feature created successfully");
+              setSnackbarOpen(true);
 
+              setTimeout(() => {
+                window.location.href = "/saasfeatures";
+              }, 1200);
+            }
           }}
         >
           <Grid container spacing={2}>
-            {/* Name */}
+            {/* Feature Key */}
             <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 required
-                label="Exam Paper Name"
-                name="name"
-                value={formData.name}
+                label="Feature Key"
+                name="featureKey"
+                value={formData.featureKey}
                 onChange={handleChange}
                 size="small"
                 disabled={isSubmitting}
+                placeholder="e.g. EXAMS"
               />
             </Grid>
 
-            {/* Total Marks */}
-            <Grid size={{ xs: 6 }}>
-              <TextField
-                fullWidth
-                required
-                label="Total Marks"
-                name="totalMarks"
-                value={formData.totalMarks}
-                onChange={handleChange}
-                type="number"
-                size="small"
-                disabled={isSubmitting}
-              />
-            </Grid>
-
-            {/* Duration */}
-            <Grid size={{ xs: 6 }}>
-              <TextField
-                fullWidth
-                required
-                label="Duration (Minutes)"
-                name="durationMinutes"
-                value={formData.durationMinutes}
-                onChange={handleChange}
-                type="number"
-                size="small"
-                disabled={isSubmitting}
-              />
-            </Grid>
-
-            {/* Shuffle Questions */}
+            {/* Feature Name */}
             <Grid size={{ xs: 12 }}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    name="shuffleQuestions"
-                    checked={formData.shuffleQuestions}
-                    onChange={handleChange}
-                  />
-                }
-                label="Shuffle Questions"
+              <TextField
+                fullWidth
+                required
+                label="Feature Name"
+                name="featureName"
+                value={formData.featureName}
+                onChange={handleChange}
+                size="small"
+                disabled={isSubmitting}
+                placeholder="e.g. Exams Management"
               />
             </Grid>
 
-            {/* Shuffle Options */}
+            {/* Description */}
+            <Grid size={{ xs: 12 }}>
+              <TextField
+                fullWidth
+                label="Description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                size="small"
+                multiline
+                rows={3}
+                disabled={isSubmitting}
+              />
+            </Grid>
+
+            {/* Active Switch */}
             <Grid size={{ xs: 12 }}>
               <FormControlLabel
                 control={
                   <Switch
-                    name="shuffleOptions"
-                    checked={formData.shuffleOptions}
+                    checked={formData.isActive}
+                    name="isActive"
                     onChange={handleChange}
                   />
                 }
-                label="Shuffle Options"
+                label="Active"
               />
             </Grid>
 
-            {/* Actions */}
+            {/* Buttons */}
             <Grid size={{ xs: 12 }} sx={{ mt: 2 }}>
               <Box sx={{ display: "flex", gap: 2 }}>
-                <Link href="/exampapers">
+                <Link href="/saasfeatures">
                   <Button
                     variant="outlined"
-                    color="secondary"
                     startIcon={<Cancel />}
                     size="small"
                     disabled={isSubmitting}
@@ -158,7 +138,7 @@ if (result?.success && result.examPaperId) {
                   size="small"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Creating..." : "Create Exam Paper"}
+                  {isSubmitting ? "Creating..." : "Create Feature"}
                 </Button>
               </Box>
             </Grid>
