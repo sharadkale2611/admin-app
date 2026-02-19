@@ -3,6 +3,7 @@ import API_ENDPOINTS from '../config/apiConfig';
 import type { AppDispatch } from '../store';
 import { logout } from '../features/auth/authSlice';
 import { resetAdmissionDraft } from '../features/admission/admissionDraftSlice';
+import { getOrCreateDeviceId } from '../http/deviceId';
 
 // Export the interface for transformed responses
 export interface TransformedResponse<T = any> {
@@ -32,13 +33,15 @@ const axiosInstance: AxiosInstance = axios.create({
 
 // Request interceptor
 axiosInstance.interceptors.request.use(
-    (config) => {
-        // Add any request headers here if needed
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
-    }
+  (config) => {
+    const deviceId = getOrCreateDeviceId();
+
+    config.headers = config.headers ?? {};
+    config.headers["Device-Id"] = deviceId;
+
+    return config;
+  },
+  (error) => Promise.reject(error)
 );
 
 // Response transformer - handles successful responses
@@ -81,10 +84,7 @@ axiosInstance.interceptors.response.use(
 
             try {
                 // Attempt to refresh tokens
-                await axios.post(API_ENDPOINTS.AUTH.REFRESH,
-                    {},
-                    { withCredentials: true }
-                );
+                await axiosInstance.post(API_ENDPOINTS.AUTH.REFRESH, {});
 
                 // Retry the original request with new tokens
                 return axiosInstance(originalRequest);

@@ -4,9 +4,9 @@
    "private": true,
    "type": "module",
    "scripts": {
-      "dev": "node server.cjs",
+    "dev": "next dev",
       "build": "next build",
-      "start": "node server.cjs",
+      "start": "next start",
       "lint": "next lint"
    },
    "dependencies": {
