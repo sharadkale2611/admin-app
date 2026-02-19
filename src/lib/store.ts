@@ -57,6 +57,7 @@ import examAttemptReducer from "@/lib/features/examAttempt/examAttemptSlice";
 import examAttemptQuestionReducer from "@/lib/features/examAttemptQuestion/examAttemptQuestionSlice";
 import studentAnswerReducer from "@/lib/features/studentAnswer/studentAnswerSlice";
 import saasFeatureReducer from "@/lib/features/saasfeature/saasFeatureSlice"; 
+import subscriptionPlanReducer from "@/lib/features/subscriptionPlan/subscriptionPlanSlice";
 
 
 const admissionDraftPersistConfig = {
@@ -110,6 +111,7 @@ const rootReducer = combineReducers({
     examAttemptQuestions: examAttemptQuestionReducer,
     studentAnswers: studentAnswerReducer,
     saasFeatures: saasFeatureReducer,  
+    subscriptionPlans: subscriptionPlanReducer,
 
 
 });

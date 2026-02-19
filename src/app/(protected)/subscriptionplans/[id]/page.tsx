@@ -1,0 +1,271 @@
+"use client";
+
+import React from "react";
+import { useParams } from "next/navigation";
+import {
+  Container,
+  Typography,
+  Card,
+  CardContent,
+  Chip,
+  Button,
+  Box,
+  Paper,
+  Grid,
+  Skeleton,
+  Alert,
+  Divider,
+  Stack,
+} from "@mui/material";
+
+import Link from "next/link";
+import {
+  ArrowBack,
+  Edit,
+  Settings,
+  Event,
+  Info,
+  ToggleOn,
+} from "@mui/icons-material";
+
+import { useSubscriptionPlanDetailsViewModel } from "@/lib/features/subscriptionPlan/useSubscriptionPlanDetailsViewModel";
+
+export default function SubscriptionPlanDetailsPage() {
+  const { id } = useParams();
+
+  const { subscriptionPlan, isLoading, error } =
+    useSubscriptionPlanDetailsViewModel(id as string);
+
+  const formatDate = (dateString?: string | null) => {
+    if (!dateString) return "Not specified";
+
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  /* ===============================
+     Loading
+  ================================ */
+
+  if (isLoading) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <Skeleton variant="rectangular" width="100%" height={400} />
+      </Container>
+    );
+  }
+
+  /* ===============================
+     Error
+  ================================ */
+
+  if (error) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Failed to load Subscription Plan
+        </Alert>
+
+        <Link href="/subscriptionplans">
+          <Button startIcon={<ArrowBack />} variant="outlined">
+            Back
+          </Button>
+        </Link>
+      </Container>
+    );
+  }
+
+  /* ===============================
+     Not Found
+  ================================ */
+
+  if (!subscriptionPlan) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <Alert severity="warning">Plan not found</Alert>
+      </Container>
+    );
+  }
+
+  /* ===============================
+     Page
+  ================================ */
+
+  return (
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      {/* Header */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 4,
+        }}
+      >
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <Link href="/subscriptionplans">
+            <Button startIcon={<ArrowBack />} variant="outlined" size="small">
+              Back
+            </Button>
+          </Link>
+
+          <Typography variant="h4">Subscription Plan Details</Typography>
+        </Box>
+
+        <Chip
+          label={subscriptionPlan.isActive ? "Active" : "Inactive"}
+          color={subscriptionPlan.isActive ? "success" : "default"}
+        />
+      </Box>
+
+      <Grid container spacing={3}>
+        {/* LEFT CARD */}
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Paper sx={{ p: 3, textAlign: "center" }} elevation={2}>
+            <Settings
+              sx={{
+                fontSize: 80,
+                color: "primary.main",
+                mb: 2,
+              }}
+            />
+
+            <Typography variant="h5">
+              {subscriptionPlan.planCode}
+            </Typography>
+
+            <Typography variant="body2" color="text.secondary">
+              {subscriptionPlan.planName}
+            </Typography>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Stack spacing={1} alignItems="flex-start">
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <Info fontSize="small" />
+                <Typography variant="body2">
+                  Billing: {subscriptionPlan.billingCycle}
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <Event fontSize="small" />
+                <Typography variant="body2">
+                  Created: {formatDate(subscriptionPlan.createdAt)}
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <ToggleOn fontSize="small" />
+                <Typography variant="body2">
+                  Status: {subscriptionPlan.isActive ? "Active" : "Inactive"}
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Box sx={{ mt: 3 }}>
+              <Link href={`/subscriptionplans/${id}/edit`}>
+                <Button
+                  variant="contained"
+                  startIcon={<Edit />}
+                  fullWidth
+                >
+                  Edit Plan
+                </Button>
+              </Link>
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* RIGHT CARD */}
+        <Grid size={{ xs: 12, md: 8 }}>
+          <Card elevation={2}>
+            <CardContent>
+              <Typography variant="h6" sx={{ mb: 3 }}>
+                Plan Information
+              </Typography>
+
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Plan Code
+                  </Typography>
+                  <Typography variant="body2">
+                    {subscriptionPlan.planCode}
+                  </Typography>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Plan Name
+                  </Typography>
+                  <Typography variant="body2">
+                    {subscriptionPlan.planName}
+                  </Typography>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Price
+                  </Typography>
+                  <Typography variant="body2">
+                    ₹ {subscriptionPlan.price}
+                  </Typography>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Billing Cycle
+                  </Typography>
+                  <Typography variant="body2">
+                    {subscriptionPlan.billingCycle}
+                  </Typography>
+                </Grid>
+              </Grid>
+
+              <Divider sx={{ my: 3 }} />
+
+              <Typography variant="h6" sx={{ mb: 3 }}>
+                System Information
+              </Typography>
+
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Plan ID
+                  </Typography>
+                  <Typography variant="body2">
+                    {subscriptionPlan.planId}
+                  </Typography>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Created On
+                  </Typography>
+                  <Typography variant="body2">
+                    {formatDate(subscriptionPlan.createdAt)}
+                  </Typography>
+                </Grid>
+
+                {subscriptionPlan.updatedAt && (
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Updated On
+                    </Typography>
+                    <Typography variant="body2">
+                      {formatDate(subscriptionPlan.updatedAt)}
+                    </Typography>
+                  </Grid>
+                )}
+              </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Container>
+  );
+}

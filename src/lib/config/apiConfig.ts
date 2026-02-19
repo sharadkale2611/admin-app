@@ -388,7 +388,13 @@ SAASFEATURES: {
   DELETE: "/SaaSFeatures",
 },
 
-
+SUBSCRIPTIONPLANS: {
+    GET_LIST: "/SubscriptionPlans",
+    GET_BY_ID: "/SubscriptionPlans",
+    POST_CREATE: "/SubscriptionPlans",
+    PUT_UPDATE: "/SubscriptionPlans",
+    DELETE: "/SubscriptionPlans",
+  },
 };
 
 export default API_ENDPOINTS;
