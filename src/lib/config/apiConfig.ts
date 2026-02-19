@@ -388,6 +388,24 @@ SAASFEATURES: {
   DELETE: "/SaaSFeatures",
 },
 
+ FIRM_SAAS_FEATURES: {
+    GET_LIST: "/FirmSaaSFeatures",
+    GET_BY_ID: "/FirmSaaSFeatures",
+    POST_CREATE: "/FirmSaaSFeatures",
+    PUT_UPDATE: "/FirmSaaSFeatures",
+    DELETE: "/FirmSaaSFeatures",
+  },
+
+
+    FIRM_SAAS_FEATURE_USAGE: {
+    GET_LIST: "/FirmSaaSFeatureUsage",
+    GET_BY_KEYS: "/FirmSaaSFeatureUsage", 
+    POST_CREATE: "/FirmSaaSFeatureUsage",
+    PUT_UPDATE: "/FirmSaaSFeatureUsage", 
+    DELETE: "/FirmSaaSFeatureUsage", 
+  },
+  
+
 
 };
 

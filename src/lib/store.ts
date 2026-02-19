@@ -57,8 +57,8 @@ import examAttemptReducer from "@/lib/features/examAttempt/examAttemptSlice";
 import examAttemptQuestionReducer from "@/lib/features/examAttemptQuestion/examAttemptQuestionSlice";
 import studentAnswerReducer from "@/lib/features/studentAnswer/studentAnswerSlice";
 import saasFeatureReducer from "@/lib/features/saasfeature/saasFeatureSlice"; 
-
-
+import firmSaaSFeatureReducer from "@/lib/features/firmSaaSFeature/firmSaaSFeatureSlice";
+import firmSaaSFeatureUsageReducer from "@/lib/features/firmSaaSFeatureUsage/firmSaaSFeatureUsageSlice";
 const admissionDraftPersistConfig = {
     key: 'admissionDraft',
     storage: sessionStorageEngine,
@@ -110,6 +110,8 @@ const rootReducer = combineReducers({
     examAttemptQuestions: examAttemptQuestionReducer,
     studentAnswers: studentAnswerReducer,
     saasFeatures: saasFeatureReducer,  
+    firmSaaSFeatures: firmSaaSFeatureReducer,
+    firmSaaSFeatureUsage: firmSaaSFeatureUsageReducer,
 
 
 });
