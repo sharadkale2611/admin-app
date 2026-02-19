@@ -395,6 +395,14 @@ SUBSCRIPTIONPLANS: {
     PUT_UPDATE: "/SubscriptionPlans",
     DELETE: "/SubscriptionPlans",
   },
+  PLANSAASFEATURES: {
+    GET_LIST: "/plansaasfeatures",
+    GET_BY_ID: "/plansaasfeatures",
+    POST_CREATE: "/plansaasfeatures",
+    PUT_UPDATE: "/plansaasfeatures",
+    DELETE: "/plansaasfeatures",
+  },
 };
+
 
 export default API_ENDPOINTS;
